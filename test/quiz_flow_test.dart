@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hiraku/core/design_system/theme/app_theme.dart';
+import 'package:hiraku/core/design_system/tokens/app_colors.dart';
 import 'package:hiraku/core/router/app_routes.dart';
 import 'package:hiraku/features/crystals/application/selected_crystal_controller.dart';
 import 'package:hiraku/features/crystals/domain/crystal.dart';
@@ -172,5 +173,66 @@ void main() {
       ),
       findsOneWidget,
     );
+  });
+
+  testWidgets('options stay centered on small and large phones', (
+    tester,
+  ) async {
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    for (final size in const [
+      Size(360, 640),
+      Size(360, 800),
+      Size(390, 844),
+      Size(430, 932),
+    ]) {
+      tester.view.physicalSize = size;
+      tester.view.devicePixelRatio = 1;
+
+      final router = GoRouter(
+        initialLocation: AppRoutes.listeningRoomQuiz,
+        routes: [
+          GoRoute(
+            path: AppRoutes.listeningRoomQuiz,
+            builder: (context, state) => const ListeningRoomQuizScreen(),
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp.router(theme: AppTheme.dark, routerConfig: router),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+
+      final options = tester.getRect(find.byType(ListView));
+      expect(options.center.dx, closeTo(size.width / 2, 1));
+      expect(options.width, lessThanOrEqualTo(280));
+      expect(options.left, greaterThan(24));
+
+      final label = tester.getRect(find.text('Reduce puffiness'));
+      expect(label.left, greaterThan(options.left));
+      expect(label.right, lessThan(options.right));
+
+      expect(
+        find.byWidgetPredicate((widget) {
+          if (widget is! DecoratedBox) return false;
+          final decoration = widget.decoration;
+          return decoration is BoxDecoration &&
+              decoration.color == AppColors.scrim60;
+        }),
+        findsOneWidget,
+      );
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+    }
   });
 }

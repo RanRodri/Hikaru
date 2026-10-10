@@ -255,25 +255,43 @@ class _ListeningRoomQuizScreenState
                   ],
                   const SizedBox(height: AppSpacing.s20),
                   Expanded(
-                    child: ListView.separated(
-                      controller: _optionsController,
-                      primary: false,
-                      padding: EdgeInsets.zero,
-                      itemCount: question.options.length,
-                      separatorBuilder: (_, _) =>
-                          const SizedBox(height: AppSpacing.s6),
-                      itemBuilder: (context, index) {
-                        final option = question.options[index];
-                        return _QuizOptionTile(
-                          title: option.label,
-                          detail: option.detail,
-                          selected: _answers.isSelected(
-                            question.number,
-                            option.id,
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 280),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: AppColors.scrim60,
+                              borderRadius: BorderRadius.circular(AppRadii.r16),
+                            ),
+                            child: ListView.separated(
+                              controller: _optionsController,
+                              primary: false,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.s12,
+                                vertical: AppSpacing.s8,
+                              ),
+                              itemCount: question.options.length,
+                              separatorBuilder: (_, _) =>
+                                  const SizedBox(height: AppSpacing.s6),
+                              itemBuilder: (context, index) {
+                                final option = question.options[index];
+                                return _QuizOptionTile(
+                                  title: option.label,
+                                  detail: option.detail,
+                                  selected: _answers.isSelected(
+                                    question.number,
+                                    option.id,
+                                  ),
+                                  onPressed: () => _handleSelect(option.id),
+                                );
+                              },
+                            ),
                           ),
-                          onPressed: () => _handleSelect(option.id),
-                        );
-                      },
+                        ),
+                      ),
                     ),
                   ),
                   if (_showChoiceError)
