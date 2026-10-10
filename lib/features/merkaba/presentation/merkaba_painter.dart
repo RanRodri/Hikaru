@@ -5,11 +5,11 @@ import 'package:flutter/material.dart';
 import '../../../core/design_system/tokens/app_colors.dart';
 import '../domain/merkaba_session.dart';
 
-/// The seated woman, with the studio gray removed, on the indigo field.
-const String merkabaWomanAsset = 'assets/images/merkaba_woman.png';
+/// Seated woman, cropped to the portrait field. Edges fade into the screen indigo.
+const String merkabaWomanAsset = 'assets/images/merkaba_woman.webp';
 
 /// Width / height of [merkabaWomanAsset].
-const double merkabaWomanAspect = 1186 / 1280;
+const double merkabaWomanAspect = 900 / 720;
 
 /// Painted Merkaba field over the seated woman. A pre-rendered video can
 /// replace this widget later by passing [MerkabaStage.replacement].
@@ -185,7 +185,7 @@ class MerkabaFieldPainter extends CustomPainter {
     final fade = sceneIndex == 5 ? (1 - sceneT).clamp(0.0, 1.0) : 1.0;
     if (fade <= 0) return;
     final scale = sceneIndex == 4 ? 1 + breath * 0.08 : 1 + breath * 0.02;
-    final radius = woman.height * 0.36 * scale;
+    final radius = woman.height * 0.42 * scale;
     final spin = _spin(frame);
     _drawTetra(
       canvas: canvas,
@@ -354,14 +354,14 @@ class MerkabaFieldPainter extends CustomPainter {
     return settled + rate * t * (1 - t / (2 * sceneLength));
   }
 
-  /// Vertical centerline through the heart, as a fraction of the portrait.
+  /// Vertical centerline through the heart in the portrait.
   static const double _axisX = 0.50;
 
-  /// Chest, where the heart glow sits.
-  static const double _heartY = 0.37;
+  /// Glowing heart in the portrait, also the center of her seated figure.
+  static const double _heartY = 0.478;
 
-  /// Mid-body, so the tetrahedron frames crown and seat together.
-  static const double _bodyY = 0.50;
+  /// Star and tetrahedron share the heart, so the figure is framed on that axis.
+  static const double _bodyY = _heartY;
 
   Rect _womanRect(Size size) {
     final boxAspect = size.width / size.height;
