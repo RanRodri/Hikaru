@@ -1,6 +1,10 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hiraku/features/merkaba/domain/merkaba_session.dart';
+import 'package:hiraku/features/merkaba/presentation/merkaba_painter.dart';
 import 'package:hiraku/features/merkaba/presentation/merkaba_screen.dart';
 
 void main() {
@@ -48,6 +52,20 @@ void main() {
     expect(merkabaFrameAt(merkabaDuration).scene.title, 'The Heart Blossoms');
   });
 
+  test('the seated woman portrait decodes', () async {
+    final data = await rootBundle.load(merkabaWomanAsset);
+    final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
+    final frame = await codec.getNextFrame();
+    expect(frame.image.width, 900);
+    expect(frame.image.height, 720);
+    final bytes = await frame.image.toByteData();
+    expect(bytes, isNotNull);
+    final heart = _rgba(bytes!, frame.image.width, 450, 344);
+    expect(heart.$4, greaterThan(200), reason: 'heart stays opaque');
+    expect(heart.$1 + heart.$2, greaterThan(400), reason: 'heart is bright');
+    frame.image.dispose();
+  });
+
   testWidgets('reduced motion keeps the woman and the mid-session scene', (
     tester,
   ) async {
@@ -62,11 +80,27 @@ void main() {
       ),
     );
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 50));
+    await tester.runAsync(() async {
+      await precacheImage(
+        const AssetImage(merkabaWomanAsset),
+        tester.element(find.byType(Image)),
+      );
+    });
+    await tester.pump();
 
     expect(find.text('Breath Builds the Merkaba'), findsOneWidget);
     expect(find.text('Lotus Mudra'), findsOneWidget);
     expect(find.text('Inhale'), findsOneWidget);
     expect(find.bySemanticsLabel('Seated woman in meditation'), findsOneWidget);
   });
+}
+
+(int, int, int, int) _rgba(ByteData bytes, int width, int x, int y) {
+  final offset = (y * width + x) * 4;
+  return (
+    bytes.getUint8(offset),
+    bytes.getUint8(offset + 1),
+    bytes.getUint8(offset + 2),
+    bytes.getUint8(offset + 3),
+  );
 }

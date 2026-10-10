@@ -6,7 +6,7 @@ import '../../../core/design_system/tokens/app_colors.dart';
 import '../domain/merkaba_session.dart';
 
 /// Seated woman, cropped to the portrait field. Edges fade into the screen indigo.
-const String merkabaWomanAsset = 'assets/images/merkaba_woman.webp';
+const String merkabaWomanAsset = 'assets/images/merkaba_woman.png';
 
 /// Width / height of [merkabaWomanAsset].
 const double merkabaWomanAspect = 900 / 720;
@@ -252,14 +252,25 @@ class MerkabaFieldPainter extends CustomPainter {
                 ) *
                 radius,
     ];
+    final path = Path();
+    var drawing = false;
     for (var edge = 0; edge < 3; edge++) {
-      final progress = edges[edge];
-      if (progress <= 0) continue;
-      final path = Path()
-        ..moveTo(points[edge].dx, points[edge].dy)
-        ..lineTo(points[(edge + 1) % 3].dx, points[(edge + 1) % 3].dy);
-      _stroke(canvas, path, alpha, progress);
+      final progress = edges[edge].clamp(0.0, 1.0);
+      if (progress <= 0) break;
+      final start = points[edge];
+      final end = points[(edge + 1) % 3];
+      final tip = Offset(
+        start.dx + (end.dx - start.dx) * progress,
+        start.dy + (end.dy - start.dy) * progress,
+      );
+      if (!drawing) {
+        path.moveTo(start.dx, start.dy);
+        drawing = true;
+      }
+      path.lineTo(tip.dx, tip.dy);
+      if (progress < 1) break;
     }
+    if (drawing) _stroke(canvas, path, alpha, 1);
   }
 
   List<double> _edges(double built, int first) {
@@ -333,16 +344,13 @@ class MerkabaFieldPainter extends CustomPainter {
   }
 
   /// Lower tetrahedron, then the upper one, one edge at a time.
-  /// After both have started, they turn gently in opposite directions.
+  /// They stay on her vertical axis until both triangles are closed,
+  /// then turn gently in opposite directions.
   double _spin(MerkabaFrame frame) {
     if (reduceMotion) return 0;
-    final scene4 = merkabaScenes[3];
-    // The upper tetrahedron begins halfway through scene 4.
-    final start =
-        scene4.start +
-        Duration(milliseconds: (scene4.end - scene4.start).inMilliseconds ~/ 2);
+    final start = merkabaScenes[4].start;
     if (frame.elapsed <= start) return 0;
-    const rate = 0.028;
+    const rate = 0.012;
     final scene6 = merkabaScenes[5].start;
     if (frame.elapsed <= scene6) {
       return (frame.elapsed - start).inMilliseconds / 1000 * rate;
