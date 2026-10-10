@@ -15,6 +15,7 @@ import '../../../core/design_system/widgets/hikaru_pill_button.dart';
 import '../../../core/router/app_routes.dart';
 import '../../crystals/application/selected_crystal_controller.dart';
 import '../../crystals/domain/crystal.dart';
+import 'cymatic_signature.dart';
 import 'resonance_sections.dart';
 
 final TextStyle _bodyStyle = AppTypography.headline.copyWith(
@@ -138,7 +139,10 @@ class _CrystalResonanceScreenState
           ),
           SizedBox(
             height: heroHeight,
-            child: _CrystalHero(crystal: _crystal),
+            child: _CrystalHero(
+              crystal: _crystal,
+              playing: _isPlaying && !_isAudioUnavailable,
+            ),
           ),
           Expanded(
             child: ChamberScrollView(
@@ -236,9 +240,10 @@ class _CrystalIntroduction extends StatelessWidget {
 }
 
 class _CrystalHero extends StatelessWidget {
-  const _CrystalHero({required this.crystal});
+  const _CrystalHero({required this.crystal, required this.playing});
 
   final Crystal crystal;
+  final bool playing;
 
   @override
   Widget build(BuildContext context) {
@@ -256,9 +261,10 @@ class _CrystalHero extends StatelessWidget {
               ),
             ],
           ),
-          child: Image.asset(
-            crystal.imageAsset,
-            fit: BoxFit.contain,
+          child: CymaticSignature(
+            crystal: crystal,
+            playing: playing,
+            showSeal: true,
             semanticLabel: '${crystal.displayName} crystal',
           ),
         ),

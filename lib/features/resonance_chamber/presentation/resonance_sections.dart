@@ -9,6 +9,7 @@ import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/design_system/widgets/hikaru_dividers.dart';
 import '../../crystals/application/selected_crystal_controller.dart';
 import '../../crystals/domain/crystal.dart';
+import 'cymatic_signature.dart';
 
 final Color resonanceChamberColor = Color.alphaBlend(
   AppColors.indigoBlue.withValues(alpha: 0.7),
@@ -227,20 +228,28 @@ class _FrequencyColumn extends ConsumerWidget {
   }
 }
 
-class _CymaticColumn extends StatelessWidget {
+class _CymaticColumn extends ConsumerWidget {
   const _CymaticColumn();
 
+  static const double _signatureSize = 86;
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final crystal = ref.watch(selectedCrystalProvider).value ?? Crystal.jade;
+
     return _TriadColumn(
       medallionAsset: 'assets/images/resonance_medallion_cymatic.svg',
       label: 'YOUR CYMATIC\nSIGNATURE',
       children: [
-        SvgPicture.asset(
-          'assets/images/resonance_cymatic_signature.svg',
-          width: 86,
-          height: 86,
-          semanticsLabel: 'Your cymatic signature',
+        SizedBox(
+          width: _signatureSize,
+          height: _signatureSize,
+          child: CymaticSignature(
+            crystal: crystal,
+            playing: false,
+            fillBackground: false,
+            semanticLabel: 'Your cymatic signature',
+          ),
         ),
       ],
     );
