@@ -1,13 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
+import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 
 import 'package:hiraku/app.dart';
 import 'package:hiraku/features/sanctuary/presentation/sanctuary_screen.dart';
 import 'package:hiraku/features/splash/presentation/splash_controller.dart';
 import 'package:hiraku/features/splash/presentation/splash_screen.dart';
 
+import 'support/quiz_driver.dart';
+
 void main() {
+  setUp(() {
+    SharedPreferencesAsyncPlatform.instance =
+        InMemorySharedPreferencesAsync.empty();
+  });
+
   testWidgets('Shows the splash for 3 seconds and then the sanctuary', (
     WidgetTester tester,
   ) async {
@@ -89,15 +98,29 @@ void main() {
     await tester.tap(find.text('BEGIN'));
     await tester.pumpAndSettle();
 
-    expect(find.text('How is your energy\nfeeling today?'), findsOneWidget);
-    expect(find.text('Calm and balanced'), findsOneWidget);
+    expect(find.text('01 / 10'), findsOneWidget);
+    expect(
+      find.text('What would you like to see reflected in the mirror today?'),
+      findsOneWidget,
+    );
     expect(find.text('NEXT'), findsOneWidget);
 
-    await tester.tap(find.text('Calm and balanced'));
-    await tester.pump();
-    await tester.ensureVisible(find.text('NEXT'));
-    await tester.tap(find.text('NEXT'));
-    await tester.pumpAndSettle();
+    const quizAnswers = [
+      'Reduce puffiness',
+      'Comfortable and balanced',
+      'In the morning',
+      'Jaw',
+      'Jawline',
+      'Calm',
+      'Deeply relaxed',
+      'Harmony',
+      '5 minutes',
+      'Today is my very first ritual',
+    ];
+    for (final answer in quizAnswers) {
+      await tapQuizChoice(tester, answer);
+      await tapQuizNext(tester);
+    }
 
     expect(find.text('Your\nRitual Is Ready'), findsOneWidget);
     expect(find.text('ENTER YOUR RITUAL'), findsOneWidget);
@@ -118,6 +141,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('THE RESONANCE CHAMBER'), findsOneWidget);
+    expect(find.bySemanticsLabel('Assigned crystal JADE'), findsOneWidget);
     expect(find.text('THE ALIGNMENT TRIAD'), findsOneWidget);
     expect(find.text('ENTER MY 30-DAY JOURNEY'), findsOneWidget);
 
@@ -126,6 +150,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Harmony Garden'), findsOneWidget);
+    expect(find.bySemanticsLabel('Listening Sanctuary, JADE'), findsOneWidget);
     expect(find.text('Home'), findsOneWidget);
     expect(find.text('Settings'), findsOneWidget);
   });

@@ -1,11 +1,13 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/router/app_routes.dart';
+import '../../crystals/application/selected_crystal_controller.dart';
 import 'resonance_sections.dart';
 
 class ResonanceChamberScreen extends StatelessWidget {
@@ -57,11 +59,12 @@ class ResonanceChamberScreen extends StatelessWidget {
   }
 }
 
-class _ChamberIntroduction extends StatelessWidget {
+class _ChamberIntroduction extends ConsumerWidget {
   const _ChamberIntroduction();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final crystal = ref.watch(selectedCrystalProvider).value;
     final bodyStyle = AppTypography.headline.copyWith(
       color: AppColors.white,
       letterSpacing: 0,
@@ -83,6 +86,24 @@ class _ChamberIntroduction extends StatelessWidget {
           textAlign: TextAlign.center,
           style: bodyStyle.copyWith(fontSize: 10.5, height: 1.5),
         ),
+        if (crystal != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            crystal.displayName,
+            textAlign: TextAlign.center,
+            semanticsLabel: 'Assigned crystal ${crystal.displayName}',
+            style: AppTypography.subheadline.copyWith(
+              color: AppColors.champagneGold,
+              fontSize: 12,
+              letterSpacing: 1.4,
+            ),
+          ),
+          Text(
+            crystal.temple,
+            textAlign: TextAlign.center,
+            style: bodyStyle.copyWith(fontSize: 10.5, height: 1.4),
+          ),
+        ],
       ],
     );
   }

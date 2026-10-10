@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
+import '../../crystals/application/selected_crystal_controller.dart';
+import '../../crystals/domain/crystal.dart';
 
 final Color resonanceChamberColor = Color.alphaBlend(
   AppColors.indigoBlue.withValues(alpha: 0.7),
@@ -193,23 +196,29 @@ class _TriadColumn extends StatelessWidget {
   }
 }
 
-class _FrequencyColumn extends StatelessWidget {
+class _FrequencyColumn extends ConsumerWidget {
   const _FrequencyColumn();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final crystal = ref.watch(selectedCrystalProvider).value;
+
     return _TriadColumn(
       medallionAsset: 'assets/images/resonance_medallion_frequency.svg',
       label: 'YOUR FREQUENCY',
       children: [
-        Text('528 Hz', style: _chamberText.copyWith(fontSize: 22)),
+        Text(
+          crystal?.frequency ?? '528 Hz',
+          textAlign: TextAlign.center,
+          style: _chamberText.copyWith(fontSize: 22),
+        ),
         SvgPicture.asset(
           'assets/images/resonance_waveform.svg',
           width: 89,
           height: 41,
         ),
         Text(
-          'Composed by\nMaestro Jorge Alfano',
+          'Composed by\n${Crystal.composer}',
           textAlign: TextAlign.center,
           style: _chamberText.copyWith(fontSize: 9.5, height: 1.4),
         ),
