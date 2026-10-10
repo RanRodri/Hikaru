@@ -121,10 +121,10 @@ class _ChamberIntroduction extends ConsumerWidget {
   }
 }
 
-class _CrystalVista extends StatelessWidget {
+class _CrystalVista extends ConsumerWidget {
   const _CrystalVista();
 
-  static const String _crystalAsset = 'assets/images/resonance_crystal.png';
+  static const String _gardenAsset = 'assets/images/resonance_crystal.png';
   static const double _imageAspectRatio = 768 / 1344;
   static const double _visibleImageFraction = 303 / 845;
   static const Offset _crystalFocus = Offset(0.4667, 0.36);
@@ -132,32 +132,30 @@ class _CrystalVista extends StatelessWidget {
   static const double _bottomFeather = 53;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final crystal = ref.watch(selectedCrystalProvider).value;
+
     return LayoutBuilder(
       builder: (context, constraints) {
-        final imageHeight = constraints.maxHeight / _visibleImageFraction;
-        final imageWidth = imageHeight * _imageAspectRatio;
-
         return Stack(
           clipBehavior: Clip.hardEdge,
           children: [
-            Positioned(
-              left: constraints.maxWidth / 2 - _crystalFocus.dx * imageWidth,
-              top: constraints.maxHeight / 2 - _crystalFocus.dy * imageHeight,
-              width: imageWidth,
-              height: imageHeight,
-              child: ColorFiltered(
-                colorFilter: ColorFilter.mode(
-                  AppColors.indigoBlue.withValues(alpha: 0.12),
-                  BlendMode.color,
+            if (crystal == null)
+              _GardenPortrait(constraints: constraints)
+            else
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.s40,
+                  AppSpacing.s16,
+                  AppSpacing.s40,
+                  AppSpacing.s28,
                 ),
-                child: const Image(
-                  image: AssetImage(_crystalAsset),
-                  fit: BoxFit.fill,
-                  semanticLabel: 'Your crystal in the garden',
+                child: Image(
+                  image: AssetImage(crystal.imageAsset),
+                  fit: BoxFit.contain,
+                  semanticLabel: '${crystal.displayName} crystal',
                 ),
               ),
-            ),
             Positioned(
               top: 0,
               left: 0,
@@ -179,6 +177,45 @@ class _CrystalVista extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+class _GardenPortrait extends StatelessWidget {
+  const _GardenPortrait({required this.constraints});
+
+  final BoxConstraints constraints;
+
+  @override
+  Widget build(BuildContext context) {
+    final imageHeight =
+        constraints.maxHeight / _CrystalVista._visibleImageFraction;
+    final imageWidth = imageHeight * _CrystalVista._imageAspectRatio;
+
+    return Stack(
+      children: [
+        Positioned(
+          left:
+              constraints.maxWidth / 2 -
+              _CrystalVista._crystalFocus.dx * imageWidth,
+          top:
+              constraints.maxHeight / 2 -
+              _CrystalVista._crystalFocus.dy * imageHeight,
+          width: imageWidth,
+          height: imageHeight,
+          child: ColorFiltered(
+            colorFilter: ColorFilter.mode(
+              AppColors.indigoBlue.withValues(alpha: 0.12),
+              BlendMode.color,
+            ),
+            child: const Image(
+              image: AssetImage(_CrystalVista._gardenAsset),
+              fit: BoxFit.fill,
+              semanticLabel: 'Your crystal in the garden',
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
