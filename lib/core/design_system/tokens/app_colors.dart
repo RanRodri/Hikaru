@@ -39,6 +39,9 @@ abstract final class AppColors {
   static const Color matteChampagne80 = Color(0xFF9F7343);
   static const Color matteChampagne100 = Color(0xFF895112);
   static const Color emerald = Color(0xFF7DCEA0);
+  static const Color cymaticFire = Color(0xFFE85A24);
+  static const Color cymaticTurquoise = Color(0xFF2FBFB0);
+  static const Color cymaticIndigoLight = Color(0xFF8FA6D4);
   static const Color transparent = Color(0x00000000);
   static const Color transparentWhite = Color(0x00FFFFFF);
   static const Color goldGlow = Color(0xFFFFE7A4);

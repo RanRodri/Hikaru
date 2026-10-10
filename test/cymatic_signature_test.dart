@@ -4,20 +4,15 @@ import 'package:hiraku/features/crystals/domain/crystal.dart';
 import 'package:hiraku/features/resonance_chamber/presentation/cymatic_signature.dart';
 
 void main() {
-  test('each crystal has its own cymatic motif', () {
-    final motifs = {
-      for (final crystal in Crystal.values) CymaticMotif.of(crystal),
-    };
-
-    expect(motifs, hasLength(Crystal.values.length));
+  test('every crystal shares the 8-fold cymatic', () {
+    for (final crystal in Crystal.values) {
+      expect(CymaticMotif.of(crystal).folds, 8);
+      expect(CymaticMotif.of(crystal).rings, inInclusiveRange(3, 4));
+    }
     expect(
-      motifs.map((motif) => motif.petals).toSet(),
-      hasLength(Crystal.values.length),
+      cymaticColorJourney(Crystal.redJasper),
+      lessThan(cymaticColorJourney(Crystal.jade)),
     );
-    expect(CymaticMotif.of(Crystal.whiteQuartz).petals, 8);
-    expect(CymaticMotif.of(Crystal.jade).rings, 4);
-    expect(CymaticMotif.of(Crystal.obsidian).petals, 12);
-    expect(CymaticMotif.of(Crystal.redJasper).rings, 3);
   });
 
   test('a higher frequency shortens the cymatic cycle', () {
@@ -36,6 +31,7 @@ void main() {
     expect(key.currentState!.isAnimating, isFalse);
     expect(key.currentState!.motion, 0);
     expect(key.currentState!.phase, 0);
+    expect(key.currentState!.colorProgress, 1);
 
     await tester.tap(find.text('PLAY'));
     await tester.pump();
@@ -43,8 +39,11 @@ void main() {
 
     await tester.pump(const Duration(milliseconds: 500));
     final phaseWhilePlaying = key.currentState!.phase;
+    final colorWhilePlaying = key.currentState!.colorProgress;
     expect(phaseWhilePlaying, greaterThan(0));
     expect(key.currentState!.motion, greaterThan(0));
+    expect(colorWhilePlaying, greaterThan(0));
+    expect(colorWhilePlaying, lessThan(1));
 
     await tester.pump(const Duration(milliseconds: 400));
     expect(key.currentState!.phase, greaterThan(phaseWhilePlaying));
@@ -52,10 +51,12 @@ void main() {
     await tester.tap(find.text('PAUSE'));
     await tester.pump();
     final frozenPhase = key.currentState!.phase;
+    final frozenColor = key.currentState!.colorProgress;
     expect(key.currentState!.isAnimating, isTrue);
 
     await tester.pump(const Duration(milliseconds: 200));
     expect(key.currentState!.phase, frozenPhase);
+    expect(key.currentState!.colorProgress, frozenColor);
     expect(key.currentState!.motion, greaterThan(0));
     expect(key.currentState!.motion, lessThan(1));
 
@@ -77,6 +78,7 @@ void main() {
     expect(key.currentState!.isAnimating, isFalse);
     expect(key.currentState!.motion, 0);
     expect(key.currentState!.phase, 0);
+    expect(key.currentState!.colorProgress, 1);
   });
 }
 
