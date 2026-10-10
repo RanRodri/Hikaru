@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hiraku/core/design_system/theme/app_theme.dart';
+import 'package:hiraku/core/design_system/tokens/app_colors.dart';
+import 'package:hiraku/features/crystals/application/selected_crystal_controller.dart';
+import 'package:hiraku/features/crystals/domain/crystal.dart';
 import 'package:hiraku/core/router/app_routes.dart';
 import 'package:hiraku/features/harmony_garden/presentation/harmony_garden_screen.dart';
 import 'package:hiraku/features/library/domain/library_article.dart';
@@ -192,4 +195,74 @@ void main() {
     );
     await openTopic('HIKARU RITUALS, Face & Body', 'Light, Moderate, Firm');
   });
+
+  testWidgets('merkaba and listening match the other destination circles', (
+    tester,
+  ) async {
+    await pumpGarden(tester);
+
+    final face = tester.getSize(find.bySemanticsLabel('Hikaru Ritual Face'));
+    expect(tester.getSize(find.bySemanticsLabel('Merkaba')), face);
+    expect(tester.getSize(find.bySemanticsLabel('Listening Sanctuary')), face);
+    expect(find.byWidgetPredicate(_isDestinationRing), findsNWidgets(2));
+  });
+
+  testWidgets('listening circle shows the selected crystal inside the ring', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    await container.read(selectedCrystalProvider.notifier).select(Crystal.jade);
+
+    final router = GoRouter(
+      initialLocation: AppRoutes.home,
+      routes: [
+        GoRoute(
+          path: AppRoutes.home,
+          builder: (context, state) => const HarmonyGardenScreen(),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp.router(theme: AppTheme.dark, routerConfig: router),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final face = tester.getSize(find.bySemanticsLabel('Hikaru Ritual Face'));
+    expect(
+      tester.getSize(find.bySemanticsLabel('Listening Sanctuary, JADE')),
+      face,
+    );
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Image &&
+            widget.image is AssetImage &&
+            (widget.image as AssetImage).assetName == Crystal.jade.imageAsset,
+      ),
+      findsOneWidget,
+    );
+    expect(find.byWidgetPredicate(_isDestinationRing), findsNWidgets(2));
+  });
+}
+
+bool _isDestinationRing(Widget widget) {
+  if (widget is! DecoratedBox) return false;
+  final decoration = widget.decoration;
+  if (decoration is! BoxDecoration) return false;
+  final border = decoration.border;
+  if (border is! Border) return false;
+  return border.top.color == AppColors.champagneGold &&
+      border.left.color == AppColors.champagneGold &&
+      border.top.width > 1;
 }

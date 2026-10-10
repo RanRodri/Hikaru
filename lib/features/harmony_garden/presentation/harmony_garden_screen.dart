@@ -45,11 +45,13 @@ class _DestinationSpec {
     required this.semanticsLabel,
     this.route,
     this.showsSelectedCrystal = false,
+    this.framed = false,
   });
 
   final Rect bounds;
   final String? route;
   final bool showsSelectedCrystal;
+  final bool framed;
   final List<_Layer> layers;
   final String label;
   final Rect labelBounds;
@@ -59,24 +61,25 @@ class _DestinationSpec {
 const List<_DestinationSpec> _destinations = [
   _DestinationSpec(
     semanticsLabel: 'Merkaba',
-    bounds: Rect.fromLTWH(144, 200, 103, 104),
+    framed: true,
+    bounds: Rect.fromLTWH(134.5, 187, 122, 130),
     layers: [
       _Layer(
         'assets/images/harmony_merkaba_halo.svg',
-        Rect.fromLTWH(144, 200, 103, 104),
+        Rect.fromLTWH(134.5, 187, 122, 130),
       ),
       _Layer(
         'assets/images/harmony_merkaba.png',
-        Rect.fromLTWH(156, 212, 79, 80),
+        Rect.fromLTWH(146.5, 199, 98, 106),
         isPhoto: true,
       ),
       _Layer(
         'assets/images/harmony_face_scrim.svg',
-        Rect.fromLTWH(156, 212, 79, 80),
+        Rect.fromLTWH(146.5, 199, 98, 106),
       ),
     ],
     label: 'Merkaba',
-    labelBounds: Rect.fromLTWH(165, 263, 61, 13),
+    labelBounds: Rect.fromLTWH(156.5, 263, 78, 13),
     route: AppRoutes.merkaba,
   ),
   _DestinationSpec(
@@ -105,24 +108,25 @@ const List<_DestinationSpec> _destinations = [
     semanticsLabel: 'Listening Sanctuary',
     route: AppRoutes.fourTemples,
     showsSelectedCrystal: true,
-    bounds: Rect.fromLTWH(256, 268, 122, 129),
+    framed: true,
+    bounds: Rect.fromLTWH(256, 268, 122, 130),
     layers: [
       _Layer(
         'assets/images/harmony_listening_halo.svg',
-        Rect.fromLTWH(256, 268, 122, 129),
+        Rect.fromLTWH(256, 268, 122, 130),
       ),
       _Layer(
         'assets/images/harmony_listening.png',
-        Rect.fromLTWH(268, 280, 98, 105),
+        Rect.fromLTWH(268, 280, 98, 106),
         isPhoto: true,
       ),
       _Layer(
         'assets/images/harmony_listening_scrim.svg',
-        Rect.fromLTWH(268, 280, 98, 105),
+        Rect.fromLTWH(268, 280, 98, 106),
       ),
     ],
     label: 'Listening\nSanctuary',
-    labelBounds: Rect.fromLTWH(279, 343, 76, 26),
+    labelBounds: Rect.fromLTWH(278, 344, 78, 26),
   ),
   _DestinationSpec(
     semanticsLabel: 'Hikaru Ritual Body',
@@ -250,23 +254,38 @@ class _Destination extends StatelessWidget {
     this.crystal,
   });
 
-  static const double _crystalRingRatio = 280 / 236;
-
   final _DestinationSpec spec;
   final double scale;
   final VoidCallback onPressed;
   final Crystal? crystal;
 
-  Widget _buildPhoto(String asset) {
+  Widget _buildPhoto(_Layer layer) {
     final selectedCrystal = crystal;
-    if (selectedCrystal == null) {
-      return Image.asset(asset, fit: BoxFit.cover);
-    }
-    return ClipOval(
-      child: Transform.scale(
-        scale: _crystalRingRatio,
-        child: Image.asset(selectedCrystal.imageAsset, fit: BoxFit.cover),
-      ),
+    final image = Image.asset(
+      selectedCrystal == null ? layer.asset : selectedCrystal.imageAsset,
+      fit: BoxFit.cover,
+    );
+    if (!spec.framed) return image;
+
+    final width = layer.rect.width * scale;
+    final height = layer.rect.height * scale;
+    final ring = 2 * scale;
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        const ColoredBox(color: AppColors.darkIndigoBlue),
+        ClipOval(child: image),
+        IgnorePointer(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.all(
+                Radius.elliptical(width / 2, height / 2),
+              ),
+              border: Border.all(color: AppColors.champagneGold, width: ring),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -297,7 +316,7 @@ class _Destination extends StatelessWidget {
                   width: layer.rect.width * scale,
                   height: layer.rect.height * scale,
                   child: layer.isPhoto
-                      ? _buildPhoto(layer.asset)
+                      ? _buildPhoto(layer)
                       : SvgPicture.asset(layer.asset, fit: BoxFit.fill),
                 ),
               Positioned(
