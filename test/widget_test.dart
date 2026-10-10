@@ -5,6 +5,8 @@ import 'package:shared_preferences_platform_interface/in_memory_shared_preferenc
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 
 import 'package:hiraku/app.dart';
+import 'package:hiraku/core/design_system/tokens/app_colors.dart';
+import 'package:hiraku/core/design_system/widgets/radial_glow_background.dart';
 import 'package:hiraku/features/sanctuary/presentation/sanctuary_screen.dart';
 import 'package:hiraku/features/splash/presentation/splash_controller.dart';
 import 'package:hiraku/features/splash/presentation/splash_screen.dart';
@@ -24,6 +26,18 @@ void main() {
 
     expect(find.byType(SplashScreen), findsOneWidget);
     expect(find.bySemanticsLabel('Hikaru Lift'), findsOneWidget);
+    expect(find.byType(RadialGlowBackground), findsNothing);
+    expect(
+      tester
+          .widget<Scaffold>(
+            find.descendant(
+              of: find.byType(SplashScreen),
+              matching: find.byType(Scaffold),
+            ),
+          )
+          .backgroundColor,
+      AppColors.darkIndigoBlue,
+    );
 
     await tester.pump(const Duration(seconds: 2));
     expect(find.byType(SplashScreen), findsOneWidget);

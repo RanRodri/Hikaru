@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/design_system/widgets/radial_glow_background.dart';
+import '../../../core/design_system/tokens/app_colors.dart';
 import 'splash_controller.dart';
 import 'splash_logo.dart';
 
@@ -19,7 +19,8 @@ class SplashScreen extends ConsumerWidget {
     });
 
     return const Scaffold(
-      body: RadialGlowBackground(child: Center(child: SplashLogo())),
+      backgroundColor: AppColors.darkIndigoBlue,
+      body: SplashLogo(),
     );
   }
 }
