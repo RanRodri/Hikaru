@@ -43,16 +43,19 @@ LibraryArticle _crystalArticle(Crystal crystal) {
       LibraryBlock('Purpose', crystal.purpose),
       LibraryBlock('Skin', crystal.skinBenefit),
       LibraryBlock('Meridians', crystal.meridians),
-      LibraryBlock(
-        'Frequency',
-        '${crystal.frequency}. ${crystal.frequencyDetail}. '
-            '${crystal.protocol}. ${Crystal.sessionLength}. '
-            '${Crystal.composer}.',
-      ),
+      LibraryBlock('Frequency', _frequencyCopy(crystal)),
       LibraryBlock('Environment', crystal.environment),
       LibraryBlock('Intention', _intentions[crystal]!),
     ],
   );
+}
+
+String _frequencyCopy(Crystal crystal) {
+  final tail = crystal.protocol.contains(Crystal.composer)
+      ? '${Crystal.sessionLength}.'
+      : '${Crystal.sessionLength}. ${Crystal.composer}.';
+  return '${crystal.frequency}. ${crystal.frequencyDetail}. '
+      '${crystal.protocol}. $tail';
 }
 
 const Map<Crystal, String> _intentions = {

@@ -171,14 +171,14 @@ void main() {
     );
   });
 
-  test('Renewal with no later signal uses the documented crystal order', () {
+  test('Renewal alone selects Obsidian', () {
     expect(
       assignCrystal(
         _answers({
           8: [QuizOptionIds.q8Renewal],
         }),
       ),
-      Crystal.jade,
+      Crystal.obsidian,
     );
     expect(
       assignCrystal(
@@ -187,6 +187,36 @@ void main() {
           3: [QuizOptionIds.q3Morning],
           9: [QuizOptionIds.q9Reset],
           10: [QuizOptionIds.q10FirstRitual],
+        }),
+      ),
+      Crystal.obsidian,
+    );
+  });
+
+  test('Renewal with sensitive, irritated, or stress signals selects Jade', () {
+    expect(
+      assignCrystal(
+        _answers({
+          8: [QuizOptionIds.q8Renewal],
+          6: [QuizOptionIds.q6SlightlySensitive],
+        }),
+      ),
+      Crystal.jade,
+    );
+    expect(
+      assignCrystal(
+        _answers({
+          8: [QuizOptionIds.q8Renewal],
+          4: [QuizOptionIds.q4Jaw],
+        }),
+      ),
+      Crystal.jade,
+    );
+    expect(
+      assignCrystal(
+        _answers({
+          8: [QuizOptionIds.q8Renewal],
+          1: [QuizOptionIds.q1ReducePuffiness, QuizOptionIds.q1ReduceRedness],
         }),
       ),
       Crystal.jade,

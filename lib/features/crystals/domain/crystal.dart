@@ -4,8 +4,8 @@ enum Crystal {
     temple: 'Temple of Illumination',
     imageAsset: 'assets/images/temple_white_quartz.png',
     audioAsset: 'audio/white_quartz.m4a',
-    protocol: 'Quartz Illumination Protocol',
-    frequency: 'Resonance tones',
+    protocol: 'Quartz Illumination Protocol — Maestro Jorge Alfano',
+    frequency: 'Cellular Coherence Frequency • 528 Hz',
     frequencyDetail: 'Energy amplification & cellular coherence',
     purpose:
         'Cellular biohacking, longevity, mental clarity and expansion of '
@@ -56,8 +56,8 @@ enum Crystal {
     temple: 'Temple of Vitality',
     imageAsset: 'assets/images/temple_red_jasper.png',
     audioAsset: 'audio/red_jasper.m4a',
-    protocol: 'Jasper Vitality Protocol',
-    frequency: 'Physical alignment',
+    protocol: 'Jasper Vitality Protocol — Maestro Jorge Alfano',
+    frequency: 'Vitality & Vascular Flow Frequency • 639 Hz',
     frequencyDetail: 'Activates metabolic & vascular flow',
     purpose: 'Vitality, physical strength, metabolic flow and grounding.',
     skinBenefit:

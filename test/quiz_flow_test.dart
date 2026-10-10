@@ -110,10 +110,67 @@ void main() {
         Crystal.jade,
       );
 
-      final stored = await QuizAnswersRepository(
-        SharedPreferencesAsync(),
-      ).read();
-      expect(stored.selectedIds(8), {QuizOptionIds.q8Renewal});
+      final stored = QuizAnswersRepository(SharedPreferencesAsync());
+      expect((await stored.read()).selectedIds(8), {QuizOptionIds.q8Renewal});
+      expect(await stored.readStep(), 0);
     },
   );
+
+  testWidgets('resumes the unfinished quiz at the saved question', (
+    tester,
+  ) async {
+    Future<ProviderContainer> openQuiz() async {
+      final router = GoRouter(
+        initialLocation: AppRoutes.listeningRoomQuiz,
+        routes: [
+          GoRoute(
+            path: AppRoutes.listeningRoomQuiz,
+            builder: (context, state) => const ListeningRoomQuizScreen(),
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp.router(theme: AppTheme.dark, routerConfig: router),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return container;
+    }
+
+    await openQuiz();
+    await tapQuizChoice(tester, 'Reduce puffiness');
+    await tapQuizNext(tester);
+    expect(find.text('02 / 10'), findsOneWidget);
+
+    await openQuiz();
+    expect(find.text('02 / 10'), findsOneWidget);
+    expect(find.text('How does your skin feel today?'), findsOneWidget);
+    expect(
+      (await QuizAnswersRepository(
+        SharedPreferencesAsync(),
+      ).read()).selectedIds(1),
+      {QuizOptionIds.q1ReducePuffiness},
+    );
+
+    await tester.tap(find.text('BACK'));
+    await tester.pumpAndSettle();
+    expect(find.text('01 / 10'), findsOneWidget);
+
+    await openQuiz();
+    expect(find.text('01 / 10'), findsOneWidget);
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Semantics &&
+            widget.properties.label == 'Reduce puffiness' &&
+            widget.properties.checked == true,
+      ),
+      findsOneWidget,
+    );
+  });
 }

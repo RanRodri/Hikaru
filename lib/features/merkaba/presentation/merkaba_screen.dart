@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:go_router/go_router.dart';
@@ -13,8 +15,7 @@ import 'merkaba_painter.dart';
 
 /// Called when the breath phase changes while the session is playing.
 ///
-/// No inhale, hold, or exhale chime exists in assets. This stays silent until
-/// a sound is supplied.
+/// Optional listener. The screen also plays the synthesized phase chime.
 typedef MerkabaPhaseCue = void Function(BreathPhase phase);
 
 class MerkabaMeditationScreen extends StatefulWidget {
@@ -47,6 +48,14 @@ class _MerkabaMeditationScreenState extends State<MerkabaMeditationScreen>
   late final Ticker _ticker;
   Duration _lastTick = Duration.zero;
   bool _playing = false;
+  AudioPlayer? _chime;
+
+  static const double _chimeVolume = 0.22;
+  static const Map<BreathPhase, String> _chimeAssets = {
+    BreathPhase.inhale: 'audio/merkaba_inhale.wav',
+    BreathPhase.hold: 'audio/merkaba_hold.wav',
+    BreathPhase.exhale: 'audio/merkaba_exhale.wav',
+  };
 
   MerkabaFrame get _frame => merkabaFrameAt(_elapsed);
 
@@ -59,7 +68,27 @@ class _MerkabaMeditationScreenState extends State<MerkabaMeditationScreen>
   @override
   void dispose() {
     _ticker.dispose();
+    unawaited(_chime?.dispose() ?? Future<void>.value());
     super.dispose();
+  }
+
+  void _cuePhase(BreathPhase phase) {
+    widget.onPhaseCue?.call(phase);
+    unawaited(_playChime(phase));
+  }
+
+  Future<void> _playChime(BreathPhase phase) async {
+    final asset = _chimeAssets[phase];
+    if (asset == null) return;
+    try {
+      final player = _chime ??= AudioPlayer();
+      await player.setReleaseMode(ReleaseMode.stop);
+      await player.setVolume(_chimeVolume);
+      await player.stop();
+      await player.play(AssetSource(asset));
+    } catch (_) {
+      // Widget tests have no audio backend. A missing chime stays silent.
+    }
   }
 
   void _handleTick(Duration sinceStart) {
@@ -71,7 +100,7 @@ class _MerkabaMeditationScreenState extends State<MerkabaMeditationScreen>
     if (next >= merkabaDuration) {
       final finished = merkabaFrameAt(merkabaDuration);
       if (previous.phase != finished.phase) {
-        widget.onPhaseCue?.call(finished.phase);
+        _cuePhase(finished.phase);
       }
       setState(() {
         _elapsed = merkabaDuration;
@@ -82,7 +111,7 @@ class _MerkabaMeditationScreenState extends State<MerkabaMeditationScreen>
     }
     final frame = merkabaFrameAt(next);
     if (previous.phase != frame.phase) {
-      widget.onPhaseCue?.call(frame.phase);
+      _cuePhase(frame.phase);
     }
     setState(() => _elapsed = next);
   }
@@ -96,7 +125,7 @@ class _MerkabaMeditationScreenState extends State<MerkabaMeditationScreen>
     }
     final frame = _frame;
     setState(() => _playing = true);
-    widget.onPhaseCue?.call(frame.phase);
+    _cuePhase(frame.phase);
     _lastTick = Duration.zero;
     _ticker.start();
   }

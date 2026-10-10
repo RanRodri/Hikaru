@@ -66,13 +66,25 @@ class _ListeningRoomQuizScreenState
   }
 
   Future<void> _restore() async {
-    final saved = await ref.read(quizAnswersRepositoryProvider).read();
+    final repository = ref.read(quizAnswersRepositoryProvider);
+    final saved = await repository.read();
+    final step = await repository.readStep();
     if (!mounted) return;
-    setState(() => _answers = saved);
+    setState(() {
+      _answers = saved;
+      _index = step;
+    });
   }
 
-  Future<void> _save() =>
-      ref.read(quizAnswersRepositoryProvider).save(_answers);
+  Future<void> _save({required bool completed}) async {
+    final repository = ref.read(quizAnswersRepositoryProvider);
+    await repository.save(_answers);
+    if (completed) {
+      await repository.clearStep();
+      return;
+    }
+    await repository.saveStep(_index);
+  }
 
   void _handleSelect(String optionId) {
     final question = _question;
@@ -95,6 +107,7 @@ class _ListeningRoomQuizScreenState
     if (_busy) return;
     if (_index > 0) {
       _showQuestion(_index - 1);
+      await _save(completed: false);
       return;
     }
     if (context.canPop()) context.pop();
@@ -109,13 +122,12 @@ class _ListeningRoomQuizScreenState
 
     setState(() => _busy = true);
     try {
-      await _save();
+      final completed = _index >= discoveryQuiz.length - 1;
+      if (!completed) _showQuestion(_index + 1);
+      await _save(completed: completed);
       if (!mounted) return;
 
-      if (_index < discoveryQuiz.length - 1) {
-        _showQuestion(_index + 1);
-        return;
-      }
+      if (!completed) return;
 
       await ref
           .read(selectedCrystalProvider.notifier)

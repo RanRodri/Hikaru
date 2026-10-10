@@ -41,6 +41,52 @@ void main() {
       contains(Crystal.jade.purpose),
     );
     expect(jade.blocks.last.body, 'Harmony, Self-Love, Renewal');
+    expect(
+      jade.blocks.map((block) => block.body).join('\n'),
+      contains(
+        '528 Hz. Heart coherence, love & balance. Jade Harmony Protocol. 20 min. Maestro Jorge Alfano.',
+      ),
+    );
+
+    final quartz = libraryArticleFor(Crystal.whiteQuartz.name)!;
+    expect(
+      Crystal.whiteQuartz.frequency,
+      'Cellular Coherence Frequency • 528 Hz',
+    );
+    expect(
+      Crystal.whiteQuartz.protocol,
+      'Quartz Illumination Protocol — Maestro Jorge Alfano',
+    );
+    expect(
+      quartz.blocks.map((block) => block.body).join('\n'),
+      contains(Crystal.whiteQuartz.frequency),
+    );
+    expect(
+      quartz.blocks.map((block) => block.body).join('\n'),
+      contains(Crystal.whiteQuartz.protocol),
+    );
+
+    final jasper = libraryArticleFor(Crystal.redJasper.name)!;
+    expect(
+      Crystal.redJasper.frequency,
+      'Vitality & Vascular Flow Frequency • 639 Hz',
+    );
+    expect(
+      Crystal.redJasper.protocol,
+      'Jasper Vitality Protocol — Maestro Jorge Alfano',
+    );
+    expect(
+      jasper.blocks.map((block) => block.body).join('\n'),
+      contains(Crystal.redJasper.frequency),
+    );
+    expect(
+      jasper.blocks.map((block) => block.body).join('\n'),
+      contains(Crystal.redJasper.protocol),
+    );
+    expect(Crystal.jade.frequency, '528 Hz');
+    expect(Crystal.obsidian.frequency, '528 Hz');
+    expect(Crystal.jade.protocol, 'Jade Harmony Protocol');
+    expect(Crystal.obsidian.protocol, 'Obsidian Transformation Protocol');
 
     final rituals = libraryArticleFor(libraryRitualsId)!;
     expect(rituals.blocks.single.body, contains('Light, Moderate, Firm'));

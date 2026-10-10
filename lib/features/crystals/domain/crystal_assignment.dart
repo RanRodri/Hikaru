@@ -7,10 +7,12 @@ import 'crystal.dart';
 /// Tiers follow crystal-assignment.md, highest priority first. A tier that
 /// matches one crystal wins immediately. A tier that matches several narrows
 /// the pool and later tiers may only keep crystals still in that pool. Renewal
-/// is the only option that matches two crystals (Jade and Obsidian). If more
-/// than one crystal remains, the order in that note breaks the tie: Jade,
-/// White Quartz, Red Jasper, Obsidian. The same order is the fallback when no
-/// answer matches a crystal.
+/// is the only option that matches two crystals (Jade and Obsidian). When
+/// Renewal is the only intention and no sensitive, irritated, or stress signal
+/// remains, the result is Obsidian. Those Jade skin and stress signals still
+/// select Jade. Any other tie uses the note's order: Jade, White Quartz,
+/// Red Jasper, Obsidian. The same order is the fallback when no answer
+/// matches a crystal.
 ///
 /// Questions 3, 9 and 10 are stored with the quiz and are not part of the
 /// algorithm. Options absent from [quizCrystalSignals] do not vote.
@@ -55,6 +57,31 @@ const Map<String, Set<Crystal>> quizCrystalSignals = {
   QuizOptionIds.q7LessPuffy: {Crystal.obsidian},
 };
 
+/// Jade signals for sensitive or irritated skin, and for marked tension.
+const Set<String> jadeSkinOrStressSignals = {
+  QuizOptionIds.q2Sensitive,
+  QuizOptionIds.q6SlightlySensitive,
+  QuizOptionIds.q6RedOrIrritated,
+  QuizOptionIds.q1ReduceRedness,
+  QuizOptionIds.q4Jaw,
+  QuizOptionIds.q4BetweenEyebrows,
+  QuizOptionIds.q4Neck,
+};
+
+bool _renewalIsOnlyIntention(QuizAnswers answers) {
+  final selected = answers.selectedIds(8);
+  return selected.length == 1 && selected.contains(QuizOptionIds.q8Renewal);
+}
+
+bool _hasJadeSkinOrStress(QuizAnswers answers) {
+  for (final question in const [1, 2, 4, 6]) {
+    for (final optionId in answers.selectedIds(question)) {
+      if (jadeSkinOrStressSignals.contains(optionId)) return true;
+    }
+  }
+  return false;
+}
+
 Crystal assignCrystal(QuizAnswers answers) {
   Set<Crystal>? pool;
 
@@ -79,6 +106,13 @@ Crystal assignCrystal(QuizAnswers answers) {
   }
 
   final remaining = pool ?? crystalTieBreakOrder.toSet();
+  if (_renewalIsOnlyIntention(answers) &&
+      remaining.contains(Crystal.jade) &&
+      remaining.contains(Crystal.obsidian) &&
+      !_hasJadeSkinOrStress(answers)) {
+    return Crystal.obsidian;
+  }
+
   for (final crystal in crystalTieBreakOrder) {
     if (remaining.contains(crystal)) return crystal;
   }
