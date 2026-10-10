@@ -1,0 +1,9 @@
+---
+description: Reglas visuales de Hikaru (tipografía y botones)
+alwaysApply: true
+---
+
+# Reglas visuales de Hikaru
+
+- La única familia tipográfica de la app es **Inter**. Usa siempre los estilos de `AppTypography`; nunca `fontFamily` literal ni Josefin Sans, aunque el diseño de Figma lo muestre.
+- Los botones **no llevan flechas** (`→`, `->`, iconos de flecha). Si Figma muestra `NEXT  →`, el texto en código es `NEXT`.

@@ -1,0 +1,15 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="340" height="380" viewBox="0 0 340 380" fill="none" xmlns="http://www.w3.org/2000/svg">
+<ellipse id="Title Glow" cx="170" cy="190" rx="170" ry="190" fill="url(#paint0_radial_0_4)"/>
+<defs>
+<radialGradient id="paint0_radial_0_4" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(170 190) scale(170 190)">
+<stop stop-color="#FFFAF5" stop-opacity="0.95"/>
+<stop offset="0.15" stop-color="#FFFAF2" stop-opacity="0.88"/>
+<stop offset="0.3" stop-color="#FFF7F0" stop-opacity="0.75"/>
+<stop offset="0.45" stop-color="#FFF7ED" stop-opacity="0.58"/>
+<stop offset="0.6" stop-color="#FFF5EB" stop-opacity="0.38"/>
+<stop offset="0.75" stop-color="#FFF5EB" stop-opacity="0.18"/>
+<stop offset="0.88" stop-color="#FFF5EB" stop-opacity="0.05"/>
+<stop offset="1" stop-opacity="0"/>
+</radialGradient>
+</defs>
+</svg>
