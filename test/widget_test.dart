@@ -17,7 +17,7 @@ void main() {
         InMemorySharedPreferencesAsync.empty();
   });
 
-  testWidgets('Shows the splash for 3 seconds and then the sanctuary', (
+  testWidgets('Shows the splash and then the sanctuary', (
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(const ProviderScope(child: HikaruApp()));
