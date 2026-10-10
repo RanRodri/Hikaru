@@ -13,7 +13,12 @@ import '../../features/crystals/domain/crystal.dart';
 import '../../features/four_temples/presentation/four_temples_screen.dart';
 import '../../features/harmony_garden/presentation/harmony_garden_screen.dart';
 import '../../features/journey/presentation/journey_screen.dart';
+import '../../features/library/domain/library_article.dart';
+import '../../features/library/presentation/library_detail_screen.dart';
 import '../../features/library/presentation/library_screen.dart';
+import '../../features/massage/domain/massage_ritual.dart';
+import '../../features/massage/presentation/massage_screen.dart';
+import '../../features/merkaba/presentation/merkaba_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/resonance_chamber/presentation/crystal_resonance_screen.dart';
 import '../../features/resonance_chamber/presentation/resonance_chamber_screen.dart';
@@ -94,6 +99,22 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: AppRoutes.home,
         builder: (context, state) => const HarmonyGardenScreen(),
+        routes: [
+          GoRoute(
+            path: 'merkaba',
+            builder: (context, state) => const MerkabaMeditationScreen(),
+          ),
+          GoRoute(
+            path: 'ritual-face',
+            builder: (context, state) =>
+                const MassageScreen(surface: MassageSurface.face),
+          ),
+          GoRoute(
+            path: 'ritual-body',
+            builder: (context, state) =>
+                const MassageScreen(surface: MassageSurface.body),
+          ),
+        ],
       ),
       GoRoute(
         path: AppRoutes.fourTemples,
@@ -110,6 +131,22 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: AppRoutes.library,
         builder: (context, state) => const LibraryScreen(),
+        routes: [
+          GoRoute(
+            path: ':${AppRoutes.libraryTopicParam}',
+            redirect: (context, state) {
+              final topic = state.pathParameters[AppRoutes.libraryTopicParam];
+              return libraryArticleFor(topic) == null
+                  ? AppRoutes.library
+                  : null;
+            },
+            builder: (context, state) => LibraryDetailScreen(
+              article: libraryArticleFor(
+                state.pathParameters[AppRoutes.libraryTopicParam],
+              )!,
+            ),
+          ),
+        ],
       ),
     ],
   );

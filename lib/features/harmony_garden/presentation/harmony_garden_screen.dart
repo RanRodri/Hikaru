@@ -75,6 +75,7 @@ const List<_DestinationSpec> _destinations = [
     ],
     label: 'Merkaba',
     labelBounds: Rect.fromLTWH(165, 263, 61, 13),
+    route: AppRoutes.merkaba,
   ),
   _DestinationSpec(
     semanticsLabel: 'Hikaru Ritual Face',
@@ -96,6 +97,7 @@ const List<_DestinationSpec> _destinations = [
     ],
     label: 'Hikaru Ritual\nFace',
     labelBounds: Rect.fromLTWH(34, 342, 78, 26),
+    route: AppRoutes.ritualFace,
   ),
   _DestinationSpec(
     semanticsLabel: 'Listening Sanctuary',
@@ -140,6 +142,7 @@ const List<_DestinationSpec> _destinations = [
     ],
     label: 'Hikaru Ritual\nBody',
     labelBounds: Rect.fromLTWH(27, 453, 80, 26),
+    route: AppRoutes.ritualBody,
   ),
   _DestinationSpec(
     semanticsLabel: 'Library',
@@ -161,6 +164,7 @@ const List<_DestinationSpec> _destinations = [
     ],
     label: 'Library',
     labelBounds: Rect.fromLTWH(292, 464, 65, 13),
+    route: AppRoutes.library,
   ),
 ];
 

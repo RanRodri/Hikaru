@@ -22,4 +22,11 @@ abstract final class AppRoutes {
   static const String profile = '/home/profile';
   static const String journey = '/home/journey';
   static const String library = '/home/library';
+  static const String merkaba = '$home/merkaba';
+  static const String ritualFace = '$home/ritual-face';
+  static const String ritualBody = '$home/ritual-body';
+  static const String libraryTopicParam = 'topic';
+  static const String libraryTopic = '$library/:$libraryTopicParam';
+
+  static String libraryTopicFor(String topic) => '$library/$topic';
 }

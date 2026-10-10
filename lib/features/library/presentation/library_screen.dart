@@ -1,27 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/design_system/widgets/hikaru_navigation_bar.dart';
 import '../../../core/design_system/widgets/hikaru_page_intro.dart';
 import '../../../core/design_system/widgets/hikaru_scroll_page.dart';
+import '../../../core/router/app_routes.dart';
+import '../domain/library_article.dart';
 
 class LibraryScreen extends StatelessWidget {
   const LibraryScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const HikaruScrollPage(
+    return HikaruScrollPage(
       active: HikaruDestination.library,
       dimBackground: true,
       children: [
-        HikaruPageIntro(
+        const HikaruPageIntro(
           title: 'LIBRARY',
           subtitle: 'Sacred knowledge for your journey',
         ),
-        SizedBox(height: 14),
-        _CollectionsConstellation(),
+        const SizedBox(height: 14),
+        _CollectionsConstellation(
+          onOpen: (id) => context.push(AppRoutes.libraryTopicFor(id)),
+        ),
       ],
     );
   }
@@ -29,6 +34,7 @@ class LibraryScreen extends StatelessWidget {
 
 class _LibraryCollection {
   const _LibraryCollection({
+    required this.id,
     required this.name,
     required this.detail,
     required this.imageAsset,
@@ -37,6 +43,7 @@ class _LibraryCollection {
     this.isHighlighted = false,
   });
 
+  final String id;
   final String name;
   final String detail;
   final String imageAsset;
@@ -47,6 +54,7 @@ class _LibraryCollection {
 
 const List<_LibraryCollection> _collections = [
   _LibraryCollection(
+    id: libraryMerkabaId,
     name: 'MERKABA',
     detail: 'Geometry & Energy',
     imageAsset: 'assets/images/library_merkaba.png',
@@ -55,6 +63,7 @@ const List<_LibraryCollection> _collections = [
     isHighlighted: true,
   ),
   _LibraryCollection(
+    id: 'jade',
     name: 'JADE',
     detail: 'Balance\n& Harmony',
     imageAsset: 'assets/images/library_jade.png',
@@ -62,6 +71,7 @@ const List<_LibraryCollection> _collections = [
     photoHeight: 70,
   ),
   _LibraryCollection(
+    id: 'whiteQuartz',
     name: 'WHITE QUARTZ',
     detail: 'Clarity\n& Renewal',
     imageAsset: 'assets/images/library_white_quartz.png',
@@ -69,6 +79,7 @@ const List<_LibraryCollection> _collections = [
     photoHeight: 70,
   ),
   _LibraryCollection(
+    id: 'redJasper',
     name: 'RED JASPER',
     detail: 'Vitality\n& Grounding',
     imageAsset: 'assets/images/library_red_jasper.png',
@@ -76,6 +87,7 @@ const List<_LibraryCollection> _collections = [
     photoHeight: 66,
   ),
   _LibraryCollection(
+    id: 'obsidian',
     name: 'OBSIDIAN',
     detail: 'Protection\n& Transformation',
     imageAsset: 'assets/images/library_obsidian.png',
@@ -83,6 +95,7 @@ const List<_LibraryCollection> _collections = [
     photoHeight: 66,
   ),
   _LibraryCollection(
+    id: libraryRitualsId,
     name: 'HIKARU RITUALS',
     detail: 'Face & Body',
     imageAsset: 'assets/images/library_rituals.png',
@@ -92,7 +105,9 @@ const List<_LibraryCollection> _collections = [
 ];
 
 class _CollectionsConstellation extends StatelessWidget {
-  const _CollectionsConstellation();
+  const _CollectionsConstellation({required this.onOpen});
+
+  final ValueChanged<String> onOpen;
 
   static const Size _designSize = Size(346, 356);
   static const Offset _center = Offset(173, 185);
@@ -132,7 +147,7 @@ class _CollectionsConstellation extends StatelessWidget {
                   _CollectionCircle(
                     collection: collection,
                     scale: scale,
-                    onPressed: () {},
+                    onPressed: () => onOpen(collection.id),
                   ),
                 ),
             ],
