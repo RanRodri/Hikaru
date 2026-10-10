@@ -4,20 +4,20 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
+import '../../../core/design_system/tokens/app_font_sizes.dart';
+import '../../../core/design_system/tokens/app_radii.dart';
+import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
+import '../../../core/design_system/widgets/hikaru_pill_button.dart';
 import '../../../core/router/app_routes.dart';
 import 'photo_mirror.dart';
 
 const List<Shadow> _titleShadow = [
-  Shadow(
-    color: Color.fromRGBO(2, 3, 10, 0.8),
-    offset: Offset(0, 2),
-    blurRadius: 8,
-  ),
+  Shadow(color: AppColors.ink80, offset: Offset(0, 2), blurRadius: 8),
 ];
 
 const List<Shadow> _bodyGlow = [
-  Shadow(color: Color.fromRGBO(255, 250, 242, 0.65), blurRadius: 12),
+  Shadow(color: AppColors.ivoryGlow, blurRadius: 12),
 ];
 
 class MirrorGardenScreen extends StatelessWidget {
@@ -25,9 +25,9 @@ class MirrorGardenScreen extends StatelessWidget {
 
   static const String _backgroundAsset = 'assets/images/mirror_garden.png';
   static const double _headerTop = 72;
-  static const double _bottomGap = 36;
-  static const double _minInsetGap = 16;
-  static const double _horizontalPadding = 32;
+  static const double _bottomGap = AppSpacing.s36;
+  static const double _minInsetGap = AppSpacing.s16;
+  static const double _horizontalPadding = AppSpacing.s32;
   static const double _hintWidth = 270;
 
   void _openResonanceChamber(BuildContext context) =>
@@ -83,18 +83,18 @@ class MirrorGardenScreen extends StatelessWidget {
                             textAlign: TextAlign.center,
                             style: AppTypography.headline.copyWith(
                               color: AppColors.champagneGold,
-                              fontSize: 10,
+                              fontSize: AppFontSizes.s10,
                               letterSpacing: 3,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 28),
+                        const SizedBox(height: AppSpacing.s28),
                         Text(
                           'Add A Photo Of Your Face For Personal Tracking',
                           textAlign: TextAlign.center,
                           style: AppTypography.title.copyWith(
                             color: AppColors.white,
-                            fontSize: 30,
+                            fontSize: AppFontSizes.s30,
                             height: 1.15,
                             shadows: _titleShadow,
                           ),
@@ -103,21 +103,21 @@ class MirrorGardenScreen extends StatelessWidget {
                     ),
                     Column(
                       children: [
-                        const SizedBox(height: 24),
+                        const SizedBox(height: AppSpacing.s24),
                         PhotoMirror(onPressed: () {}),
                         _TextAction(label: 'UPLOAD A PHOTO', onPressed: () {}),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: AppSpacing.s4),
                         Text(
                           '(Optional)',
                           textAlign: TextAlign.center,
                           style: AppTypography.subheadline.copyWith(
                             color: AppColors.champagneGold,
-                            fontSize: 16,
+                            fontSize: AppFontSizes.s16,
                             height: 1.25,
                             letterSpacing: 0,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: AppSpacing.s4),
                         SizedBox(
                           width: _hintWidth,
                           child: Text(
@@ -126,21 +126,25 @@ class MirrorGardenScreen extends StatelessWidget {
                             textAlign: TextAlign.center,
                             style: AppTypography.body.copyWith(
                               color: AppColors.white,
-                              fontSize: 11,
+                              fontSize: AppFontSizes.s11,
                               height: 1.7,
                               letterSpacing: 0.55,
                               shadows: _bodyGlow,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: AppSpacing.s4),
                         _TextAction(
                           label: 'SKIP FOR NOW',
                           onPressed: () => _openResonanceChamber(context),
                         ),
-                        const SizedBox(height: 4),
-                        _ContinueButton(
+                        const SizedBox(height: AppSpacing.s4),
+                        HikaruPillButton(
+                          label: 'CONTINUE',
                           onPressed: () => _openResonanceChamber(context),
+                          buttonHeight: AppSpacing.s56,
+                          blurRadius: 8,
+                          borderAlpha: 0.3,
                         ),
                       ],
                     ),
@@ -223,63 +227,16 @@ class _TextAction extends StatelessWidget {
         style: TextButton.styleFrom(
           foregroundColor: AppColors.champagneGold,
           minimumSize: const Size.fromHeight(56),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadii.r8),
+          ),
         ),
         child: Text(
           label,
           style: AppTypography.subheadline.copyWith(
             color: AppColors.champagneGold,
-            fontSize: 11,
+            fontSize: AppFontSizes.s11,
             letterSpacing: 1.65,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ContinueButton extends StatelessWidget {
-  const _ContinueButton({required this.onPressed});
-
-  static const double _height = 56;
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(_height / 2),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.champagneGold.withValues(alpha: 0.35),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: SizedBox(
-        width: double.infinity,
-        height: _height,
-        child: FilledButton(
-          onPressed: onPressed,
-          style: FilledButton.styleFrom(
-            backgroundColor: AppColors.champagneGold,
-            foregroundColor: AppColors.darkIndigoBlue,
-            shape: StadiumBorder(
-              side: BorderSide(
-                color: AppColors.champagneGold.withValues(alpha: 0.3),
-              ),
-            ),
-            elevation: 0,
-          ),
-          child: Text(
-            'CONTINUE',
-            style: AppTypography.subheadline.copyWith(
-              color: AppColors.darkIndigoBlue,
-              fontSize: 11,
-              letterSpacing: 1.65,
-            ),
           ),
         ),
       ),

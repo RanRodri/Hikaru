@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../tokens/app_radii.dart';
+
 class HikaruHeader extends StatelessWidget {
   const HikaruHeader({
     super.key,
@@ -75,7 +77,10 @@ class _HeaderButton extends StatelessWidget {
     return Semantics(
       button: true,
       label: label,
-      child: InkWell(onTap: onPressed, borderRadius: BorderRadius.circular(8)),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(AppRadii.r8),
+      ),
     );
   }
 }

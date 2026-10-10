@@ -2,14 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../tokens/app_colors.dart';
+import '../tokens/app_font_sizes.dart';
+import '../tokens/app_spacing.dart';
 import '../tokens/app_typography.dart';
 
 const List<Shadow> _introShadow = [
-  Shadow(
-    color: Color.fromRGBO(0, 0, 0, 0.6),
-    offset: Offset(0, 1),
-    blurRadius: 8,
-  ),
+  Shadow(color: AppColors.scrim60, offset: Offset(0, 1), blurRadius: 8),
 ];
 
 class HikaruPageIntro extends StatelessWidget {
@@ -29,7 +27,7 @@ class HikaruPageIntro extends StatelessWidget {
     final introCaption = caption;
     final italicStyle = AppTypography.footnote.copyWith(
       color: AppColors.white,
-      fontSize: 11,
+      fontSize: AppFontSizes.s11,
       fontStyle: FontStyle.italic,
       letterSpacing: 0.3,
       shadows: _introShadow,
@@ -42,18 +40,18 @@ class HikaruPageIntro extends StatelessWidget {
           textAlign: TextAlign.center,
           style: AppTypography.headline.copyWith(
             color: AppColors.white,
-            fontSize: 18,
+            fontSize: AppFontSizes.s18,
             height: 1.23,
             letterSpacing: 3.6,
             shadows: _introShadow,
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: AppSpacing.s6),
         Text(subtitle, textAlign: TextAlign.center, style: italicStyle),
-        const SizedBox(height: 10),
+        const SizedBox(height: AppSpacing.s10),
         const _StarRule(),
         if (introCaption != null) ...[
-          const SizedBox(height: 10),
+          const SizedBox(height: AppSpacing.s10),
           Text(
             introCaption,
             textAlign: TextAlign.center,
@@ -71,7 +69,7 @@ class _StarRule extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 100,
+      width: AppSpacing.s100,
       height: 10,
       child: Stack(
         alignment: Alignment.center,

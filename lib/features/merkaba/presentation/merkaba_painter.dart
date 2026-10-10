@@ -76,9 +76,7 @@ class MerkabaFieldPainter extends CustomPainter {
     final paint = Paint()
       ..shader = RadialGradient(
         colors: [
-          (emerald ? const Color(0xFF7DCEA0) : AppColors.fog).withValues(
-            alpha: 0.55,
-          ),
+          (emerald ? AppColors.emerald : AppColors.fog).withValues(alpha: 0.55),
           AppColors.champagneGold.withValues(alpha: 0.18),
           AppColors.indigoBlue.withValues(alpha: 0),
         ],
@@ -206,7 +204,7 @@ class MerkabaFieldPainter extends CustomPainter {
     canvas.drawCircle(
       center,
       radius * 0.12,
-      Paint()..color = const Color(0xFF7DCEA0).withValues(alpha: 0.9),
+      Paint()..color = AppColors.emerald.withValues(alpha: 0.9),
     );
   }
 

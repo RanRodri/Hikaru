@@ -12,7 +12,13 @@ const _outputDir = 'lib/core/design_system/tokens';
 const _tokenSet = 'global';
 
 /// Path segments that only group tokens and are dropped from Dart names.
-const _groupingSegments = {'grayscale', 'brand', 'special', 'feedback'};
+const _groupingSegments = {
+  'grayscale',
+  'brand',
+  'special',
+  'feedback',
+  'screen',
+};
 
 const _fontWeights = {
   'Thin': 100,
@@ -46,6 +52,8 @@ void main() {
     'app_gradients.dart': _buildGradients(root, tokens),
     'app_typography.dart': _buildTypography(root),
     'app_spacing.dart': _buildSpacing(root),
+    'app_font_sizes.dart': _buildFontSizes(root),
+    'app_radii.dart': _buildRadii(root),
   };
 
   files.forEach((name, content) {
@@ -126,8 +134,14 @@ double _percent(String value) =>
 // ---------------------------------------------------------------------------
 
 String _colorLiteral(String value) {
-  final hex = RegExp(r'^#([0-9a-fA-F]{6})$').firstMatch(value.trim());
-  if (hex != null) return 'Color(0xFF${hex.group(1)!.toUpperCase()})';
+  final hex = RegExp(
+    r'^#([0-9a-fA-F]{6}|[0-9a-fA-F]{8})$',
+  ).firstMatch(value.trim());
+  if (hex != null) {
+    final digits = hex.group(1)!.toUpperCase();
+    final argb = digits.length == 6 ? 'FF$digits' : digits;
+    return 'Color(0x$argb)';
+  }
 
   final rgba = RegExp(r'^rgba?\(([^)]+)\)$').firstMatch(value.trim());
   if (rgba == null) throw FormatException('Unsupported color value: $value');
@@ -236,6 +250,49 @@ double _letterSpacing(Object? value, num fontSize) {
   return double.parse(value.toString());
 }
 
+void _writeTextStyle(
+  StringBuffer buffer,
+  Set<String> families,
+  String name,
+  String family,
+  String weightName,
+  num fontSize,
+  double lineHeight,
+  double letterSpacing,
+  String textCase,
+) {
+  final weight =
+      _fontWeights[weightName] ??
+      (throw FormatException('Unknown font weight: $weightName'));
+  families.add(family);
+  if (textCase != 'none') {
+    buffer.writeln(
+      '  /// Apply text case `$textCase` to the content (not expressible in TextStyle).',
+    );
+  }
+  buffer
+    ..writeln('  static const TextStyle ${_camelCase([name])} = TextStyle(')
+    ..writeln('    fontFamily: ${_familyConstant(family)},')
+    ..writeln('    fontWeight: FontWeight.w$weight,')
+    ..writeln('    fontSize: ${_number(fontSize)},')
+    ..writeln('    height: ${_number(lineHeight)},')
+    ..writeln('    letterSpacing: ${_number(letterSpacing)},')
+    ..writeln('  );')
+    ..writeln();
+}
+
+String? _styleField(
+  Map<String, dynamic> root,
+  Map<String, dynamic> style,
+  String key,
+) {
+  final raw = style[key];
+  if (raw is Map<String, dynamic>) {
+    return _resolve(root, raw[r'$value'])?.toString();
+  }
+  return _resolve(root, raw)?.toString();
+}
+
 String _buildTypography(Map<String, dynamic> root) {
   final styles = root['basic'] as Map<String, dynamic>;
   final families = <String>{};
@@ -243,44 +300,51 @@ String _buildTypography(Map<String, dynamic> root) {
 
   for (final entry in styles.entries) {
     final style = entry.value as Map<String, dynamic>;
-    String? read(String key) => _resolve(
-      root,
-      (style[key] as Map<String, dynamic>?)?[r'$value'],
-    )?.toString();
-
-    final family = read('fontFamily')!;
-    final weightName = read('fontWeight')!;
-    final weight =
-        _fontWeights[weightName] ??
-        (throw FormatException('Unknown font weight: $weightName'));
-    final fontSize = num.parse(read('fontSize')!);
-    final lineHeight = _percent(read('lineHeight')!);
+    final family = _styleField(root, style, 'fontFamily')!;
+    final weightName = _styleField(root, style, 'fontWeight')!;
+    final fontSize = num.parse(_styleField(root, style, 'fontSize')!);
+    final lineHeight = _percent(_styleField(root, style, 'lineHeight')!);
     final letterSpacing = _letterSpacing(
-      _resolve(
-        root,
-        (style['letterSpacing'] as Map<String, dynamic>)[r'$value'],
-      ),
+      _styleField(root, style, 'letterSpacing'),
       fontSize,
     );
-    final textCase = read('textCase') ?? 'none';
+    final textCase = _styleField(root, style, 'textCase') ?? 'none';
+    _writeTextStyle(
+      buffer,
+      families,
+      entry.key,
+      family,
+      weightName,
+      fontSize,
+      lineHeight,
+      letterSpacing,
+      textCase,
+    );
+  }
 
-    families.add(family);
-    if (textCase != 'none') {
-      buffer.writeln(
-        '  /// Apply text case `$textCase` to the content (not expressible in TextStyle).',
-      );
-    }
-    buffer
-      ..writeln(
-        '  static const TextStyle ${_camelCase([entry.key])} = TextStyle(',
-      )
-      ..writeln("    fontFamily: ${_familyConstant(family)},")
-      ..writeln('    fontWeight: FontWeight.w$weight,')
-      ..writeln('    fontSize: ${_number(fontSize)},')
-      ..writeln('    height: ${_number(lineHeight)},')
-      ..writeln('    letterSpacing: ${_number(letterSpacing)},')
-      ..writeln('  );')
-      ..writeln();
+  final roles = root['roles'] as Map<String, dynamic>? ?? {};
+  for (final entry in roles.entries) {
+    final style = entry.value as Map<String, dynamic>;
+    final family = _styleField(root, style, 'fontFamily')!;
+    final weightName = _styleField(root, style, 'fontWeight')!;
+    final fontSize = num.parse(_styleField(root, style, 'fontSize')!);
+    final lineHeight = _percent(_styleField(root, style, 'lineHeight')!);
+    final letterSpacing = _letterSpacing(
+      _styleField(root, style, 'letterSpacing'),
+      fontSize,
+    );
+    final textCase = _styleField(root, style, 'textCase') ?? 'none';
+    _writeTextStyle(
+      buffer,
+      families,
+      entry.key,
+      family,
+      weightName,
+      fontSize,
+      lineHeight,
+      letterSpacing,
+      textCase,
+    );
   }
 
   return (StringBuffer()
@@ -322,9 +386,47 @@ String _buildSpacing(Map<String, dynamic> root) {
         (entry.value as Map<String, dynamic>)[r'$value'],
       ).toString(),
     );
-    buffer.writeln('  static const double s${entry.key} = ${_number(value)};');
+    final name = entry.key.replaceAll('.', '_');
+    buffer.writeln('  static const double s$name = ${_number(value)};');
   }
 
   buffer.writeln('}');
   return buffer.toString();
 }
+
+String _scaleName(String key) => 's${key.replaceAll('.', '_')}';
+
+String _radiusName(String key) => 'r${key.replaceAll('.', '_')}';
+
+String _buildScaleClass(
+  Map<String, dynamic> root,
+  String group,
+  String className,
+  String Function(String key) nameFor,
+) {
+  final scale = root[group] as Map<String, dynamic>? ?? {};
+  final buffer = StringBuffer()
+    ..writeln(_header)
+    ..writeln('abstract final class $className {');
+
+  for (final entry in scale.entries) {
+    final value = num.parse(
+      _resolve(
+        root,
+        (entry.value as Map<String, dynamic>)[r'$value'],
+      ).toString(),
+    );
+    buffer.writeln(
+      '  static const double ${nameFor(entry.key)} = ${_number(value)};',
+    );
+  }
+
+  buffer.writeln('}');
+  return buffer.toString();
+}
+
+String _buildFontSizes(Map<String, dynamic> root) =>
+    _buildScaleClass(root, 'fontScale', 'AppFontSizes', _scaleName);
+
+String _buildRadii(Map<String, dynamic> root) =>
+    _buildScaleClass(root, 'radius', 'AppRadii', _radiusName);

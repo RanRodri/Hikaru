@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../tokens/app_colors.dart';
+import '../tokens/app_font_sizes.dart';
 import '../tokens/app_gradients.dart';
+import '../tokens/app_radii.dart';
+import '../tokens/app_spacing.dart';
 import '../tokens/app_typography.dart';
 
 class HikaruButton extends StatelessWidget {
@@ -27,18 +30,21 @@ class HikaruButton extends StatelessWidget {
             end: Alignment.centerRight,
             colors: AppGradients.gradientChampagne.colors,
           ),
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(AppRadii.r28),
           border: Border.all(
             color: AppColors.champagneGold.withValues(alpha: 0.3),
           ),
         ),
         child: InkWell(
           onTap: onPressed,
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(AppRadii.r28),
           child: ConstrainedBox(
             constraints: const BoxConstraints(minHeight: 56),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 19),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.s40,
+                vertical: AppSpacing.s19,
+              ),
               child: Center(
                 child: FittedBox(
                   fit: BoxFit.scaleDown,
@@ -48,7 +54,7 @@ class HikaruButton extends StatelessWidget {
                     softWrap: false,
                     style: AppTypography.subheadline.copyWith(
                       color: foregroundColor,
-                      fontSize: 18,
+                      fontSize: AppFontSizes.s18,
                       letterSpacing: 1.44,
                     ),
                   ),

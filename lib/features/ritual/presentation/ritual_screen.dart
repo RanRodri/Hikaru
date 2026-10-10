@@ -4,23 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
+import '../../../core/design_system/tokens/app_font_sizes.dart';
+import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
+import '../../../core/design_system/widgets/hikaru_dividers.dart';
+import '../../../core/design_system/widgets/hikaru_outline_button.dart';
 import '../../../core/router/app_routes.dart';
 
 const List<Shadow> _textShadow = [
-  Shadow(
-    color: Color.fromRGBO(0, 0, 0, 0.8),
-    offset: Offset(0, 1),
-    blurRadius: 8,
-  ),
+  Shadow(color: AppColors.scrim80, offset: Offset(0, 1), blurRadius: 8),
 ];
 
 const List<Shadow> _softTextShadow = [
-  Shadow(
-    color: Color.fromRGBO(0, 0, 0, 0.5),
-    offset: Offset(0, 1),
-    blurRadius: 8,
-  ),
+  Shadow(color: AppColors.scrim50, offset: Offset(0, 1), blurRadius: 8),
 ];
 
 class RitualScreen extends StatelessWidget {
@@ -28,7 +24,7 @@ class RitualScreen extends StatelessWidget {
 
   static const String _backgroundAsset = 'assets/images/ritual_background.png';
 
-  static const double _horizontalPadding = 28;
+  static const double _horizontalPadding = AppSpacing.s28;
   static const double _pathsHeight = 130;
 
   @override
@@ -97,43 +93,43 @@ class RitualScreen extends StatelessWidget {
                     ),
                     child: Column(
                       children: [
-                        const SizedBox(height: 26),
+                        const SizedBox(height: AppSpacing.s26),
                         Text(
                           'Your Sanctuary Is\nAlmost Ready',
                           textAlign: TextAlign.center,
                           style: AppTypography.headline.copyWith(
                             color: AppColors.white,
-                            fontSize: 25,
+                            fontSize: AppFontSizes.s25,
                             height: 1.3,
                             letterSpacing: 3.5,
                             shadows: _textShadow,
                           ),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: AppSpacing.s12),
                         Text(
                           'A sacred tool will elevate your ritual\nand guide you to visible transformation.',
                           textAlign: TextAlign.center,
                           style: AppTypography.headline.copyWith(
                             color: AppColors.fog,
-                            fontSize: 12.5,
+                            fontSize: AppFontSizes.s12_5,
                             height: 1.45,
                             shadows: _textShadow,
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        const _StarDivider(lineWidth: 64),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: AppSpacing.s16),
+                        const HikaruGlyphStarDivider(lineWidth: AppSpacing.s64),
+                        const SizedBox(height: AppSpacing.s10),
                         Text(
                           'CHOOSE YOUR PATH',
                           textAlign: TextAlign.center,
                           style: AppTypography.title.copyWith(
                             color: AppColors.white,
-                            fontSize: 13,
+                            fontSize: AppFontSizes.s13,
                             letterSpacing: 3.3,
                             shadows: _softTextShadow,
                           ),
                         ),
-                        const Expanded(child: SizedBox(height: 32)),
+                        const Expanded(child: SizedBox(height: AppSpacing.s32)),
                         Column(
                           children: [
                             _FrostedPaths(
@@ -150,7 +146,7 @@ class RitualScreen extends StatelessWidget {
                                         onPressed: () {},
                                       ),
                                     ),
-                                    const SizedBox(width: 16),
+                                    const SizedBox(width: AppSpacing.s16),
                                     Expanded(
                                       child: _RitualPath(
                                         title: 'I ALREADY HAVE\nMY HIKARU',
@@ -163,15 +159,17 @@ class RitualScreen extends StatelessWidget {
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            const _StarDivider(lineWidth: 110),
-                            const SizedBox(height: 6),
+                            const SizedBox(height: AppSpacing.s4),
+                            const HikaruGlyphStarDivider(
+                              lineWidth: AppSpacing.s110,
+                            ),
+                            const SizedBox(height: AppSpacing.s6),
                             Text(
                               'EVERY RITUAL BEGINS WITH INTENTION.\nYOU DESERVE THIS MOMENT.',
                               textAlign: TextAlign.center,
                               style: AppTypography.headline.copyWith(
                                 color: AppColors.white.withValues(alpha: 0.9),
-                                fontSize: 9,
+                                fontSize: AppFontSizes.s9,
                                 height: 1.7,
                                 letterSpacing: 2.2,
                                 shadows: _textShadow,
@@ -205,7 +203,10 @@ class _FrostedPaths extends StatelessWidget {
       children: [
         const Positioned.fill(child: _FadedBlur()),
         Padding(
-          padding: const EdgeInsets.only(top: 22, bottom: 8),
+          padding: const EdgeInsets.only(
+            top: AppSpacing.s22,
+            bottom: AppSpacing.s8,
+          ),
           child: child,
         ),
       ],
@@ -225,10 +226,10 @@ class _FadedBlur extends StatelessWidget {
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
           colors: [
-            Color(0x00FFFFFF),
-            Color(0xFFFFFFFF),
-            Color(0xFFFFFFFF),
-            Color(0x00FFFFFF),
+            AppColors.transparentWhite,
+            AppColors.white,
+            AppColors.white,
+            AppColors.transparentWhite,
           ],
           stops: [0, 0.08, 0.92, 1],
         ).createShader(bounds);
@@ -240,10 +241,10 @@ class _FadedBlur extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0x00FFFFFF),
-              Color(0xFFFFFFFF),
-              Color(0xFFFFFFFF),
-              Color(0x00FFFFFF),
+              AppColors.transparentWhite,
+              AppColors.white,
+              AppColors.white,
+              AppColors.transparentWhite,
             ],
             stops: [0, 0.18, 0.82, 1],
           ).createShader(bounds);
@@ -257,49 +258,6 @@ class _FadedBlur extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _GoldLine extends StatelessWidget {
-  const _GoldLine({required this.width});
-
-  final double width;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: width,
-      height: 1,
-      color: AppColors.champagneGold.withValues(alpha: 0.5),
-    );
-  }
-}
-
-class _StarDivider extends StatelessWidget {
-  const _StarDivider({required this.lineWidth});
-
-  final double lineWidth;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _GoldLine(width: lineWidth),
-        const SizedBox(width: 6),
-        Text(
-          '✦',
-          style: AppTypography.body.copyWith(
-            color: AppColors.champagneGold,
-            fontSize: 8,
-            height: 1,
-            letterSpacing: 0,
-          ),
-        ),
-        const SizedBox(width: 6),
-        _GoldLine(width: lineWidth),
-      ],
     );
   }
 }
@@ -325,58 +283,15 @@ class _RitualPath extends StatelessWidget {
           textAlign: TextAlign.center,
           style: AppTypography.headline.copyWith(
             color: AppColors.white,
-            fontSize: 12.5,
+            fontSize: AppFontSizes.s12_5,
             height: 1.35,
             letterSpacing: 2,
             shadows: _textShadow,
           ),
         ),
-        const SizedBox(height: 28),
-        _PathButton(label: actionLabel, onPressed: onPressed),
+        const SizedBox(height: AppSpacing.s28),
+        HikaruOutlineButton(label: actionLabel, onPressed: onPressed),
       ],
-    );
-  }
-}
-
-class _PathButton extends StatelessWidget {
-  const _PathButton({required this.label, required this.onPressed});
-
-  final String label;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final textStyle = AppTypography.headline.copyWith(
-      color: AppColors.fog,
-      fontSize: 9,
-      letterSpacing: 1.6,
-    );
-
-    return Semantics(
-      button: true,
-      label: label,
-      excludeSemantics: true,
-      child: Material(
-        color: AppColors.darkIndigoBlue.withValues(alpha: 0.35),
-        shape: const StadiumBorder(
-          side: BorderSide(color: AppColors.champagneGold),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onPressed,
-          child: SizedBox(
-            height: 36,
-            width: double.infinity,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(label, maxLines: 1, style: textStyle),
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

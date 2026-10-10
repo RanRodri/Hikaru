@@ -3,14 +3,13 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
+import '../../../core/design_system/tokens/app_font_sizes.dart';
+import '../../../core/design_system/tokens/app_radii.dart';
+import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
 
 const List<Shadow> authTextShadow = [
-  Shadow(
-    color: Color.fromRGBO(0, 0, 0, 0.8),
-    offset: Offset(0, 1),
-    blurRadius: 8,
-  ),
+  Shadow(color: AppColors.scrim80, offset: Offset(0, 1), blurRadius: 8),
 ];
 
 class AuthField extends StatefulWidget {
@@ -89,7 +88,7 @@ class _AuthFieldState extends State<AuthField> {
           duration: const Duration(milliseconds: 180),
           height: 60,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(32),
+            borderRadius: BorderRadius.circular(AppRadii.r32),
             border: Border.all(
               color: borderColor,
               width: focused || hasError ? 1.5 : 0.75,
@@ -106,17 +105,22 @@ class _AuthFieldState extends State<AuthField> {
                 : null,
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(32),
+            borderRadius: BorderRadius.circular(AppRadii.r32),
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
               child: ColoredBox(
                 color: AppColors.darkIndigoBlue.withValues(alpha: 0.4),
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(6, 0, 12, 0),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.s6,
+                    AppSpacing.s0,
+                    AppSpacing.s12,
+                    AppSpacing.s0,
+                  ),
                   child: Row(
                     children: [
                       _FieldIcon(icon: widget.icon, style: iconStyle),
-                      const SizedBox(width: 14),
+                      const SizedBox(width: AppSpacing.s14),
                       Expanded(
                         child: TextField(
                           controller: widget.controller,
@@ -129,7 +133,7 @@ class _AuthFieldState extends State<AuthField> {
                           cursorColor: AppColors.champagneGold,
                           style: AppTypography.body.copyWith(
                             color: AppColors.white,
-                            fontSize: 15,
+                            fontSize: AppFontSizes.s15,
                             letterSpacing: 0,
                           ),
                           decoration: InputDecoration(
@@ -140,18 +144,18 @@ class _AuthFieldState extends State<AuthField> {
                             hintText: widget.hint,
                             labelStyle: AppTypography.bodyAccent.copyWith(
                               color: AppColors.white.withValues(alpha: 0.85),
-                              fontSize: 12,
+                              fontSize: AppFontSizes.s12,
                               letterSpacing: 0,
                             ),
                             floatingLabelStyle: AppTypography.bodyAccent
                                 .copyWith(
                                   color: AppColors.champagneGold,
-                                  fontSize: 12,
+                                  fontSize: AppFontSizes.s12,
                                   letterSpacing: 0,
                                 ),
                             hintStyle: AppTypography.body.copyWith(
                               color: AppColors.fog.withValues(alpha: 0.72),
-                              fontSize: 14,
+                              fontSize: AppFontSizes.s14,
                               letterSpacing: 0,
                             ),
                           ),
@@ -183,14 +187,17 @@ class _AuthFieldState extends State<AuthField> {
         ),
         if (hasError)
           Padding(
-            padding: const EdgeInsets.only(left: 20, top: 6),
+            padding: const EdgeInsets.only(
+              left: AppSpacing.s20,
+              top: AppSpacing.s6,
+            ),
             child: Semantics(
               liveRegion: true,
               child: Text(
                 widget.errorText!,
                 style: AppTypography.bodyAccent.copyWith(
                   color: AppColors.error,
-                  fontSize: 12,
+                  fontSize: AppFontSizes.s12,
                   letterSpacing: 0,
                   shadows: authTextShadow,
                 ),
@@ -225,7 +232,7 @@ class AuthPillButton extends StatelessWidget {
       height: 48,
       decoration: glow
           ? BoxDecoration(
-              borderRadius: BorderRadius.circular(32),
+              borderRadius: BorderRadius.circular(AppRadii.r32),
               boxShadow: [
                 BoxShadow(
                   color: backgroundColor.withValues(alpha: 0.35),
@@ -247,7 +254,7 @@ class AuthPillButton extends StatelessWidget {
           label,
           style: AppTypography.subheadline.copyWith(
             color: foregroundColor,
-            fontSize: 11,
+            fontSize: AppFontSizes.s11,
             letterSpacing: 1.1,
           ),
         ),

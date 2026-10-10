@@ -1,22 +1,20 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
+import '../../../core/design_system/tokens/app_font_sizes.dart';
+import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
+import '../../../core/design_system/widgets/hikaru_dividers.dart';
 import '../../../core/design_system/widgets/hikaru_navigation_bar.dart';
 import '../../../core/design_system/widgets/hikaru_shell.dart';
 import '../../../core/router/app_routes.dart';
 import '../../crystals/domain/crystal.dart';
 
 const List<Shadow> _textShadow = [
-  Shadow(
-    color: Color.fromRGBO(0, 0, 0, 0.75),
-    offset: Offset(0, 1),
-    blurRadius: 8,
-  ),
+  Shadow(color: AppColors.scrim75, offset: Offset(0, 1), blurRadius: 8),
 ];
 
 const Map<Crystal, Offset> _templeCenters = {
@@ -106,7 +104,7 @@ class _TemplesContent extends StatelessWidget {
             'THE FOUR TEMPLES',
             textAlign: TextAlign.center,
             style: headingStyle.copyWith(
-              fontSize: 21 * scale,
+              fontSize: AppFontSizes.s21 * scale,
               height: 1.2,
               letterSpacing: 4.2 * scale,
             ),
@@ -119,12 +117,17 @@ class _TemplesContent extends StatelessWidget {
             textAlign: TextAlign.center,
             style: italicStyle.copyWith(
               color: AppColors.white,
-              fontSize: 12 * scale,
+              fontSize: AppFontSizes.s12 * scale,
               letterSpacing: 0.6 * scale,
             ),
           ),
         ),
-        _place(const Rect.fromLTWH(148, 138, 94, 12), const _StarDivider()),
+        _place(
+          const Rect.fromLTWH(148, 138, 94, 12),
+          const HikaruAssetDivider(
+            asset: 'assets/images/temples_star_divider.svg',
+          ),
+        ),
         for (final MapEntry(key: crystal, value: center)
             in _templeCenters.entries)
           _TempleOption(
@@ -134,11 +137,13 @@ class _TemplesContent extends StatelessWidget {
             size: _templeSize,
             nameStyle: AppTypography.subheadline.copyWith(
               color: AppColors.white,
-              fontSize: 9 * scale,
+              fontSize: AppFontSizes.s9 * scale,
               letterSpacing: 1.8 * scale,
               shadows: _textShadow,
             ),
-            templeStyle: italicStyle.copyWith(fontSize: 9.5 * scale),
+            templeStyle: italicStyle.copyWith(
+              fontSize: AppFontSizes.s9_5 * scale,
+            ),
             onPressed: () =>
                 context.push(AppRoutes.crystalResonanceFor(crystal.name)),
           ),
@@ -149,13 +154,18 @@ class _TemplesContent extends StatelessWidget {
             textAlign: TextAlign.center,
             style: AppTypography.subheadline.copyWith(
               color: AppColors.white,
-              fontSize: 9 * scale,
+              fontSize: AppFontSizes.s9 * scale,
               letterSpacing: 2.7 * scale,
               shadows: _textShadow,
             ),
           ),
         ),
-        _place(const Rect.fromLTWH(148, 722, 94, 12), const _StarDivider()),
+        _place(
+          const Rect.fromLTWH(148, 722, 94, 12),
+          const HikaruAssetDivider(
+            asset: 'assets/images/temples_star_divider.svg',
+          ),
+        ),
       ],
     );
   }
@@ -183,7 +193,7 @@ class _TempleOption extends StatelessWidget {
   });
 
   static const double _labelWidth = 150;
-  static const double _labelGap = 2;
+  static const double _labelGap = AppSpacing.s2;
 
   final Crystal crystal;
   final Offset center;
@@ -220,7 +230,7 @@ class _TempleOption extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: nameStyle,
               ),
-              SizedBox(height: 3 * scale),
+              SizedBox(height: AppSpacing.s3 * scale),
               Text(
                 crystal.temple,
                 textAlign: TextAlign.center,
@@ -254,19 +264,6 @@ class _TemplesScrim extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _StarDivider extends StatelessWidget {
-  const _StarDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return SvgPicture.asset(
-      'assets/images/temples_star_divider.svg',
-      fit: BoxFit.fill,
-      excludeFromSemantics: true,
     );
   }
 }

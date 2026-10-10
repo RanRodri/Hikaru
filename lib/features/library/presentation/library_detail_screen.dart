@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
+import '../../../core/design_system/tokens/app_font_sizes.dart';
+import '../../../core/design_system/tokens/app_radii.dart';
+import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/design_system/widgets/hikaru_navigation_bar.dart';
 import '../../../core/design_system/widgets/hikaru_scroll_page.dart';
@@ -28,7 +31,7 @@ class LibraryDetailScreen extends StatelessWidget {
               'BACK',
               style: AppTypography.subheadline.copyWith(
                 color: AppColors.champagneGold,
-                fontSize: 12,
+                fontSize: AppFontSizes.s12,
                 letterSpacing: 1.6,
               ),
             ),
@@ -36,7 +39,7 @@ class LibraryDetailScreen extends StatelessWidget {
         ),
         if (imageAsset != null)
           ClipRRect(
-            borderRadius: BorderRadius.circular(80),
+            borderRadius: BorderRadius.circular(AppRadii.r80),
             child: Image.asset(
               imageAsset,
               height: 160,
@@ -44,37 +47,37 @@ class LibraryDetailScreen extends StatelessWidget {
               fit: BoxFit.cover,
             ),
           ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.s16),
         Text(
           article.title,
           textAlign: TextAlign.center,
           style: AppTypography.headline.copyWith(
             color: AppColors.white,
-            fontSize: 22,
+            fontSize: AppFontSizes.s22,
             letterSpacing: 1.6,
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: AppSpacing.s20),
         for (final block in article.blocks) ...[
           Text(
             block.heading,
             style: AppTypography.subheadline.copyWith(
               color: AppColors.champagneGold,
-              fontSize: 11,
+              fontSize: AppFontSizes.s11,
               letterSpacing: 1.4,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.s8),
           Text(
             block.body,
             style: AppTypography.body.copyWith(
               color: AppColors.fog,
-              fontSize: 14,
+              fontSize: AppFontSizes.s14,
               height: 1.45,
               letterSpacing: 0.2,
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: AppSpacing.s20),
         ],
       ],
     );

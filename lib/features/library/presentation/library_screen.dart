@@ -3,6 +3,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
+import '../../../core/design_system/tokens/app_font_sizes.dart';
+import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/design_system/widgets/hikaru_navigation_bar.dart';
 import '../../../core/design_system/widgets/hikaru_page_intro.dart';
@@ -23,7 +25,7 @@ class LibraryScreen extends StatelessWidget {
           title: 'LIBRARY',
           subtitle: 'Sacred knowledge for your journey',
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: AppSpacing.s14),
         _CollectionsConstellation(
           onOpen: (id) => context.push(AppRoutes.libraryTopicFor(id)),
         ),
@@ -317,7 +319,7 @@ class _FadedPhoto extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [Color(0x00000000), AppColors.black],
+              colors: [AppColors.transparent, AppColors.black],
               stops: [0.78, 1],
             ),
           ),
@@ -336,7 +338,7 @@ class _CollectionCaption extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 14 * scale),
+      padding: EdgeInsets.symmetric(horizontal: AppSpacing.s14 * scale),
       child: FittedBox(
         fit: BoxFit.scaleDown,
         alignment: Alignment.topCenter,
@@ -347,7 +349,7 @@ class _CollectionCaption extends StatelessWidget {
               textAlign: TextAlign.center,
               style: AppTypography.subheadline.copyWith(
                 color: AppColors.white,
-                fontSize: 8.2 * scale,
+                fontSize: AppFontSizes.s8_2 * scale,
                 height: 1.2,
                 letterSpacing: 1.2 * scale,
               ),
@@ -357,7 +359,7 @@ class _CollectionCaption extends StatelessWidget {
               textAlign: TextAlign.center,
               style: AppTypography.footnote.copyWith(
                 color: AppColors.fog,
-                fontSize: 6.6 * scale,
+                fontSize: AppFontSizes.s6_6 * scale,
                 height: 1.3,
                 letterSpacing: 0.2 * scale,
               ),

@@ -5,6 +5,8 @@ import 'package:flutter/scheduler.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
+import '../../../core/design_system/tokens/app_font_sizes.dart';
+import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
 import '../domain/merkaba_session.dart';
 import 'merkaba_painter.dart';
@@ -108,7 +110,12 @@ class _MerkabaMeditationScreenState extends State<MerkabaMeditationScreen>
       backgroundColor: AppColors.indigoBlue,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.s24,
+            AppSpacing.s8,
+            AppSpacing.s24,
+            AppSpacing.s16,
+          ),
           child: frame.isFinished
               ? _Finished(onBack: () => context.pop())
               : Column(
@@ -125,46 +132,46 @@ class _MerkabaMeditationScreenState extends State<MerkabaMeditationScreen>
                       textAlign: TextAlign.center,
                       style: AppTypography.headline.copyWith(
                         color: AppColors.white,
-                        fontSize: 22,
+                        fontSize: AppFontSizes.s22,
                         height: 1.2,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.s12),
                     Expanded(
                       child: MerkabaStage(frame: frame, replacement: visual),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.s12),
                     Text(
                       frame.scene.mudra,
                       textAlign: TextAlign.center,
                       style: AppTypography.subheadline.copyWith(
                         color: AppColors.champagneGold,
-                        fontSize: 12,
+                        fontSize: AppFontSizes.s12,
                         letterSpacing: 1.4,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.s4),
                     Text(
                       frame.scene.mudraPurpose,
                       textAlign: TextAlign.center,
                       style: AppTypography.body.copyWith(
                         color: AppColors.fog,
-                        fontSize: 12,
+                        fontSize: AppFontSizes.s12,
                         letterSpacing: 0.2,
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.s16),
                     _BreathGuide(frame: frame),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.s12),
                     Text(
                       '${formatMerkabaClock(frame.elapsed)} / ${formatMerkabaClock(merkabaDuration)}',
                       style: AppTypography.subheadline.copyWith(
                         color: AppColors.white,
-                        fontSize: 12,
+                        fontSize: AppFontSizes.s12,
                         letterSpacing: 1.2,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: AppSpacing.s8),
                     _TextControl(
                       label: _playing ? 'PAUSE' : 'PLAY',
                       onPressed: _handlePlayPause,
@@ -196,15 +203,15 @@ class _Finished extends StatelessWidget {
           textAlign: TextAlign.center,
           style: AppTypography.title.copyWith(
             color: AppColors.white,
-            fontSize: 32,
+            fontSize: AppFontSizes.s32,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.s12),
         Text(
           formatMerkabaClock(merkabaDuration),
           style: AppTypography.subheadline.copyWith(
             color: AppColors.champagneGold,
-            fontSize: 12,
+            fontSize: AppFontSizes.s12,
             letterSpacing: 1.4,
           ),
         ),
@@ -222,7 +229,7 @@ class _BreathGuide extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 96,
+      width: AppSpacing.s96,
       height: 96,
       child: CustomPaint(
         painter: _RingPainter(progress: 1 - frame.phaseProgress),
@@ -234,7 +241,7 @@ class _BreathGuide extends StatelessWidget {
                 frame.phaseLabel,
                 style: AppTypography.subheadline.copyWith(
                   color: AppColors.champagneGold,
-                  fontSize: 10,
+                  fontSize: AppFontSizes.s10,
                   letterSpacing: 1.1,
                 ),
               ),
@@ -242,7 +249,7 @@ class _BreathGuide extends StatelessWidget {
                 '${frame.phaseSecondsRemaining}',
                 style: AppTypography.title.copyWith(
                   color: AppColors.white,
-                  fontSize: 28,
+                  fontSize: AppFontSizes.s28,
                   height: 1.1,
                 ),
               ),
@@ -302,7 +309,7 @@ class _TextControl extends StatelessWidget {
         label,
         style: AppTypography.subheadline.copyWith(
           color: AppColors.champagneGold,
-          fontSize: 12,
+          fontSize: AppFontSizes.s12,
           letterSpacing: 1.6,
         ),
       ),

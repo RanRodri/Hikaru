@@ -4,32 +4,22 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
+import '../../../core/design_system/tokens/app_font_sizes.dart';
+import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/design_system/widgets/hikaru_pill_button.dart';
 import '../../../core/router/app_routes.dart';
 
 const List<Shadow> _titleShadow = [
-  Shadow(
-    color: Color.fromRGBO(2, 3, 10, 0.8),
-    offset: Offset(0, 2),
-    blurRadius: 8,
-  ),
+  Shadow(color: AppColors.ink80, offset: Offset(0, 2), blurRadius: 8),
 ];
 
 const List<Shadow> _bodyShadow = [
-  Shadow(
-    color: Color.fromRGBO(0, 0, 0, 0.6),
-    offset: Offset(0, 2),
-    blurRadius: 12,
-  ),
+  Shadow(color: AppColors.scrim60, offset: Offset(0, 2), blurRadius: 12),
 ];
 
 const List<Shadow> _footerShadow = [
-  Shadow(
-    color: Color.fromRGBO(0, 0, 0, 0.7),
-    offset: Offset(0, 2),
-    blurRadius: 8,
-  ),
+  Shadow(color: AppColors.scrim70, offset: Offset(0, 2), blurRadius: 8),
 ];
 
 class RitualReadyScreen extends StatelessWidget {
@@ -39,7 +29,7 @@ class RitualReadyScreen extends StatelessWidget {
   static const double _titleTop = 148;
   static const double _titleTopRatio = 0.17;
   static const double _footerBottom = 50;
-  static const double _minInsetGap = 16;
+  static const double _minInsetGap = AppSpacing.s16;
   static const double _messageWidth = 267;
 
   @override
@@ -77,7 +67,12 @@ class RitualReadyScreen extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: EdgeInsets.fromLTRB(32, topSpace, 32, bottomSpace),
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.s32,
+              topSpace,
+              AppSpacing.s32,
+              bottomSpace,
+            ),
             child: Column(
               children: [
                 Expanded(
@@ -94,12 +89,12 @@ class RitualReadyScreen extends StatelessWidget {
                             textAlign: TextAlign.center,
                             style: AppTypography.title.copyWith(
                               color: AppColors.white,
-                              fontSize: 38,
+                              fontSize: AppFontSizes.s38,
                               height: 1.05,
                               shadows: _titleShadow,
                             ),
                           ),
-                          const SizedBox(height: 18),
+                          const SizedBox(height: AppSpacing.s18),
                           SizedBox(
                             width: _messageWidth,
                             child: Text(
@@ -110,7 +105,7 @@ class RitualReadyScreen extends StatelessWidget {
                               textAlign: TextAlign.center,
                               style: AppTypography.headline.copyWith(
                                 color: AppColors.white,
-                                fontSize: 13,
+                                fontSize: AppFontSizes.s13,
                                 height: 1.6,
                                 letterSpacing: 0.65,
                                 shadows: _bodyShadow,
@@ -126,7 +121,7 @@ class RitualReadyScreen extends StatelessWidget {
                   label: 'ENTER YOUR RITUAL',
                   onPressed: () => context.push(AppRoutes.mirrorGarden),
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: AppSpacing.s14),
                 Text(
                   'A  MORE  RADIANT  YOU  AWAITS',
                   textAlign: TextAlign.center,

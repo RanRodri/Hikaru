@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
+import '../../../core/design_system/tokens/app_font_sizes.dart';
+import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
+import '../../../core/design_system/widgets/hikaru_dividers.dart';
 import '../../crystals/application/selected_crystal_controller.dart';
 import '../../crystals/domain/crystal.dart';
 
@@ -29,7 +32,7 @@ class ChamberTitle extends StatelessWidget {
         maxLines: 1,
         style: AppTypography.headline.copyWith(
           color: AppColors.white,
-          fontSize: 14.5,
+          fontSize: AppFontSizes.s14_5,
           letterSpacing: 3.77,
         ),
       ),
@@ -74,15 +77,15 @@ class ChamberScrollView extends StatelessWidget {
 
 final TextStyle _goldLabel = _chamberText.copyWith(
   color: AppColors.champagneGold,
-  fontSize: 9,
+  fontSize: AppFontSizes.s9,
   height: 1.4,
 );
 
 class SectionHeading extends StatelessWidget {
   const SectionHeading({super.key, required this.label});
 
-  static const double _gap = 12;
-  static const double _minRuleWidth = 16;
+  static const double _gap = AppSpacing.s12;
+  static const double _minRuleWidth = AppSpacing.s16;
 
   final String label;
 
@@ -91,7 +94,12 @@ class SectionHeading extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) => Row(
         children: [
-          const Expanded(child: _GoldRule.horizontal()),
+          Expanded(
+            child: HikaruGoldRule(
+              width: double.infinity,
+              height: AppSpacing.s0_6,
+            ),
+          ),
           const SizedBox(width: _gap),
           ConstrainedBox(
             constraints: BoxConstraints(
@@ -102,40 +110,21 @@ class SectionHeading extends StatelessWidget {
               child: Text(
                 label,
                 maxLines: 1,
-                style: _chamberText.copyWith(fontSize: 10, letterSpacing: 2.7),
+                style: _chamberText.copyWith(
+                  fontSize: AppFontSizes.s10,
+                  letterSpacing: 2.7,
+                ),
               ),
             ),
           ),
           const SizedBox(width: _gap),
-          const Expanded(child: _GoldRule.horizontal()),
+          Expanded(
+            child: HikaruGoldRule(
+              width: double.infinity,
+              height: AppSpacing.s0_6,
+            ),
+          ),
         ],
-      ),
-    );
-  }
-}
-
-class _GoldRule extends StatelessWidget {
-  const _GoldRule.horizontal()
-    : width = double.infinity,
-      height = 0.6,
-      opacity = 1;
-
-  const _GoldRule.vertical({required this.height, this.opacity = 0.7})
-    : width = 0.6;
-
-  const _GoldRule.stepSeparator() : width = 71, height = 0.5, opacity = 0.6;
-
-  final double width;
-  final double height;
-  final double opacity;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: width,
-      height: height,
-      child: ColoredBox(
-        color: AppColors.champagneGold.withValues(alpha: opacity),
       ),
     );
   }
@@ -152,13 +141,21 @@ class AlignmentTriad extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(child: _FrequencyColumn()),
-        SizedBox(width: 6),
-        _GoldRule.vertical(height: _dividerHeight),
-        SizedBox(width: 6),
+        SizedBox(width: AppSpacing.s6),
+        HikaruGoldRule(
+          width: AppSpacing.s0_6,
+          height: _dividerHeight,
+          opacity: 0.7,
+        ),
+        SizedBox(width: AppSpacing.s6),
         Expanded(child: _CymaticColumn()),
-        SizedBox(width: 6),
-        _GoldRule.vertical(height: _dividerHeight),
-        SizedBox(width: 6),
+        SizedBox(width: AppSpacing.s6),
+        HikaruGoldRule(
+          width: AppSpacing.s0_6,
+          height: _dividerHeight,
+          opacity: 0.7,
+        ),
+        SizedBox(width: AppSpacing.s6),
         Expanded(child: _RitualColumn()),
       ],
     );
@@ -173,7 +170,7 @@ class _TriadColumn extends StatelessWidget {
   });
 
   static const double _medallionSize = 35;
-  static const double _gap = 7;
+  static const double _gap = AppSpacing.s7;
 
   final String medallionAsset;
   final String label;
@@ -210,7 +207,7 @@ class _FrequencyColumn extends ConsumerWidget {
         Text(
           crystal?.frequency ?? '528 Hz',
           textAlign: TextAlign.center,
-          style: _chamberText.copyWith(fontSize: 22),
+          style: _chamberText.copyWith(fontSize: AppFontSizes.s22),
         ),
         SvgPicture.asset(
           'assets/images/resonance_waveform.svg',
@@ -220,7 +217,10 @@ class _FrequencyColumn extends ConsumerWidget {
         Text(
           'Composed by\n${Crystal.composer}',
           textAlign: TextAlign.center,
-          style: _chamberText.copyWith(fontSize: 9.5, height: 1.4),
+          style: _chamberText.copyWith(
+            fontSize: AppFontSizes.s9_5,
+            height: 1.4,
+          ),
         ),
       ],
     );
@@ -263,15 +263,19 @@ class _RitualColumn extends StatelessWidget {
       label: 'YOUR RITUAL',
       children: [
         Padding(
-          padding: const EdgeInsets.only(top: 4),
+          padding: const EdgeInsets.only(top: AppSpacing.s4),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               for (var index = 0; index < _steps.length; index++) ...[
                 if (index > 0) ...[
-                  const SizedBox(height: 9),
-                  const _GoldRule.stepSeparator(),
-                  const SizedBox(height: 9),
+                  const SizedBox(height: AppSpacing.s9),
+                  HikaruGoldRule(
+                    width: AppSpacing.s71,
+                    height: AppSpacing.s0_5,
+                    opacity: 0.6,
+                  ),
+                  const SizedBox(height: AppSpacing.s9),
                 ],
                 _RitualStep(number: index + 1, label: _steps[index]),
               ],
@@ -306,14 +310,17 @@ class _RitualStep extends StatelessWidget {
           ),
           child: Text(
             '$number',
-            style: _chamberText.copyWith(fontSize: 12, height: 1),
+            style: _chamberText.copyWith(fontSize: AppFontSizes.s12, height: 1),
           ),
         ),
-        const SizedBox(width: 6),
+        const SizedBox(width: AppSpacing.s6),
         Expanded(
           child: Text(
             label,
-            style: _chamberText.copyWith(fontSize: 9.5, height: 1.45),
+            style: _chamberText.copyWith(
+              fontSize: AppFontSizes.s9_5,
+              height: 1.45,
+            ),
           ),
         ),
       ],
@@ -372,8 +379,12 @@ class CrystalBenefits extends StatelessWidget {
         for (var index = 0; index < _benefits.length; index++) ...[
           if (index > 0)
             const Padding(
-              padding: EdgeInsets.only(top: 7),
-              child: _GoldRule.vertical(height: 70, opacity: 0.6),
+              padding: EdgeInsets.only(top: AppSpacing.s7),
+              child: HikaruGoldRule(
+                width: AppSpacing.s0_6,
+                height: 70,
+                opacity: 0.6,
+              ),
             ),
           Expanded(child: _BenefitColumn(benefit: _benefits[index])),
         ],
@@ -397,7 +408,7 @@ class _BenefitColumn extends StatelessWidget {
     final icon = benefit.icon;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 3),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s3),
       child: Column(
         children: [
           if (medallion != null)
@@ -421,20 +432,26 @@ class _BenefitColumn extends StatelessWidget {
                 height: _iconSize,
               ),
             ),
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.s4),
           SizedBox(
             height: _titleHeight,
             child: Text(
               benefit.title,
               textAlign: TextAlign.center,
-              style: _chamberText.copyWith(fontSize: 7.5, height: 1.4),
+              style: _chamberText.copyWith(
+                fontSize: AppFontSizes.s7_5,
+                height: 1.4,
+              ),
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.s4),
           Text(
             benefit.detail,
             textAlign: TextAlign.center,
-            style: _chamberText.copyWith(fontSize: 9, height: 1.4),
+            style: _chamberText.copyWith(
+              fontSize: AppFontSizes.s9,
+              height: 1.4,
+            ),
           ),
         ],
       ),

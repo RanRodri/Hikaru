@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
+import '../../../core/design_system/tokens/app_font_sizes.dart';
+import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/design_system/widgets/hikaru_navigation_bar.dart';
 import '../../../core/design_system/widgets/hikaru_shell.dart';
@@ -307,7 +309,7 @@ class _Destination extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: AppTypography.headline.copyWith(
                     color: AppColors.white,
-                    fontSize: 10.5 * scale,
+                    fontSize: AppFontSizes.s10_5 * scale,
                     height: 1.14,
                     letterSpacing: 0.42 * scale,
                   ),
@@ -339,33 +341,33 @@ class _Title extends StatelessWidget {
           Text(
             'The',
             style: style.copyWith(
-              fontSize: 10 * scale,
+              fontSize: AppFontSizes.s10 * scale,
               height: 1.1,
               letterSpacing: 1.6 * scale,
             ),
           ),
-          SizedBox(height: 4 * scale),
+          SizedBox(height: AppSpacing.s4 * scale),
           Text(
             'Harmony Garden',
             style: style.copyWith(
-              fontSize: 20 * scale,
+              fontSize: AppFontSizes.s20 * scale,
               height: 1.1,
               letterSpacing: 1.6 * scale,
             ),
           ),
-          SizedBox(height: 4 * scale),
+          SizedBox(height: AppSpacing.s4 * scale),
           _rule(34),
-          SizedBox(height: 4 * scale),
+          SizedBox(height: AppSpacing.s4 * scale),
           Text(
             'Your Journey Begins Within',
             textAlign: TextAlign.center,
             style: style.copyWith(
-              fontSize: 10 * scale,
+              fontSize: AppFontSizes.s10 * scale,
               height: 1.2,
               letterSpacing: 0.6 * scale,
             ),
           ),
-          SizedBox(height: 4 * scale),
+          SizedBox(height: AppSpacing.s4 * scale),
           _rule(30),
         ],
       ),

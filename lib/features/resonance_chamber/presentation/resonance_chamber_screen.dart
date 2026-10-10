@@ -5,7 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
+import '../../../core/design_system/tokens/app_font_sizes.dart';
+import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
+import '../../../core/design_system/widgets/hikaru_pill_button.dart';
 import '../../../core/router/app_routes.dart';
 import '../../crystals/application/selected_crystal_controller.dart';
 import 'resonance_sections.dart';
@@ -34,9 +37,9 @@ class ResonanceChamberScreen extends StatelessWidget {
           Padding(
             padding: EdgeInsets.fromLTRB(
               _horizontalPadding,
-              insets.top + 28,
+              insets.top + AppSpacing.s28,
               _horizontalPadding,
-              0,
+              AppSpacing.s0,
             ),
             child: const _ChamberIntroduction(),
           ),
@@ -44,13 +47,19 @@ class ResonanceChamberScreen extends StatelessWidget {
           const Expanded(child: _ScrollableDetails()),
           Padding(
             padding: EdgeInsets.fromLTRB(
-              32,
-              12,
-              32,
-              math.max(24, insets.bottom + 12),
+              AppSpacing.s32,
+              AppSpacing.s12,
+              AppSpacing.s32,
+              math.max(AppSpacing.s24, insets.bottom + AppSpacing.s12),
             ),
-            child: _JourneyButton(
+            child: HikaruPillButton(
+              label: 'ENTER MY 30-DAY JOURNEY',
               onPressed: () => context.go(AppRoutes.home),
+              buttonHeight: AppSpacing.s56,
+              blurRadius: 8,
+              shadowAlpha: 0.25,
+              borderAlpha: 0.3,
+              labelStyle: AppTypography.journeyLabel,
             ),
           ),
         ],
@@ -73,35 +82,38 @@ class _ChamberIntroduction extends ConsumerWidget {
     return Column(
       children: [
         const ChamberTitle(),
-        const SizedBox(height: 14),
+        const SizedBox(height: AppSpacing.s14),
         Text(
           'Your 30-Day Resonance Journey Has Been Created.',
           textAlign: TextAlign.center,
-          style: bodyStyle.copyWith(fontSize: 11, height: 1.35),
+          style: bodyStyle.copyWith(fontSize: AppFontSizes.s11, height: 1.35),
         ),
-        const SizedBox(height: 3),
+        const SizedBox(height: AppSpacing.s3),
         Text(
           'Your crystal, ritual, frequency, and cymatic signature have been '
           'aligned to guide your evolution for the next 30 days.',
           textAlign: TextAlign.center,
-          style: bodyStyle.copyWith(fontSize: 10.5, height: 1.5),
+          style: bodyStyle.copyWith(fontSize: AppFontSizes.s10_5, height: 1.5),
         ),
         if (crystal != null) ...[
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.s8),
           Text(
             crystal.displayName,
             textAlign: TextAlign.center,
             semanticsLabel: 'Assigned crystal ${crystal.displayName}',
             style: AppTypography.subheadline.copyWith(
               color: AppColors.champagneGold,
-              fontSize: 12,
+              fontSize: AppFontSizes.s12,
               letterSpacing: 1.4,
             ),
           ),
           Text(
             crystal.temple,
             textAlign: TextAlign.center,
-            style: bodyStyle.copyWith(fontSize: 10.5, height: 1.4),
+            style: bodyStyle.copyWith(
+              fontSize: AppFontSizes.s10_5,
+              height: 1.4,
+            ),
           ),
         ],
       ],
@@ -202,67 +214,19 @@ class _ScrollableDetails extends StatelessWidget {
     return const ChamberScrollView(
       padding: EdgeInsets.fromLTRB(
         ResonanceChamberScreen._horizontalPadding,
-        12,
+        AppSpacing.s12,
         ResonanceChamberScreen._horizontalPadding,
-        16,
+        AppSpacing.s16,
       ),
       children: [
         SectionHeading(label: 'THE ALIGNMENT TRIAD'),
-        SizedBox(height: 15),
+        SizedBox(height: AppSpacing.s15),
         AlignmentTriad(),
-        SizedBox(height: 24),
+        SizedBox(height: AppSpacing.s24),
         SectionHeading(label: '30 DAYS WITH YOUR CRYSTAL'),
-        SizedBox(height: 12),
+        SizedBox(height: AppSpacing.s12),
         CrystalBenefits(),
       ],
-    );
-  }
-}
-
-class _JourneyButton extends StatelessWidget {
-  const _JourneyButton({required this.onPressed});
-
-  static const double _height = 56;
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(_height / 2),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.champagneGold.withValues(alpha: 0.25),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: SizedBox(
-        width: double.infinity,
-        height: _height,
-        child: FilledButton(
-          onPressed: onPressed,
-          style: FilledButton.styleFrom(
-            backgroundColor: AppColors.champagneGold,
-            foregroundColor: AppColors.darkIndigoBlue,
-            shape: StadiumBorder(
-              side: BorderSide(
-                color: AppColors.champagneGold.withValues(alpha: 0.3),
-              ),
-            ),
-            elevation: 0,
-          ),
-          child: Text(
-            'ENTER MY 30-DAY JOURNEY',
-            style: AppTypography.subheadline.copyWith(
-              color: AppColors.darkIndigoBlue,
-              letterSpacing: 1.2,
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

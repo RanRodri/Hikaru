@@ -5,6 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
+import '../../../core/design_system/tokens/app_font_sizes.dart';
+import '../../../core/design_system/tokens/app_radii.dart';
+import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/design_system/widgets/hikaru_pill_button.dart';
 import '../../../core/router/app_routes.dart';
@@ -15,11 +18,7 @@ import '../domain/discovery_quiz.dart';
 import '../domain/quiz_answers.dart';
 
 const List<Shadow> _textShadow = [
-  Shadow(
-    color: Color.fromRGBO(0, 0, 0, 0.7),
-    offset: Offset(0, 2),
-    blurRadius: 8,
-  ),
+  Shadow(color: AppColors.scrim70, offset: Offset(0, 2), blurRadius: 8),
 ];
 
 class ListeningRoomQuizScreen extends ConsumerStatefulWidget {
@@ -36,7 +35,7 @@ class _ListeningRoomQuizScreenState
       'assets/images/listening_room_quiz.png';
   static const double _contentTop = 60;
   static const double _footerBottom = 50;
-  static const double _minInsetGap = 16;
+  static const double _minInsetGap = AppSpacing.s16;
 
   QuizAnswers _answers = const QuizAnswers();
   int _index = 0;
@@ -172,7 +171,12 @@ class _ListeningRoomQuizScreenState
               ),
             ),
             Padding(
-              padding: EdgeInsets.fromLTRB(32, topSpace, 32, bottomSpace),
+              padding: EdgeInsets.fromLTRB(
+                AppSpacing.s32,
+                topSpace,
+                AppSpacing.s32,
+                bottomSpace,
+              ),
               child: Column(
                 children: [
                   _Progress(
@@ -180,23 +184,23 @@ class _ListeningRoomQuizScreenState
                     label:
                         'Question ${question.number} of ${discoveryQuiz.length}',
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.s8),
                   Text(
                     progressLabel,
                     style: AppTypography.footnote.copyWith(
                       color: AppColors.white,
-                      fontSize: 9,
+                      fontSize: AppFontSizes.s9,
                       letterSpacing: 0.9,
                       shadows: _textShadow,
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: AppSpacing.s10),
                   Container(
                     width: 40,
                     height: 1.5,
                     color: AppColors.champagneGold,
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: AppSpacing.s14),
                   Text(
                     'THE LISTENING ROOM',
                     textAlign: TextAlign.center,
@@ -205,7 +209,7 @@ class _ListeningRoomQuizScreenState
                       shadows: _textShadow,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: AppSpacing.s4),
                   Text(
                     'A  SPACE  TO  BE  HEARD',
                     textAlign: TextAlign.center,
@@ -214,37 +218,38 @@ class _ListeningRoomQuizScreenState
                       shadows: _textShadow,
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.s24),
                   Text(
                     question.prompt,
                     textAlign: TextAlign.center,
                     style: AppTypography.title.copyWith(
                       color: AppColors.white,
-                      fontSize: 26,
+                      fontSize: AppFontSizes.s26,
                       height: 1.15,
                       shadows: _textShadow,
                     ),
                   ),
                   if (question.instruction != null) ...[
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.s12),
                     Text(
                       question.instruction!,
                       textAlign: TextAlign.center,
                       style: AppTypography.body.copyWith(
                         color: AppColors.fog,
-                        fontSize: 12,
+                        fontSize: AppFontSizes.s12,
                         shadows: _textShadow,
                       ),
                     ),
                   ],
-                  const SizedBox(height: 20),
+                  const SizedBox(height: AppSpacing.s20),
                   Expanded(
                     child: ListView.separated(
                       controller: _optionsController,
                       primary: false,
                       padding: EdgeInsets.zero,
                       itemCount: question.options.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: 6),
+                      separatorBuilder: (_, _) =>
+                          const SizedBox(height: AppSpacing.s6),
                       itemBuilder: (context, index) {
                         final option = question.options[index];
                         return _QuizOptionTile(
@@ -261,13 +266,13 @@ class _ListeningRoomQuizScreenState
                   ),
                   if (_showChoiceError)
                     Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.only(bottom: AppSpacing.s8),
                       child: Text(
                         'Select an option.',
                         textAlign: TextAlign.center,
                         style: AppTypography.body.copyWith(
                           color: AppColors.champagneGold,
-                          fontSize: 12,
+                          fontSize: AppFontSizes.s12,
                           letterSpacing: 0,
                         ),
                       ),
@@ -278,13 +283,13 @@ class _ListeningRoomQuizScreenState
                       'BACK',
                       style: AppTypography.subheadline.copyWith(
                         color: AppColors.champagneGold,
-                        fontSize: 11,
+                        fontSize: AppFontSizes.s11,
                         letterSpacing: 1.65,
                       ),
                     ),
                   ),
                   HikaruPillButton(label: 'NEXT', onPressed: _handleNext),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: AppSpacing.s14),
                   Text(
                     'A  MORE  RADIANT  YOU  AWAITS',
                     textAlign: TextAlign.center,
@@ -316,9 +321,9 @@ class _Progress extends StatelessWidget {
       label: label,
       value: label,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(2),
+        borderRadius: BorderRadius.circular(AppRadii.r2),
         child: SizedBox(
-          height: 3,
+          height: AppSpacing.s3,
           width: double.infinity,
           child: ColoredBox(
             color: AppColors.white.withValues(alpha: 0.15),
@@ -365,11 +370,16 @@ class _QuizOptionTile extends StatelessWidget {
           child: ConstrainedBox(
             constraints: const BoxConstraints(minHeight: 52),
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.s8,
+                AppSpacing.s8,
+                AppSpacing.s8,
+                AppSpacing.s8,
+              ),
               child: Row(
                 children: [
                   _ChoiceMark(selected: selected),
-                  const SizedBox(width: 14),
+                  const SizedBox(width: AppSpacing.s14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -380,18 +390,18 @@ class _QuizOptionTile extends StatelessWidget {
                             color: selected
                                 ? AppColors.champagneGold
                                 : AppColors.white,
-                            fontSize: 12,
+                            fontSize: AppFontSizes.s12,
                             letterSpacing: 0.4,
                             shadows: _textShadow,
                           ),
                         ),
                         if (optionDetail != null) ...[
-                          const SizedBox(height: 4),
+                          const SizedBox(height: AppSpacing.s4),
                           Text(
                             optionDetail,
                             style: AppTypography.body.copyWith(
                               color: AppColors.fog,
-                              fontSize: 12,
+                              fontSize: AppFontSizes.s12,
                               letterSpacing: 0.2,
                               shadows: _textShadow,
                             ),

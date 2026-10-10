@@ -38,7 +38,7 @@ class _GlowLogoState extends State<_GlowLogo>
     with SingleTickerProviderStateMixin {
   static const AssetImage _logo = AssetImage('assets/images/official_logo.png');
   static const double _logoSize = 280;
-  static const Color _highlight = Color(0xFFFFF6E4);
+  static const Color _highlight = AppColors.splashHighlight;
 
   late final AnimationController _controller = AnimationController(
     vsync: this,
@@ -110,9 +110,9 @@ class _GlowLogoState extends State<_GlowLogo>
                     begin: Alignment(-dx, -dy),
                     end: Alignment(dx, dy),
                     colors: const [
-                      Color(0x00FFFFFF),
+                      AppColors.transparentWhite,
                       _highlight,
-                      Color(0x00FFFFFF),
+                      AppColors.transparentWhite,
                     ],
                     stops: const [0.36, 0.5, 0.64],
                   ).createShader(bounds);

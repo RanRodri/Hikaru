@@ -3,6 +3,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
+import '../../../core/design_system/tokens/app_font_sizes.dart';
+import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/design_system/widgets/hikaru_button.dart';
 import '../../../core/router/app_routes.dart';
@@ -14,9 +16,9 @@ class SanctuaryScreen extends StatelessWidget {
   static const String _dotAsset = 'assets/images/sanctuary_dot.svg';
   static const String _kanjiAsset = 'assets/images/sanctuary_kanji.svg';
 
-  static const double _kanjiGapBelowStatusBar = 32;
-  static const double _contentTopPadding = 16;
-  static const double _contentHorizontalPadding = 24;
+  static const double _kanjiGapBelowStatusBar = AppSpacing.s32;
+  static const double _contentTopPadding = AppSpacing.s16;
+  static const double _contentHorizontalPadding = AppSpacing.s24;
   static const double _contentBottomPadding = 48;
   static const double _gradientHeight = 440;
 
@@ -81,7 +83,7 @@ class SanctuaryScreen extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   SvgPicture.asset(_dotAsset),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: AppSpacing.s20),
                   Text(
                     'Welcome to',
                     textAlign: TextAlign.center,
@@ -89,7 +91,7 @@ class SanctuaryScreen extends StatelessWidget {
                       color: AppColors.champagneGold,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: AppSpacing.s6),
                   FittedBox(
                     fit: BoxFit.scaleDown,
                     child: Text(
@@ -104,17 +106,17 @@ class SanctuaryScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.s8),
                   Text(
                     'Where Beauty Meets Frequency.',
                     textAlign: TextAlign.center,
                     style: AppTypography.headline.copyWith(
                       color: AppColors.champagneGold,
-                      fontSize: 16,
+                      fontSize: AppFontSizes.s16,
                       height: 1.4,
                     ),
                   ),
-                  const SizedBox(height: 36),
+                  const SizedBox(height: AppSpacing.s36),
                   HikaruButton(
                     label: 'ENTER THE SANCTUARY',
                     onPressed: () => context.push(AppRoutes.discovery),

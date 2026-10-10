@@ -3,6 +3,9 @@ import 'package:flutter/scheduler.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
+import '../../../core/design_system/tokens/app_font_sizes.dart';
+import '../../../core/design_system/tokens/app_radii.dart';
+import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
 import '../domain/massage_ritual.dart';
 
@@ -91,7 +94,12 @@ class _MassageScreenState extends State<MassageScreen>
       backgroundColor: AppColors.darkIndigoBlue,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.s24,
+            AppSpacing.s8,
+            AppSpacing.s24,
+            AppSpacing.s16,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -104,17 +112,17 @@ class _MassageScreenState extends State<MassageScreen>
                 textAlign: TextAlign.center,
                 style: AppTypography.subheadline.copyWith(
                   color: AppColors.champagneGold,
-                  fontSize: 12,
+                  fontSize: AppFontSizes.s12,
                   letterSpacing: 1.8,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: AppSpacing.s4),
               Text(
                 isFace ? 'FACIAL' : 'BODY',
                 textAlign: TextAlign.center,
                 style: AppTypography.title.copyWith(
                   color: AppColors.white,
-                  fontSize: 28,
+                  fontSize: AppFontSizes.s28,
                 ),
               ),
               Text(
@@ -122,38 +130,38 @@ class _MassageScreenState extends State<MassageScreen>
                 textAlign: TextAlign.center,
                 style: AppTypography.body.copyWith(
                   color: AppColors.fog,
-                  fontSize: 12,
+                  fontSize: AppFontSizes.s12,
                   letterSpacing: 1.2,
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.s16),
               const _VideoPlaceholder(),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.s16),
               Text(
                 _zone.name,
                 textAlign: TextAlign.center,
                 style: AppTypography.headline.copyWith(
                   color: AppColors.white,
-                  fontSize: 18,
+                  fontSize: AppFontSizes.s18,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.s8),
               Text(
                 massageStrokeGuidance,
                 textAlign: TextAlign.center,
                 style: AppTypography.body.copyWith(
                   color: AppColors.fog,
-                  fontSize: 12,
+                  fontSize: AppFontSizes.s12,
                   letterSpacing: 0.2,
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.s12),
               Text(
                 formatMassageClock(_elapsed),
                 textAlign: TextAlign.center,
                 style: AppTypography.title.copyWith(
                   color: AppColors.champagneGold,
-                  fontSize: 28,
+                  fontSize: AppFontSizes.s28,
                 ),
               ),
               Row(
@@ -172,7 +180,7 @@ class _MassageScreenState extends State<MassageScreen>
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.s8),
               Wrap(
                 alignment: WrapAlignment.center,
                 spacing: 8,
@@ -186,23 +194,25 @@ class _MassageScreenState extends State<MassageScreen>
                     ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.s12),
               Text(
                 'PRESSURE',
                 textAlign: TextAlign.center,
                 style: AppTypography.subheadline.copyWith(
                   color: AppColors.champagneGold,
-                  fontSize: 10,
+                  fontSize: AppFontSizes.s10,
                   letterSpacing: 1.4,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.s8),
               Row(
                 children: [
                   for (final pressure in MassagePressure.values)
                     Expanded(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.s4,
+                        ),
                         child: _ChoiceChip(
                           label: pressure.label,
                           selected: pressure == _pressure,
@@ -212,19 +222,19 @@ class _MassageScreenState extends State<MassageScreen>
                     ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.s12),
               Expanded(
                 child: ListView(
                   children: [
                     for (final step in steps)
                       Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.only(bottom: AppSpacing.s8),
                         child: Text(
                           step,
                           textAlign: TextAlign.center,
                           style: AppTypography.body.copyWith(
                             color: AppColors.white,
-                            fontSize: 12,
+                            fontSize: AppFontSizes.s12,
                             letterSpacing: 0.2,
                           ),
                         ),
@@ -260,7 +270,7 @@ class _VideoPlaceholder extends StatelessWidget {
         child: DecoratedBox(
           decoration: BoxDecoration(
             color: AppColors.indigoBlue,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppRadii.r16),
             border: Border.all(color: AppColors.champagneGold),
           ),
           child: Center(
@@ -268,7 +278,7 @@ class _VideoPlaceholder extends StatelessWidget {
               'Gua Sha',
               style: AppTypography.subheadline.copyWith(
                 color: AppColors.champagneGold,
-                fontSize: 12,
+                fontSize: AppFontSizes.s12,
                 letterSpacing: 1.4,
               ),
             ),
@@ -295,7 +305,7 @@ class _Control extends StatelessWidget {
           color: onPressed == null
               ? AppColors.champagneGold.withValues(alpha: 0.35)
               : AppColors.champagneGold,
-          fontSize: 12,
+          fontSize: AppFontSizes.s12,
           letterSpacing: 1.4,
         ),
       ),
@@ -331,13 +341,16 @@ class _ChoiceChip extends StatelessWidget {
             side: BorderSide(color: AppColors.champagneGold),
           ),
           minimumSize: const Size(0, 36),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.s12,
+            vertical: AppSpacing.s8,
+          ),
         ),
         child: Text(
           label,
           style: AppTypography.body.copyWith(
             color: selected ? AppColors.darkIndigoBlue : AppColors.fog,
-            fontSize: 11,
+            fontSize: AppFontSizes.s11,
             letterSpacing: 0.4,
           ),
         ),

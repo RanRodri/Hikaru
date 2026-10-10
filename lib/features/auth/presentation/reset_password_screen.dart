@@ -2,17 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
+import '../../../core/design_system/tokens/app_font_sizes.dart';
+import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/router/app_routes.dart';
 import 'auth_background.dart';
 import 'auth_field.dart';
 
 const List<Shadow> _resetShadow = [
-  Shadow(
-    color: Color.fromRGBO(0, 0, 0, 0.8),
-    offset: Offset(0, 2),
-    blurRadius: 8,
-  ),
+  Shadow(color: AppColors.scrim80, offset: Offset(0, 2), blurRadius: 8),
 ];
 
 class ResetPasswordScreen extends StatefulWidget {
@@ -98,10 +96,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         child: SafeArea(
           child: SingleChildScrollView(
             padding: EdgeInsets.fromLTRB(
-              40,
-              0,
-              40,
-              bottomPadding > 16 ? bottomPadding : 16,
+              AppSpacing.s40,
+              AppSpacing.s0,
+              AppSpacing.s40,
+              bottomPadding > AppSpacing.s16 ? bottomPadding : AppSpacing.s16,
             ),
             child: Column(
               children: [
@@ -111,24 +109,24 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   textAlign: TextAlign.center,
                   style: AppTypography.title.copyWith(
                     color: AppColors.white,
-                    fontSize: 34,
+                    fontSize: AppFontSizes.s34,
                     height: 1.1,
                     shadows: _resetShadow,
                   ),
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: AppSpacing.s14),
                 Text(
                   "We'll help you regain access\nto your sanctuary.",
                   textAlign: TextAlign.center,
                   style: AppTypography.body.copyWith(
                     color: AppColors.fog.withValues(alpha: 0.85),
-                    fontSize: 12,
+                    fontSize: AppFontSizes.s12,
                     height: 1.5,
                     letterSpacing: 0.3,
                     shadows: _resetShadow,
                   ),
                 ),
-                const SizedBox(height: 36),
+                const SizedBox(height: AppSpacing.s36),
                 AuthField(
                   controller: _emailController,
                   label: 'Email',
@@ -140,7 +138,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   errorText: _emailError,
                   onChanged: _handleEmailChanged,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.s12),
                 AuthField(
                   controller: _passwordController,
                   label: 'New Password',
@@ -152,7 +150,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   errorText: _passwordError,
                   onChanged: _handlePasswordChanged,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.s12),
                 AuthField(
                   controller: _confirmController,
                   label: 'Confirm Password',
@@ -165,14 +163,14 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   onChanged: _handleConfirmChanged,
                   onSubmitted: (_) => _handleReset(),
                 ),
-                const SizedBox(height: 28),
+                const SizedBox(height: AppSpacing.s28),
                 AuthPillButton(
                   label: 'RESET PASSWORD',
                   backgroundColor: AppColors.champagneGold,
                   foregroundColor: AppColors.darkIndigoBlue,
                   onPressed: _handleReset,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppSpacing.s24),
                 Wrap(
                   alignment: WrapAlignment.center,
                   crossAxisAlignment: WrapCrossAlignment.center,
@@ -181,7 +179,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       'Remember your password? ',
                       style: AppTypography.body.copyWith(
                         color: AppColors.fog.withValues(alpha: 0.55),
-                        fontSize: 12,
+                        fontSize: AppFontSizes.s12,
                         letterSpacing: 0,
                       ),
                     ),
@@ -190,14 +188,16 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       style: TextButton.styleFrom(
                         foregroundColor: AppColors.champagneGold,
                         minimumSize: const Size(44, 36),
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.s4,
+                        ),
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                       child: Text(
                         'Sign in',
                         style: AppTypography.bodyAccent.copyWith(
                           color: AppColors.champagneGold,
-                          fontSize: 12,
+                          fontSize: AppFontSizes.s12,
                           letterSpacing: 0,
                         ),
                       ),

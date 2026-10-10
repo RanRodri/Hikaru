@@ -16,9 +16,9 @@ class RadialGlowBackground extends StatelessWidget {
         color: AppColors.darkIndigoBlue,
         gradient: RadialGradient(
           colors: [
-            Color.fromRGBO(20, 40, 90, 0.5),
-            Color.fromRGBO(9, 26, 56, 0.3),
-            Color.fromRGBO(10, 11, 23, 0),
+            AppColors.glowBlue,
+            AppColors.indigoVeil,
+            AppColors.darkClear,
           ],
           stops: [0, 0.5, 1],
           transform: _StretchToBoundsTransform(),

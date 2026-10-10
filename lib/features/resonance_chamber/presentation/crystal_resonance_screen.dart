@@ -7,6 +7,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
+import '../../../core/design_system/tokens/app_font_sizes.dart';
+import '../../../core/design_system/tokens/app_radii.dart';
+import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/design_system/widgets/hikaru_pill_button.dart';
 import '../../../core/router/app_routes.dart';
@@ -16,7 +19,7 @@ import 'resonance_sections.dart';
 
 final TextStyle _bodyStyle = AppTypography.headline.copyWith(
   color: AppColors.white,
-  fontSize: 12,
+  fontSize: AppFontSizes.s12,
   height: 1.6,
   letterSpacing: 0.2,
 );
@@ -33,7 +36,7 @@ class CrystalResonanceScreen extends ConsumerStatefulWidget {
 
 class _CrystalResonanceScreenState
     extends ConsumerState<CrystalResonanceScreen> {
-  static const double _horizontalPadding = 24;
+  static const double _horizontalPadding = AppSpacing.s24;
   static const double _heroScreenRatio = 0.3;
   static const double _minHeroHeight = 180;
   static const double _maxHeroHeight = 300;
@@ -127,9 +130,9 @@ class _CrystalResonanceScreenState
           Padding(
             padding: EdgeInsets.fromLTRB(
               _horizontalPadding,
-              insets.top + 28,
+              insets.top + AppSpacing.s28,
               _horizontalPadding,
-              0,
+              AppSpacing.s0,
             ),
             child: _CrystalIntroduction(crystal: _crystal),
           ),
@@ -141,9 +144,9 @@ class _CrystalResonanceScreenState
             child: ChamberScrollView(
               padding: const EdgeInsets.fromLTRB(
                 _horizontalPadding,
-                12,
+                AppSpacing.s12,
                 _horizontalPadding,
-                16,
+                AppSpacing.s16,
               ),
               children: [
                 _FrequencyPlayer(
@@ -152,7 +155,7 @@ class _CrystalResonanceScreenState
                   isUnavailable: _isAudioUnavailable,
                   onToggle: _handleTogglePlayback,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppSpacing.s24),
                 _CrystalDetail(
                   label: 'THERAPEUTIC PURPOSE',
                   text: _crystal.purpose,
@@ -174,10 +177,10 @@ class _CrystalResonanceScreenState
           ),
           Padding(
             padding: EdgeInsets.fromLTRB(
-              32,
-              12,
-              32,
-              math.max(24, insets.bottom + 12),
+              AppSpacing.s32,
+              AppSpacing.s12,
+              AppSpacing.s32,
+              math.max(AppSpacing.s24, insets.bottom + AppSpacing.s12),
             ),
             child: isSelected
                 ? HikaruPillButton(
@@ -205,24 +208,24 @@ class _CrystalIntroduction extends StatelessWidget {
     return Column(
       children: [
         const ChamberTitle(),
-        const SizedBox(height: 14),
+        const SizedBox(height: AppSpacing.s14),
         Text(
           crystal.displayName,
           textAlign: TextAlign.center,
           style: AppTypography.headline.copyWith(
             color: AppColors.white,
-            fontSize: 22,
+            fontSize: AppFontSizes.s22,
             height: 1.2,
             letterSpacing: 4.4,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: AppSpacing.s4),
         Text(
           crystal.temple,
           textAlign: TextAlign.center,
           style: AppTypography.footnote.copyWith(
             color: AppColors.fog,
-            fontSize: 12,
+            fontSize: AppFontSizes.s12,
             fontStyle: FontStyle.italic,
             letterSpacing: 0.6,
           ),
@@ -272,7 +275,7 @@ class _FrequencyPlayer extends StatelessWidget {
     required this.onToggle,
   });
 
-  static const double _buttonSize = 52;
+  static const double _buttonSize = AppSpacing.s52;
 
   final Crystal crystal;
   final bool isPlaying;
@@ -283,14 +286,14 @@ class _FrequencyPlayer extends StatelessWidget {
   Widget build(BuildContext context) {
     final goldLabel = AppTypography.subheadline.copyWith(
       color: AppColors.champagneGold,
-      fontSize: 9,
+      fontSize: AppFontSizes.s9,
       letterSpacing: 1.2,
     );
 
     return Column(
       children: [
         const SectionHeading(label: 'YOUR FREQUENCY'),
-        const SizedBox(height: 14),
+        const SizedBox(height: AppSpacing.s14),
         Row(
           children: [
             Semantics(
@@ -316,7 +319,7 @@ class _FrequencyPlayer extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: AppSpacing.s16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -325,31 +328,34 @@ class _FrequencyPlayer extends StatelessWidget {
                     crystal.frequency,
                     style: AppTypography.headline.copyWith(
                       color: AppColors.white,
-                      fontSize: 22,
+                      fontSize: AppFontSizes.s22,
                       height: 1.2,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: AppSpacing.s2),
                   Text(
                     crystal.frequencyDetail,
                     style: _bodyStyle.copyWith(
                       color: AppColors.fog,
-                      fontSize: 11,
+                      fontSize: AppFontSizes.s11,
                       height: 1.4,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: AppSpacing.s6),
                   Text(
                     '${crystal.protocol.toUpperCase()} · '
                     '${Crystal.sessionLength.toUpperCase()}',
                     style: goldLabel,
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: AppSpacing.s2),
                   Text(
                     isUnavailable
                         ? 'Frequency unavailable right now'
                         : 'Composed by ${Crystal.composer}',
-                    style: _bodyStyle.copyWith(fontSize: 10, height: 1.4),
+                    style: _bodyStyle.copyWith(
+                      fontSize: AppFontSizes.s10,
+                      height: 1.4,
+                    ),
                   ),
                 ],
               ),
@@ -370,11 +376,11 @@ class _CrystalDetail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 22),
+      padding: const EdgeInsets.only(bottom: AppSpacing.s22),
       child: Column(
         children: [
           SectionHeading(label: label),
-          const SizedBox(height: 10),
+          const SizedBox(height: AppSpacing.s10),
           Text(text, textAlign: TextAlign.center, style: _bodyStyle),
         ],
       ),
@@ -403,7 +409,7 @@ class _ChooseCrystalDialog extends StatelessWidget {
     return AlertDialog(
       backgroundColor: resonanceChamberColor,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadii.r20),
         side: BorderSide(
           color: AppColors.champagneGold.withValues(alpha: 0.6),
           width: 0.75,
@@ -414,7 +420,7 @@ class _ChooseCrystalDialog extends StatelessWidget {
         textAlign: TextAlign.center,
         style: AppTypography.headline.copyWith(
           color: AppColors.white,
-          fontSize: 16,
+          fontSize: AppFontSizes.s16,
           height: 1.4,
           letterSpacing: 0.8,
         ),

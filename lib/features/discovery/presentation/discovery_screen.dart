@@ -3,8 +3,12 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
+import '../../../core/design_system/tokens/app_font_sizes.dart';
+import '../../../core/design_system/tokens/app_radii.dart';
+import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/design_system/widgets/hikaru_button.dart';
+import '../../../core/design_system/widgets/hikaru_dividers.dart';
 import '../../../core/router/app_routes.dart';
 
 class DiscoveryScreen extends StatelessWidget {
@@ -13,12 +17,12 @@ class DiscoveryScreen extends StatelessWidget {
   static const String _backgroundAsset = 'assets/images/discovery_room.png';
 
   static const double _contentTop = 48;
-  static const double _minContentTop = 16;
-  static const double _horizontalPadding = 24;
-  static const double _sectionGap = 14;
-  static const double _footerGap = 16;
-  static const double _footerBottom = 28;
-  static const double _footerMinGapAboveSystemBar = 8;
+  static const double _minContentTop = AppSpacing.s16;
+  static const double _horizontalPadding = AppSpacing.s24;
+  static const double _sectionGap = AppSpacing.s14;
+  static const double _footerGap = AppSpacing.s16;
+  static const double _footerBottom = AppSpacing.s28;
+  static const double _footerMinGapAboveSystemBar = AppSpacing.s8;
   static const double _buttonHeight = 62;
 
   static const List<_DiscoveryStepData> _steps = [
@@ -105,19 +109,19 @@ class DiscoveryScreen extends StatelessWidget {
                           textAlign: TextAlign.center,
                           style: AppTypography.bodyAccent.copyWith(
                             color: AppColors.champagneGold,
-                            fontSize: 10,
+                            fontSize: AppFontSizes.s10,
                             letterSpacing: 2,
                           ),
                         ),
                         const SizedBox(height: _sectionGap),
-                        const _GoldDivider(),
+                        const HikaruGoldDivider(),
                         const SizedBox(height: _sectionGap),
                         Text(
                           'Your Journey\nBegins With You',
                           textAlign: TextAlign.center,
                           style: AppTypography.title.copyWith(
                             color: AppColors.white,
-                            fontSize: 34,
+                            fontSize: AppFontSizes.s34,
                             height: 1.15,
                           ),
                         ),
@@ -132,7 +136,7 @@ class DiscoveryScreen extends StatelessWidget {
                 Padding(
                   padding: EdgeInsets.fromLTRB(
                     _horizontalPadding,
-                    0,
+                    AppSpacing.s0,
                     _horizontalPadding,
                     footerBottom,
                   ),
@@ -146,7 +150,7 @@ class DiscoveryScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: _footerGap),
-                      const _GoldDivider(),
+                      const HikaruGoldDivider(),
                       const SizedBox(height: _footerGap),
                       Text(
                         'BEAUTY MEETS FREQUENCY',
@@ -165,15 +169,6 @@ class DiscoveryScreen extends StatelessWidget {
         ],
       ),
     );
-  }
-}
-
-class _GoldDivider extends StatelessWidget {
-  const _GoldDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(width: 30, height: 2, color: AppColors.champagneGold);
   }
 }
 
@@ -201,9 +196,12 @@ class _DiscoveryStep extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.s16,
+        vertical: AppSpacing.s12,
+      ),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadii.r20),
         border: Border.all(
           color: AppColors.champagneGold.withValues(alpha: 0.2),
           width: 0.5,
@@ -230,7 +228,7 @@ class _DiscoveryStep extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: AppSpacing.s14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -239,16 +237,16 @@ class _DiscoveryStep extends StatelessWidget {
                   data.title,
                   style: AppTypography.bodyAccent.copyWith(
                     color: AppColors.champagneGold,
-                    fontSize: 12,
+                    fontSize: AppFontSizes.s12,
                     letterSpacing: 0.6,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: AppSpacing.s6),
                 Text(
                   data.body,
                   style: AppTypography.body.copyWith(
                     color: AppColors.fog,
-                    fontSize: 14,
+                    fontSize: AppFontSizes.s14,
                     height: 1.5,
                     letterSpacing: 0.28,
                   ),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
+import '../../../core/design_system/tokens/app_font_sizes.dart';
+import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/router/app_routes.dart';
 import 'auth_background.dart';
@@ -120,37 +122,37 @@ class _RegisterScreenState extends State<RegisterScreen> {
         child: SafeArea(
           child: SingleChildScrollView(
             padding: EdgeInsets.fromLTRB(
-              40,
-              0,
-              40,
-              bottomPadding > 16 ? bottomPadding : 16,
+              AppSpacing.s40,
+              AppSpacing.s0,
+              AppSpacing.s40,
+              bottomPadding > AppSpacing.s16 ? bottomPadding : AppSpacing.s16,
             ),
             child: Column(
               children: [
-                const SizedBox(height: 100),
+                const SizedBox(height: AppSpacing.s100),
                 Text(
                   'Create Your\nSanctuary',
                   textAlign: TextAlign.center,
                   style: AppTypography.title.copyWith(
                     color: AppColors.white,
-                    fontSize: 34,
+                    fontSize: AppFontSizes.s34,
                     height: 1.15,
                     shadows: authTextShadow,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.s8),
                 Text(
                   'Lets begin with essentials to\npersonalize your experience.',
                   textAlign: TextAlign.center,
                   style: AppTypography.body.copyWith(
                     color: AppColors.fog.withValues(alpha: 0.85),
-                    fontSize: 12,
+                    fontSize: AppFontSizes.s12,
                     height: 1.5,
                     letterSpacing: 0.3,
                     shadows: authTextShadow,
                   ),
                 ),
-                const SizedBox(height: 18),
+                const SizedBox(height: AppSpacing.s18),
                 AuthField(
                   controller: _nameController,
                   label: 'Full Name',
@@ -161,7 +163,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   errorText: _nameError,
                   onChanged: _handleNameChanged,
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: AppSpacing.s10),
                 AuthField(
                   controller: _emailController,
                   label: 'Email',
@@ -173,7 +175,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   errorText: _emailError,
                   onChanged: _handleEmailChanged,
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: AppSpacing.s10),
                 AuthField(
                   controller: _passwordController,
                   label: 'Password',
@@ -185,7 +187,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   errorText: _passwordError,
                   onChanged: _handlePasswordChanged,
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: AppSpacing.s10),
                 AuthField(
                   controller: _birthdayController,
                   label: 'Birthday',
@@ -196,7 +198,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   errorText: _birthdayError,
                   onChanged: (_) {},
                 ),
-                const SizedBox(height: 22),
+                const SizedBox(height: AppSpacing.s22),
                 AuthPillButton(
                   label: 'CONTINUE',
                   backgroundColor: AppColors.champagneGold,
@@ -204,7 +206,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   glow: true,
                   onPressed: _handleContinue,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.s16),
                 Wrap(
                   alignment: WrapAlignment.center,
                   crossAxisAlignment: WrapCrossAlignment.center,
@@ -213,7 +215,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       'Already have an account? ',
                       style: AppTypography.body.copyWith(
                         color: AppColors.fog.withValues(alpha: 0.55),
-                        fontSize: 12,
+                        fontSize: AppFontSizes.s12,
                         letterSpacing: 0,
                       ),
                     ),
@@ -222,14 +224,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       style: TextButton.styleFrom(
                         foregroundColor: AppColors.champagneGold,
                         minimumSize: const Size(44, 36),
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.s4,
+                        ),
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                       child: Text(
                         'Log in',
                         style: AppTypography.bodyAccent.copyWith(
                           color: AppColors.champagneGold,
-                          fontSize: 12,
+                          fontSize: AppFontSizes.s12,
                           letterSpacing: 0,
                         ),
                       ),
