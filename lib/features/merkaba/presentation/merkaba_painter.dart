@@ -55,13 +55,15 @@ class MerkabaFieldPainter extends CustomPainter {
     final woman = _womanRect(size);
     if (woman.width <= 0 || woman.height <= 0) return;
 
+    // Heart glow sits on the chest. The geometry shares her vertical axis
+    // and is centered so the star frames the whole seated figure.
     final heart = Offset(
-      woman.left + woman.width * 0.5,
-      woman.top + woman.height * 0.4,
+      woman.left + woman.width * _axisX,
+      woman.top + woman.height * _heartY,
     );
     final body = Offset(
-      woman.left + woman.width * 0.5,
-      woman.top + woman.height * 0.5,
+      woman.left + woman.width * _axisX,
+      woman.top + woman.height * _bodyY,
     );
     final sceneIndex = merkabaScenes.indexOf(frame.scene);
     final breath = reduceMotion ? 0.62 : _breath(frame);
@@ -70,7 +72,7 @@ class MerkabaFieldPainter extends CustomPainter {
     _paintHeart(canvas, heart, woman.height, breath, sceneIndex, sceneT);
     _paintStar(canvas, body, woman, sceneIndex, sceneT, breath);
     _paintRibbons(canvas, body, woman, sceneIndex, sceneT, breath);
-    _paintMerkaba(canvas, heart, woman, sceneIndex, sceneT, breath);
+    _paintMerkaba(canvas, body, woman, sceneIndex, sceneT, breath);
     _paintMandala(canvas, heart, woman, sceneIndex, sceneT);
   }
 
@@ -132,7 +134,7 @@ class MerkabaFieldPainter extends CustomPainter {
     final fade = sceneIndex == 2 ? (1 - sceneT / 0.28).clamp(0.0, 1.0) : 1.0;
     if (fade <= 0) return;
     final pulse = draw >= 1 && !reduceMotion ? 1 + breath * 0.035 : 1.0;
-    final radius = woman.height * 0.4 * pulse;
+    final radius = woman.height * 0.30 * pulse;
     final path = _starPath(body, radius);
     _stroke(canvas, path, 0.82 * fade, draw);
   }
@@ -161,8 +163,8 @@ class MerkabaFieldPainter extends CustomPainter {
     for (var ribbon = 0; ribbon < 3; ribbon++) {
       final path = _ribbon(
         body,
-        woman.width * 0.34 * reach,
-        woman.height * (0.22 + ribbon * 0.04) * reach,
+        woman.width * 0.26 * reach,
+        woman.height * (0.16 + ribbon * 0.03) * reach,
         turn + ribbon * 2.05,
       );
       _stroke(canvas, path, 0.42 * opacity, 1);
@@ -171,7 +173,7 @@ class MerkabaFieldPainter extends CustomPainter {
 
   void _paintMerkaba(
     Canvas canvas,
-    Offset heart,
+    Offset center,
     Rect woman,
     int sceneIndex,
     double sceneT,
@@ -182,12 +184,12 @@ class MerkabaFieldPainter extends CustomPainter {
     if (built <= 0) return;
     final fade = sceneIndex == 5 ? (1 - sceneT).clamp(0.0, 1.0) : 1.0;
     if (fade <= 0) return;
-    final scale = sceneIndex == 4 ? 1 + breath * 0.12 : 1 + breath * 0.025;
-    final radius = woman.shortestSide * 0.46 * scale;
+    final scale = sceneIndex == 4 ? 1 + breath * 0.08 : 1 + breath * 0.02;
+    final radius = woman.height * 0.36 * scale;
     final spin = _spin(frame);
     _drawTetra(
       canvas: canvas,
-      center: heart,
+      center: center,
       radius: radius,
       rotation: spin,
       pointUp: false,
@@ -196,7 +198,7 @@ class MerkabaFieldPainter extends CustomPainter {
     );
     _drawTetra(
       canvas: canvas,
-      center: heart,
+      center: center,
       radius: radius,
       rotation: -spin,
       pointUp: true,
@@ -351,6 +353,15 @@ class MerkabaFieldPainter extends CustomPainter {
     final t = into.clamp(0.0, sceneLength);
     return settled + rate * t * (1 - t / (2 * sceneLength));
   }
+
+  /// Vertical centerline through the heart, as a fraction of the portrait.
+  static const double _axisX = 0.50;
+
+  /// Chest, where the heart glow sits.
+  static const double _heartY = 0.37;
+
+  /// Mid-body, so the tetrahedron frames crown and seat together.
+  static const double _bodyY = 0.50;
 
   Rect _womanRect(Size size) {
     final boxAspect = size.width / size.height;
