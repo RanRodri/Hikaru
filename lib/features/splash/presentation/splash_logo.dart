@@ -104,7 +104,6 @@ class SplashLogoPainter extends CustomPainter {
   final double t;
 
   static const int _strands = 10;
-  static const int _steps = 220;
 
   /// Official logo pixels for 光 and HIKARU LIFT™, without the tagline.
   static const Rect _wordSrc = Rect.fromLTWH(190, 640, 700, 290);
@@ -115,12 +114,13 @@ class SplashLogoPainter extends CustomPainter {
 
     final motion = _SplashMotion(t);
     final layout = _SplashLayout.of(size);
+    final frame = _SplashFrame.of(layout, motion);
+    if (motion.glow > 0.01) {
+      _drawStrands(canvas, layout, motion, frame, glow: true);
+    }
+    _drawStrands(canvas, layout, motion, frame, glow: false);
     _drawAxis(canvas, layout, motion);
     _drawDots(canvas, layout, motion);
-    if (motion.glow > 0.01) {
-      _drawBloom(canvas, layout, motion);
-    }
-    _drawStrands(canvas, layout, motion, glow: false);
     _drawWordmark(canvas, layout, motion);
   }
 
@@ -128,10 +128,10 @@ class SplashLogoPainter extends CustomPainter {
     final opacity = (1 - motion.morph) * motion.draw * 0.34;
     if (opacity <= 0.01) return;
     canvas.drawLine(
-      Offset(layout.center.dx, layout.top - layout.halfHeight * 0.04),
+      Offset(layout.center.dx, layout.top - layout.ribbon * 0.15),
       Offset(layout.center.dx, layout.bottomDot),
       Paint()
-        ..color = AppColors.champagneGold.withValues(alpha: opacity)
+        ..color = AppColors.accentGold.withValues(alpha: opacity)
         ..strokeWidth = 1,
     );
   }
@@ -140,140 +140,139 @@ class SplashLogoPainter extends CustomPainter {
     final opacity = motion.draw.clamp(0.0, 1.0);
     if (opacity <= 0.01) return;
     final paint = Paint()
-      ..color = AppColors.champagneGold.withValues(alpha: 0.9 * opacity);
-    final radius = math.max(2.2, layout.halfWidth * 0.018);
+      ..color = AppColors.accentGold.withValues(alpha: 0.95 * opacity);
     for (final dot in layout.dots) {
-      canvas.drawCircle(dot, radius, paint);
+      canvas.drawCircle(dot, layout.dotRadius, paint);
     }
-  }
-
-  void _drawBloom(Canvas canvas, _SplashLayout layout, _SplashMotion motion) {
-    final bounds = layout.markBounds.inflate(36);
-    canvas.saveLayer(
-      bounds,
-      Paint()
-        ..imageFilter = ui.ImageFilter.blur(
-          sigmaX: 10 + 8 * motion.bloom,
-          sigmaY: 10 + 8 * motion.bloom,
-        ),
-    );
-    _drawStrands(canvas, layout, motion, glow: true);
-    canvas.restore();
   }
 
   void _drawStrands(
     Canvas canvas,
     _SplashLayout layout,
-    _SplashMotion motion, {
+    _SplashMotion motion,
+    _SplashFrame frame, {
     required bool glow,
   }) {
-    final reveal = motion.reveal;
-    if (reveal <= 0.001) return;
+    if (motion.reveal <= 0.001 || frame.points.isEmpty) return;
 
-    // First half sits under the return stroke, so the waist reads as a weave.
-    _strokeRange(canvas, layout, motion, 0, math.min(reveal, 0.5), glow);
-    if (reveal > 0.5) {
-      _strokeRange(canvas, layout, motion, 0.5, reveal, glow);
-    }
-  }
-
-  void _strokeRange(
-    Canvas canvas,
-    _SplashLayout layout,
-    _SplashMotion motion,
-    double from,
-    double to,
-    bool glow,
-  ) {
     for (var strand = 0; strand < _strands; strand++) {
-      final path = _strandPath(layout, motion, strand, from, to);
-      final place = (strand / (_strands - 1)) * 2 - 1;
-      final edge = place.abs();
-      final gold = Color.lerp(
-        AppColors.champagneGold,
-        AppColors.splashHighlight,
-        glow ? 0.35 : 0.15 + edge * 0.75,
-      )!;
-      final alpha = glow
-          ? 0.34 * motion.glow
-          : (0.55 + 0.45 * motion.brighten) * (0.78 + 0.22 * edge);
-      final width = glow
-          ? layout.strandWidth * 3.2
-          : layout.strandWidth * (0.85 + 0.9 * motion.brighten);
-      canvas.drawPath(
-        path,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = width
-          ..strokeCap = StrokeCap.round
-          ..strokeJoin = StrokeJoin.round
-          ..color = gold.withValues(alpha: alpha.clamp(0.0, 1.0)),
+      final paint = _strandPaint(layout, motion, strand, glow);
+      final under = strand.isEven ? 2 : 1;
+      // Ovals, then the diagonal that passes under at the crossing.
+      _strokeBand(canvas, layout, motion, frame, strand, 0, paint);
+      _strokeBand(canvas, layout, motion, frame, strand, under, paint);
+      if (!glow) {
+        final core = _corePaint(motion, strand);
+        _strokeBand(canvas, layout, motion, frame, strand, 0, core);
+        _strokeBand(canvas, layout, motion, frame, strand, under, core);
+      }
+    }
+    for (var strand = 0; strand < _strands; strand++) {
+      final over = strand.isEven ? 1 : 2;
+      _strokeBand(
+        canvas,
+        layout,
+        motion,
+        frame,
+        strand,
+        over,
+        _strandPaint(layout, motion, strand, glow),
       );
+      if (!glow) {
+        _strokeBand(
+          canvas,
+          layout,
+          motion,
+          frame,
+          strand,
+          over,
+          _corePaint(motion, strand),
+        );
+      }
     }
   }
 
-  Path _strandPath(
+  Paint _strandPaint(
     _SplashLayout layout,
     _SplashMotion motion,
     int strand,
-    double from,
-    double to,
+    bool glow,
   ) {
+    final place = _place(strand);
+    final edge = place.abs();
+    final gold = _gold(edge);
+    final alpha = glow
+        ? 0.30 * motion.glow
+        : (0.55 + 0.45 * motion.brighten) * (0.86 + 0.14 * (1 - edge));
+    final width = glow
+        ? layout.strandWidth * 1.8
+        : layout.strandWidth * (0.62 + 0.38 * motion.brighten);
+    return Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = width
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..maskFilter = glow
+          ? ui.MaskFilter.blur(ui.BlurStyle.normal, 1.15 + 2.4 * motion.bloom)
+          : null
+      ..color = gold.withValues(alpha: alpha.clamp(0.0, 1.0));
+  }
+
+  /// Thin warmer core so the filament reads as metal, not a flat cream stroke.
+  Paint _corePaint(_SplashMotion motion, int strand) {
+    final edge = _place(strand).abs();
+    final bright = Color.lerp(AppColors.accentGold, AppColors.goldGlow, 0.22)!;
+    return Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.7
+      ..strokeCap = StrokeCap.round
+      ..color = bright.withValues(
+        alpha: (0.22 + 0.35 * motion.brighten) * (1 - edge * 0.35),
+      );
+  }
+
+  /// Deeper amber on the outer filaments, brighter gold toward the middle.
+  Color _gold(double edge) {
+    final deep = Color.lerp(
+      AppColors.matteChampagne,
+      AppColors.accentGold,
+      0.62,
+    )!;
+    final bright = Color.lerp(AppColors.accentGold, AppColors.goldGlow, 0.12)!;
+    final lit = (1 - edge).clamp(0.0, 1.0);
+    return Color.lerp(deep, bright, 0.25 + 0.75 * lit)!;
+  }
+
+  double _place(int strand) => (strand / (_strands - 1)) * 2 - 1;
+
+  void _strokeBand(
+    Canvas canvas,
+    _SplashLayout layout,
+    _SplashMotion motion,
+    _SplashFrame frame,
+    int strand,
+    int band,
+    Paint paint,
+  ) {
+    final place = _place(strand);
+    final spread = layout.ribbon * (0.30 + 0.70 * motion.morph);
     final path = Path();
-    final place = (strand / (_strands - 1)) * 2 - 1;
-    final start = (from * _steps).round();
-    final end = (to * _steps).round();
-    for (var step = start; step <= end; step++) {
-      final u = step / _steps;
-      final point = _point(layout, motion, place, u);
-      if (step == start) {
+    var drawing = false;
+    for (final sample in frame.points) {
+      final visible = sample.u <= motion.reveal + 0.0001 && sample.band == band;
+      if (!visible) {
+        drawing = false;
+        continue;
+      }
+      final point = sample.point + sample.normal * place * spread;
+      if (!drawing) {
         path.moveTo(point.dx, point.dy);
+        drawing = true;
       } else {
         path.lineTo(point.dx, point.dy);
       }
     }
-    return path;
-  }
-
-  Offset _point(
-    _SplashLayout layout,
-    _SplashMotion motion,
-    double place,
-    double u,
-  ) {
-    final theta = u * math.pi * 2 + motion.phase;
-    final local = _figure(theta, motion.morph);
-    final ahead = _figure(theta + 0.02, motion.morph);
-    final dx = ahead.dx - local.dx;
-    final dy = ahead.dy - local.dy;
-    final len = math.max(0.0001, math.sqrt(dx * dx + dy * dy));
-    final nx = -dy / len;
-    final ny = dx / len;
-    final ribbon = ui.lerpDouble(
-      layout.halfWidth * 0.05,
-      layout.halfWidth * 0.2,
-      motion.morph,
-    )!;
-    final shift = place * ribbon;
-    return Offset(
-      layout.center.dx +
-          local.dx * layout.halfWidth +
-          nx * shift * motion.morph,
-      layout.center.dy -
-          local.dy * layout.halfHeight +
-          ny * shift * motion.morph * 0.72 +
-          place * (1 - motion.morph) * layout.halfWidth * 0.055,
-    );
-  }
-
-  /// Unit figure-8. Y is +1 at the top. X widens as [morph] closes the loops.
-  Offset _figure(double theta, double morph) {
-    final sine = math.sin(theta);
-    final cosine = math.cos(theta);
-    final denom = 1 + sine * sine;
-    final eightX = (sine * cosine) / denom * 2.35;
-    final waveX = math.sin(theta) * 0.42;
-    return Offset(ui.lerpDouble(waveX, eightX, morph)!, cosine / denom);
+    canvas.drawPath(path, paint);
   }
 
   void _drawWordmark(
@@ -283,7 +282,7 @@ class SplashLogoPainter extends CustomPainter {
   ) {
     final image = wordmark;
     if (image == null || motion.text <= 0.01) return;
-    final width = math.min(layout.size.width * 0.78, 380.0);
+    final width = math.min(layout.size.width * 0.58, layout.outerWidth * 1.2);
     final height = width * _wordSrc.height / _wordSrc.width;
     final rect = Rect.fromCenter(
       center: Offset(layout.center.dx, layout.wordCenterY),
@@ -303,62 +302,247 @@ class SplashLogoPainter extends CustomPainter {
       oldDelegate.t != t || oldDelegate.wordmark != wordmark;
 }
 
+class _Anchor {
+  const _Anchor(this.point, this.u, this.band);
+
+  final Offset point;
+  final double u;
+
+  /// 0 oval, 1 one diagonal of the crossing, 2 the other diagonal.
+  final int band;
+}
+
+class _Sample {
+  const _Sample(this.point, this.normal, this.u, this.band);
+
+  final Offset point;
+  final Offset normal;
+  final double u;
+  final int band;
+}
+
+class _SplashFrame {
+  const _SplashFrame(this.points);
+
+  final List<_Sample> points;
+
+  factory _SplashFrame.of(_SplashLayout layout, _SplashMotion motion) {
+    final anchors = _ovalEight(layout);
+    if (anchors.length < 4) return const _SplashFrame([]);
+
+    final morphed = <Offset>[];
+    for (final anchor in anchors) {
+      final wave = _wave(layout, motion, anchor.u);
+      morphed.add(Offset.lerp(wave, anchor.point, motion.morph)!);
+    }
+    final count = morphed.length;
+    final samples = <_Sample>[];
+    for (var i = 0; i < count; i++) {
+      final prev = morphed[(i - 1 + count) % count];
+      final next = morphed[(i + 1) % count];
+      final delta = next - prev;
+      final len = math.max(0.001, delta.distance);
+      final normal = Offset(-delta.dy / len, delta.dx / len);
+      samples.add(_Sample(morphed[i], normal, anchors[i].u, anchors[i].band));
+    }
+    final first = samples.first;
+    samples.add(_Sample(first.point, first.normal, 1, first.band));
+    return _SplashFrame(samples);
+  }
+}
+
+Offset _wave(_SplashLayout layout, _SplashMotion motion, double u) {
+  final theta = u * math.pi * 2 + motion.phase;
+  return Offset(
+    layout.center.dx + math.sin(theta) * layout.halfWidth * 0.36,
+    layout.center.dy - math.cos(theta) * layout.halfHeight,
+  );
+}
+
+/// Two stacked ellipses with the inner corners replaced by crossing cubics.
+///
+/// The left and right of each loop are the ellipse itself, so the caps stay
+/// round. Offsets are taken from this screen-space curve, which keeps the
+/// strands parallel.
+List<_Anchor> _ovalEight(_SplashLayout layout) {
+  final rx = layout.halfWidth;
+  final ry = layout.halfHeight * 0.5;
+  final cx = layout.center.dx;
+  final cyTop = layout.center.dy - ry;
+  final cyBot = layout.center.dy + ry;
+  const alpha = 36 * math.pi / 180;
+  final phiR = math.pi / 2 - alpha;
+  final phiL = math.pi / 2 + alpha;
+  final phiLEnd = phiL - math.pi * 2;
+  final phiBr = -math.pi / 2 + alpha;
+  final phiBl = -math.pi / 2 - alpha;
+  final phiBlEnd = phiBl + math.pi * 2;
+
+  Offset at(double cye, double phi) {
+    return Offset(cx + rx * math.cos(phi), cye + ry * math.sin(phi));
+  }
+
+  Offset tangent(double phi) {
+    return Offset(-rx * math.sin(phi), ry * math.cos(phi));
+  }
+
+  Offset reversed(Offset value) => Offset(-value.dx, -value.dy);
+
+  final top = _arc(at, cyTop, phiR, phiLEnd, 96);
+  final bottom = _arc(at, cyBot, phiBr, phiBlEnd, 96);
+  final down = _cubic(
+    at(cyTop, phiL),
+    reversed(tangent(phiL)),
+    at(cyBot, phiBr),
+    tangent(phiBr),
+    48,
+    0.46,
+  );
+  final up = _cubic(
+    at(cyBot, phiBl),
+    tangent(phiBl),
+    at(cyTop, phiR),
+    reversed(tangent(phiR)),
+    48,
+    0.46,
+  );
+
+  final raw = <_Anchor>[
+    ..._tagged(top, 0, skipLast: true),
+    ..._tagged(down, 1, skipLast: true),
+    ..._tagged(bottom, 0, skipLast: true),
+    ..._tagged(up, 2, skipLast: true),
+  ];
+  if (raw.isEmpty) return raw;
+
+  var topIndex = 0;
+  for (var i = 1; i < raw.length; i++) {
+    if (raw[i].point.dy < raw[topIndex].point.dy) topIndex = i;
+  }
+  final ordered = <_Anchor>[
+    ...raw.sublist(topIndex),
+    ...raw.sublist(0, topIndex),
+  ];
+
+  final lengths = <double>[0];
+  var total = 0.0;
+  for (var i = 1; i < ordered.length; i++) {
+    total += (ordered[i].point - ordered[i - 1].point).distance;
+    lengths.add(total);
+  }
+  total += (ordered.first.point - ordered.last.point).distance;
+  if (total <= 0) return const [];
+
+  return [
+    for (var i = 0; i < ordered.length; i++)
+      _Anchor(ordered[i].point, lengths[i] / total, ordered[i].band),
+  ];
+}
+
+List<_Anchor> _tagged(List<Offset> points, int band, {required bool skipLast}) {
+  final end = skipLast ? points.length - 1 : points.length;
+  return [for (var i = 0; i < end; i++) _Anchor(points[i], 0, band)];
+}
+
+List<Offset> _arc(
+  Offset Function(double cye, double phi) at,
+  double cye,
+  double a0,
+  double a1,
+  int steps,
+) {
+  return [for (var i = 0; i <= steps; i++) at(cye, a0 + (a1 - a0) * i / steps)];
+}
+
+List<Offset> _cubic(
+  Offset p0,
+  Offset d0,
+  Offset p1,
+  Offset d1,
+  int steps,
+  double scale,
+) {
+  Offset unit(Offset value) {
+    final len = math.max(0.001, value.distance);
+    return Offset(value.dx / len, value.dy / len);
+  }
+
+  final dist = (p1 - p0).distance;
+  final handle = dist * scale;
+  final c0 = p0 + unit(d0) * handle;
+  final c1 = p1 - unit(d1) * handle;
+  return [for (var i = 0; i <= steps; i++) _bezier(p0, c0, c1, p1, i / steps)];
+}
+
+Offset _bezier(Offset p0, Offset c0, Offset c1, Offset p1, double t) {
+  final u = 1 - t;
+  return p0 * (u * u * u) +
+      c0 * (3 * u * u * t) +
+      c1 * (3 * u * t * t) +
+      p1 * (t * t * t);
+}
+
 class _SplashLayout {
   const _SplashLayout({
     required this.size,
     required this.center,
     required this.halfWidth,
     required this.halfHeight,
+    required this.ribbon,
+    required this.outerWidth,
     required this.strandWidth,
+    required this.dotRadius,
     required this.dots,
     required this.bottomDot,
     required this.wordCenterY,
-    required this.markBounds,
   });
 
   final Size size;
   final Offset center;
   final double halfWidth;
   final double halfHeight;
+  final double ribbon;
+  final double outerWidth;
   final double strandWidth;
+  final double dotRadius;
   final List<Offset> dots;
   final double bottomDot;
   final double wordCenterY;
-  final Rect markBounds;
 
   double get top => center.dy - halfHeight;
 
   factory _SplashLayout.of(Size size) {
-    final halfHeight = size.height * 0.235;
-    final halfWidth = math.min(size.width * 0.42, halfHeight * 0.92);
-    final center = Offset(size.width / 2, size.height * 0.30);
-    final topHole = center.dy - halfHeight * 0.52;
-    final bottomHole = center.dy + halfHeight * 0.52;
-    final gap = halfHeight * 0.16;
-    final below = center.dy + halfHeight + halfHeight * 0.16;
+    final outerWidth = size.width * 0.46;
+    final outerHeight = size.height * 0.56;
+    final ribbon = (outerWidth * 0.08).clamp(13.0, 17.0);
+    final halfWidth = outerWidth / 2 - ribbon;
+    final halfHeight = outerHeight / 2 - ribbon;
+    final center = Offset(size.width / 2, size.height * 0.345);
+    final ry = halfHeight * 0.5;
+    final topHole = center.dy - ry;
+    final bottomHole = center.dy + ry;
+    final spread = ry * 0.30;
+    final below = center.dy + halfHeight + ribbon + ry * 0.16;
     final dots = <Offset>[
-      Offset(center.dx, topHole - gap),
+      Offset(center.dx, topHole - spread),
       Offset(center.dx, topHole),
-      Offset(center.dx, topHole + gap),
-      Offset(center.dx, bottomHole - gap * 0.65),
-      Offset(center.dx, bottomHole + gap * 0.65),
+      Offset(center.dx, topHole + spread),
+      Offset(center.dx, bottomHole - spread * 0.62),
+      Offset(center.dx, bottomHole + spread * 0.62),
       Offset(center.dx, below),
     ];
-    final wordCenterY = below + size.height * 0.11;
     return _SplashLayout(
       size: size,
       center: center,
       halfWidth: halfWidth,
       halfHeight: halfHeight,
-      strandWidth: math.max(1.5, halfWidth * 0.018),
+      ribbon: ribbon,
+      outerWidth: outerWidth,
+      strandWidth: 1.55,
+      dotRadius: 2.35,
       dots: dots,
       bottomDot: below,
-      wordCenterY: wordCenterY,
-      markBounds: Rect.fromCenter(
-        center: center,
-        width: halfWidth * 2.4,
-        height: halfHeight * 2.5,
-      ),
+      wordCenterY: below + size.height * 0.072,
     );
   }
 }
