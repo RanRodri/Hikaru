@@ -278,12 +278,22 @@ class CymaticSignaturePainter extends CustomPainter {
         ..blendMode = BlendMode.screen
         ..shader = RadialGradient(
           colors: [
-            tint.withValues(alpha: 0.55),
-            tint.withValues(alpha: 0.18),
+            tint.withValues(alpha: 0),
+            tint.withValues(alpha: 0.08),
+            tint.withValues(alpha: 0.20),
             tint.withValues(alpha: 0),
           ],
-          stops: const [0, 0.45, 1],
+          stops: const [0, 0.62, 0.86, 1],
         ).createShader(rect),
+    );
+    canvas.drawCircle(
+      Offset.zero,
+      radius * 0.97,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = radius * 0.045
+        ..blendMode = BlendMode.screen
+        ..color = tint.withValues(alpha: 0.18),
     );
   }
 
@@ -307,10 +317,10 @@ class CymaticSignaturePainter extends CustomPainter {
 
   void _drawBlooms(Canvas canvas, double radius, Color tint) {
     const rings = [
-      _BloomRing(0.06, 0.30, 0.40, 1, 0),
-      _BloomRing(0.24, 0.52, 0.33, 0.75, 0.5),
-      _BloomRing(0.44, 0.76, 0.38, 1, 0),
-      _BloomRing(0.66, 0.98, 0.20, 0.32, 0),
+      _BloomRing(0.10, 0.34, 0.16, 1, 0),
+      _BloomRing(0.26, 0.54, 0.13, 0.75, 0.5),
+      _BloomRing(0.46, 0.76, 0.12, 1, 0),
+      _BloomRing(0.64, 0.96, 0.10, 0.32, 0),
     ];
 
     for (var index = 0; index < rings.length; index++) {
@@ -328,26 +338,39 @@ class CymaticSignaturePainter extends CustomPainter {
         spread: ring.spread,
         morph: morph,
       );
-      final alpha = 0.62 + 0.06 * index;
       final fill = Paint()
         ..style = PaintingStyle.fill
         ..blendMode = BlendMode.screen
-        ..color = tint.withValues(alpha: alpha);
+        ..color = tint.withValues(alpha: 0.10 + 0.025 * index);
+      final lift = Paint()
+        ..style = PaintingStyle.fill
+        ..blendMode = BlendMode.plus
+        ..color = tint.withValues(alpha: 0.045);
+      final bloom = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = radius * 0.032
+        ..strokeJoin = StrokeJoin.round
+        ..strokeCap = StrokeCap.round
+        ..blendMode = BlendMode.screen
+        ..color = tint.withValues(alpha: 0.16);
       final edge = Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = radius * 0.016
+        ..strokeWidth = radius * 0.007
         ..strokeJoin = StrokeJoin.round
-        ..blendMode = BlendMode.screen
+        ..strokeCap = StrokeCap.round
+        ..blendMode = BlendMode.plus
         ..color = Color.lerp(
           tint,
           AppColors.splashHighlight,
-          0.35,
-        )!.withValues(alpha: 0.82);
+          0.55,
+        )!.withValues(alpha: 0.55);
 
       for (var fold = 0; fold < motif.folds; fold++) {
         canvas.save();
         canvas.rotate((fold + ring.turn) * math.pi * 2 / motif.folds);
+        canvas.drawPath(path, bloom);
         canvas.drawPath(path, fill);
+        canvas.drawPath(path, lift);
         canvas.drawPath(path, edge);
         canvas.restore();
       }
@@ -374,26 +397,28 @@ class CymaticSignaturePainter extends CustomPainter {
     canvas.drawPath(
       path,
       Paint()
-        ..style = PaintingStyle.fill
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = radius * 0.028
+        ..strokeJoin = StrokeJoin.round
         ..blendMode = BlendMode.screen
-        ..color = tint.withValues(alpha: 0.22),
+        ..color = tint.withValues(alpha: 0.14),
     );
     canvas.drawPath(
       path,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = radius * 0.012
+        ..strokeWidth = radius * 0.006
         ..strokeJoin = StrokeJoin.round
-        ..blendMode = BlendMode.screen
-        ..color = tint.withValues(alpha: 0.7),
+        ..blendMode = BlendMode.plus
+        ..color = tint.withValues(alpha: 0.62),
     );
   }
 
   void _drawSpokes(Canvas canvas, double radius, Color tint) {
     final paint = Paint()
-      ..strokeWidth = radius * 0.008
+      ..strokeWidth = radius * 0.004
       ..blendMode = BlendMode.screen
-      ..color = tint.withValues(alpha: 0.4);
+      ..color = tint.withValues(alpha: 0.28);
     for (var fold = 0; fold < motif.folds; fold++) {
       final theta = fold / motif.folds * math.pi * 2 - math.pi / 2;
       canvas.drawLine(
@@ -405,35 +430,40 @@ class CymaticSignaturePainter extends CustomPainter {
   }
 
   void _drawParticles(Canvas canvas, double radius, Color tint) {
-    if (motion <= 0) return;
     const count = 24;
+    final still = motion <= 0;
+    final presence = still ? 0.7 : motion;
     for (var index = 0; index < count; index++) {
       final axis = index % motif.folds;
       final lane = index ~/ motif.folds;
       final seed = (index * 0.173) % 1;
-      final travel = (seed + phase * (0.7 + lane * 0.18)) % 1;
-      final theta = axis / motif.folds * math.pi * 2 - math.pi / 2;
-      final fade = math.sin(travel * math.pi);
-      for (var trail = 0; trail < 3; trail++) {
+      final travel = still
+          ? (0.22 + seed * 0.7)
+          : (seed + phase * (0.7 + lane * 0.18)) % 1;
+      final theta =
+          axis / motif.folds * math.pi * 2 - math.pi / 2 + lane * 0.08;
+      final fade = still ? 0.9 : math.sin(travel * math.pi);
+      final trails = still ? 1 : 3;
+      for (var trail = 0; trail < trails; trail++) {
         final along = (travel - trail * 0.045).clamp(0.0, 1.0);
-        final distance = radius * (0.08 + 0.88 * along);
+        final distance = radius * (0.12 + 0.82 * along);
         canvas.drawCircle(
           Offset(math.cos(theta) * distance, math.sin(theta) * distance),
-          radius * (0.028 - trail * 0.007),
+          radius * (0.018 - trail * 0.004),
           Paint()
-            ..blendMode = BlendMode.screen
+            ..blendMode = BlendMode.plus
             ..color = Color.lerp(
               tint,
               AppColors.splashHighlight,
               0.65,
-            )!.withValues(alpha: motion * fade * (0.9 - trail * 0.22)),
+            )!.withValues(alpha: presence * fade * (0.85 - trail * 0.2)),
         );
       }
     }
   }
 
   void _drawCore(Canvas canvas, double radius, Color tint) {
-    final coreRadius = radius * 0.28;
+    final coreRadius = radius * 0.09;
     final rect = Rect.fromCircle(center: Offset.zero, radius: coreRadius);
     canvas.drawCircle(
       Offset.zero,
@@ -443,11 +473,18 @@ class CymaticSignaturePainter extends CustomPainter {
         ..shader = RadialGradient(
           colors: [
             AppColors.splashHighlight,
-            tint.withValues(alpha: 0.95),
+            tint.withValues(alpha: 0.9),
             tint.withValues(alpha: 0),
           ],
           stops: const [0, 0.28, 1],
         ).createShader(rect),
+    );
+    canvas.drawCircle(
+      Offset.zero,
+      radius * 0.022,
+      Paint()
+        ..blendMode = BlendMode.plus
+        ..color = AppColors.splashHighlight.withValues(alpha: 0.95),
     );
   }
 
