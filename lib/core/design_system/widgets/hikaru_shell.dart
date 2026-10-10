@@ -27,6 +27,13 @@ class HikaruShell extends StatelessWidget {
     HikaruDestination.settings: AppRoutes.profile,
   };
 
+  static const Map<HikaruDestination, int> _branchIndex = {
+    HikaruDestination.home: 0,
+    HikaruDestination.journey: 1,
+    HikaruDestination.library: 2,
+    HikaruDestination.settings: 3,
+  };
+
   final HikaruDestination active;
   final HikaruScaledBuilder builder;
   final bool dimBackground;
@@ -37,8 +44,20 @@ class HikaruShell extends StatelessWidget {
   ) {
     final route = _destinationRoutes[destination];
     if (route == null) return;
-    if (GoRouterState.of(context).matchedLocation == route) return;
-    context.go(route);
+
+    final location = GoRouterState.of(context).uri.path;
+    final shell = StatefulNavigationShell.maybeOf(context);
+    if (shell == null) {
+      if (location == route) return;
+      context.go(route);
+      return;
+    }
+
+    final index = _branchIndex[destination];
+    if (index == null) return;
+    final onThisBranch = shell.currentIndex == index;
+    if (onThisBranch && location == route) return;
+    shell.goBranch(index, initialLocation: onThisBranch);
   }
 
   void _handleProfilePressed(BuildContext context) =>

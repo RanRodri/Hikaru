@@ -96,57 +96,80 @@ GoRouter appRouter(Ref ref) {
           )!,
         ),
       ),
-      GoRoute(
-        path: AppRoutes.home,
-        builder: (context, state) => const HarmonyGardenScreen(),
-        routes: [
-          GoRoute(
-            path: 'merkaba',
-            builder: (context, state) => const MerkabaMeditationScreen(),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) => navigationShell,
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.home,
+                builder: (context, state) => const HarmonyGardenScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'merkaba',
+                    builder: (context, state) =>
+                        const MerkabaMeditationScreen(),
+                  ),
+                  GoRoute(
+                    path: 'ritual-face',
+                    builder: (context, state) =>
+                        const MassageScreen(surface: MassageSurface.face),
+                  ),
+                  GoRoute(
+                    path: 'ritual-body',
+                    builder: (context, state) =>
+                        const MassageScreen(surface: MassageSurface.body),
+                  ),
+                ],
+              ),
+            ],
           ),
-          GoRoute(
-            path: 'ritual-face',
-            builder: (context, state) =>
-                const MassageScreen(surface: MassageSurface.face),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.journey,
+                builder: (context, state) => const JourneyScreen(),
+              ),
+            ],
           ),
-          GoRoute(
-            path: 'ritual-body',
-            builder: (context, state) =>
-                const MassageScreen(surface: MassageSurface.body),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.library,
+                builder: (context, state) => const LibraryScreen(),
+                routes: [
+                  GoRoute(
+                    path: ':${AppRoutes.libraryTopicParam}',
+                    redirect: (context, state) {
+                      final topic =
+                          state.pathParameters[AppRoutes.libraryTopicParam];
+                      return libraryArticleFor(topic) == null
+                          ? AppRoutes.library
+                          : null;
+                    },
+                    builder: (context, state) => LibraryDetailScreen(
+                      article: libraryArticleFor(
+                        state.pathParameters[AppRoutes.libraryTopicParam],
+                      )!,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.profile,
+                builder: (context, state) => const ProfileScreen(),
+              ),
+            ],
           ),
         ],
       ),
       GoRoute(
         path: AppRoutes.fourTemples,
         builder: (context, state) => const FourTemplesScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.profile,
-        builder: (context, state) => const ProfileScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.journey,
-        builder: (context, state) => const JourneyScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.library,
-        builder: (context, state) => const LibraryScreen(),
-        routes: [
-          GoRoute(
-            path: ':${AppRoutes.libraryTopicParam}',
-            redirect: (context, state) {
-              final topic = state.pathParameters[AppRoutes.libraryTopicParam];
-              return libraryArticleFor(topic) == null
-                  ? AppRoutes.library
-                  : null;
-            },
-            builder: (context, state) => LibraryDetailScreen(
-              article: libraryArticleFor(
-                state.pathParameters[AppRoutes.libraryTopicParam],
-              )!,
-            ),
-          ),
-        ],
       ),
     ],
   );

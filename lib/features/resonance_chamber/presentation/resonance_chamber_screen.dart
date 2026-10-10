@@ -50,7 +50,7 @@ class ResonanceChamberScreen extends StatelessWidget {
               math.max(24, insets.bottom + 12),
             ),
             child: _JourneyButton(
-              onPressed: () => context.push(AppRoutes.home),
+              onPressed: () => context.go(AppRoutes.home),
             ),
           ),
         ],
