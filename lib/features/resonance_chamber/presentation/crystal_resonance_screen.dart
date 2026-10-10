@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -15,6 +16,8 @@ import '../../../core/design_system/widgets/hikaru_pill_button.dart';
 import '../../../core/router/app_routes.dart';
 import '../../crystals/application/selected_crystal_controller.dart';
 import '../../crystals/domain/crystal.dart';
+import '../domain/cymatic_audio.dart';
+import 'cymatic_audio_loader.dart';
 import 'cymatic_signature.dart';
 import 'resonance_sections.dart';
 
@@ -43,9 +46,12 @@ class _CrystalResonanceScreenState
   static const double _maxHeroHeight = 300;
 
   final AudioPlayer _player = AudioPlayer();
+  final ValueNotifier<Duration> _position = ValueNotifier(Duration.zero);
   late final StreamSubscription<PlayerState> _playerStateSubscription;
+  late final StreamSubscription<Duration> _positionSubscription;
   bool _isPlaying = false;
   bool _isAudioUnavailable = false;
+  CymaticEnvelope? _envelope;
 
   Crystal get _crystal => widget.crystal;
 
@@ -55,6 +61,10 @@ class _CrystalResonanceScreenState
     _playerStateSubscription = _player.onPlayerStateChanged.listen(
       _handlePlayerStateChanged,
     );
+    _positionSubscription = _player.onPositionChanged.listen((position) {
+      _position.value = position;
+    });
+    _loadEnvelope();
     _startFrequency();
     WidgetsBinding.instance.addPostFrameCallback((_) => _offerSelection());
   }
@@ -62,8 +72,16 @@ class _CrystalResonanceScreenState
   @override
   void dispose() {
     _playerStateSubscription.cancel();
+    _positionSubscription.cancel();
+    _position.dispose();
     _player.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadEnvelope() async {
+    final envelope = await loadCymaticEnvelope(_crystal.audioAsset);
+    if (!mounted) return;
+    setState(() => _envelope = envelope);
   }
 
   void _handlePlayerStateChanged(PlayerState playerState) {
@@ -142,6 +160,8 @@ class _CrystalResonanceScreenState
             child: _CrystalHero(
               crystal: _crystal,
               playing: _isPlaying && !_isAudioUnavailable,
+              envelope: _envelope,
+              playbackPosition: _position,
             ),
           ),
           Expanded(
@@ -240,10 +260,17 @@ class _CrystalIntroduction extends StatelessWidget {
 }
 
 class _CrystalHero extends StatelessWidget {
-  const _CrystalHero({required this.crystal, required this.playing});
+  const _CrystalHero({
+    required this.crystal,
+    required this.playing,
+    required this.envelope,
+    required this.playbackPosition,
+  });
 
   final Crystal crystal;
   final bool playing;
+  final CymaticEnvelope? envelope;
+  final ValueListenable<Duration> playbackPosition;
 
   @override
   Widget build(BuildContext context) {
@@ -265,6 +292,8 @@ class _CrystalHero extends StatelessWidget {
             crystal: crystal,
             playing: playing,
             showSeal: true,
+            envelope: envelope,
+            playbackPosition: playbackPosition,
             semanticLabel: '${crystal.displayName} crystal',
           ),
         ),
