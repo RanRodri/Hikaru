@@ -14,11 +14,12 @@ class HikaruShell extends StatelessWidget {
     super.key,
     required this.active,
     required this.builder,
+    this.backgroundAsset = gardenBackground,
     this.dimBackground = false,
   });
 
   static const double designWidth = 390;
-  static const String _backgroundAsset =
+  static const String gardenBackground =
       'assets/images/harmony_garden_background.png';
   static const Map<HikaruDestination, String> _destinationRoutes = {
     HikaruDestination.home: AppRoutes.home,
@@ -36,6 +37,7 @@ class HikaruShell extends StatelessWidget {
 
   final HikaruDestination active;
   final HikaruScaledBuilder builder;
+  final String backgroundAsset;
   final bool dimBackground;
 
   void _handleDestinationSelected(
@@ -60,9 +62,6 @@ class HikaruShell extends StatelessWidget {
     shell.goBranch(index, initialLocation: onThisBranch);
   }
 
-  void _handleProfilePressed(BuildContext context) =>
-      _handleDestinationSelected(context, HikaruDestination.settings);
-
   @override
   Widget build(BuildContext context) {
     final insets = MediaQuery.paddingOf(context);
@@ -76,8 +75,8 @@ class HikaruShell extends StatelessWidget {
           return Stack(
             fit: StackFit.expand,
             children: [
-              const Image(
-                image: AssetImage(_backgroundAsset),
+              Image(
+                image: AssetImage(backgroundAsset),
                 fit: BoxFit.cover,
                 excludeFromSemantics: true,
               ),
@@ -94,10 +93,7 @@ class HikaruShell extends StatelessWidget {
                 top: insets.top,
                 left: 0,
                 right: 0,
-                child: HikaruHeader(
-                  onMenuPressed: () {},
-                  onProfilePressed: () => _handleProfilePressed(context),
-                ),
+                child: const HikaruHeader(),
               ),
               Positioned(
                 left: 0,

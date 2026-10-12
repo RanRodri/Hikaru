@@ -22,7 +22,7 @@ const Duration breathHold = Duration(seconds: 4);
 const Duration breathExhale = Duration(seconds: 6);
 const Duration breathCycle = Duration(seconds: 14);
 
-/// Scene timing and mudras from the Merkaba brief.
+/// Official Merkaba Room timeline (corrected): five scenes.
 const List<MerkabaScene> merkabaScenes = [
   MerkabaScene(
     title: 'Human Blueprint',
@@ -32,24 +32,17 @@ const List<MerkabaScene> merkabaScenes = [
     end: Duration(seconds: 40),
   ),
   MerkabaScene(
-    title: 'Breath Creates the Star',
-    mudra: 'Hridaya Mudra',
-    mudraPurpose: 'Opening the heart',
-    start: Duration(seconds: 40),
-    end: Duration(seconds: 90),
-  ),
-  MerkabaScene(
     title: 'Air Becomes the Vehicle',
     mudra: 'Vayu Mudra',
     mudraPurpose: 'Air, movement, and breath',
-    start: Duration(seconds: 90),
-    end: Duration(seconds: 140),
+    start: Duration(seconds: 40),
+    end: Duration(seconds: 90),
   ),
   MerkabaScene(
     title: 'Breath Builds the Merkaba',
     mudra: 'Lotus Mudra',
     mudraPurpose: 'Receiving and expansion',
-    start: Duration(seconds: 140),
+    start: Duration(seconds: 90),
     end: Duration(seconds: 220),
   ),
   MerkabaScene(

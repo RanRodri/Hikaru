@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -9,6 +10,8 @@ import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/design_system/widgets/hikaru_dividers.dart';
 import '../../crystals/application/selected_crystal_controller.dart';
 import '../../crystals/domain/crystal.dart';
+import '../domain/cymatic_audio.dart';
+import 'cymatic_audio_loader.dart';
 import 'cymatic_signature.dart';
 
 final Color resonanceChamberColor = Color.alphaBlend(
@@ -134,31 +137,29 @@ class SectionHeading extends StatelessWidget {
 class AlignmentTriad extends StatelessWidget {
   const AlignmentTriad({super.key});
 
-  static const double _dividerHeight = 160;
-
   @override
   Widget build(BuildContext context) {
-    return const Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(child: _FrequencyColumn()),
-        SizedBox(width: AppSpacing.s6),
-        HikaruGoldRule(
-          width: AppSpacing.s0_6,
-          height: _dividerHeight,
-          opacity: 0.7,
-        ),
-        SizedBox(width: AppSpacing.s6),
-        Expanded(child: _CymaticColumn()),
-        SizedBox(width: AppSpacing.s6),
-        HikaruGoldRule(
-          width: AppSpacing.s0_6,
-          height: _dividerHeight,
-          opacity: 0.7,
-        ),
-        SizedBox(width: AppSpacing.s6),
-        Expanded(child: _RitualColumn()),
-      ],
+    const divider = HikaruGoldRule(
+      width: AppSpacing.s0_6,
+      height: double.infinity,
+      opacity: 0.7,
+    );
+
+    return const IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(child: _FrequencyColumn()),
+          SizedBox(width: AppSpacing.s6),
+          divider,
+          SizedBox(width: AppSpacing.s6),
+          Expanded(child: _CymaticColumn()),
+          SizedBox(width: AppSpacing.s6),
+          divider,
+          SizedBox(width: AppSpacing.s6),
+          Expanded(child: _RitualColumn()),
+        ],
+      ),
     );
   }
 }
@@ -199,24 +200,34 @@ class _FrequencyColumn extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final crystal = ref.watch(selectedCrystalProvider).value;
+    final crystal = ref.watch(selectedCrystalProvider).value ?? Crystal.jade;
 
     return _TriadColumn(
       medallionAsset: 'assets/images/resonance_medallion_frequency.svg',
       label: 'YOUR FREQUENCY',
       children: [
-        Text(
-          crystal?.frequency ?? '528 Hz',
-          textAlign: TextAlign.center,
-          style: _chamberText.copyWith(fontSize: AppFontSizes.s22),
+        Column(
+          children: [
+            Text(
+              crystal.hertzLabel,
+              textAlign: TextAlign.center,
+              style: _chamberText.copyWith(fontSize: AppFontSizes.s22),
+            ),
+            const SizedBox(height: AppSpacing.s3),
+            Text(
+              crystal.frequencyTagline,
+              textAlign: TextAlign.center,
+              style: _chamberText.copyWith(
+                color: AppColors.fog,
+                fontSize: AppFontSizes.s9,
+                height: 1.4,
+              ),
+            ),
+          ],
         ),
-        SvgPicture.asset(
-          'assets/images/resonance_waveform.svg',
-          width: 89,
-          height: 41,
-        ),
+        _FrequencyWaveform(crystal: crystal),
         Text(
-          'Composed by\n${Crystal.composer}',
+          Crystal.compositionCredit,
           textAlign: TextAlign.center,
           style: _chamberText.copyWith(
             fontSize: AppFontSizes.s9_5,
@@ -226,6 +237,93 @@ class _FrequencyColumn extends ConsumerWidget {
       ],
     );
   }
+}
+
+/// The loudness of the crystal's composition from start to end, drawn as
+/// a gold wave. Falls back to the generic wave until the envelope loads.
+class _FrequencyWaveform extends StatelessWidget {
+  const _FrequencyWaveform({required this.crystal});
+
+  static const Size _size = Size(89, 41);
+  static const int _peaks = 22;
+
+  final Crystal crystal;
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<CymaticEnvelope?>(
+      future: loadCymaticEnvelope(crystal.audioAsset),
+      builder: (context, snapshot) {
+        final profile = snapshot.data?.loudnessProfile(_peaks) ?? const [];
+        if (profile.isEmpty) {
+          return SvgPicture.asset(
+            'assets/images/resonance_waveform.svg',
+            width: _size.width,
+            height: _size.height,
+          );
+        }
+        return CustomPaint(
+          size: _size,
+          painter: _WaveformPainter(profile: profile),
+        );
+      },
+    );
+  }
+}
+
+class _WaveformPainter extends CustomPainter {
+  const _WaveformPainter({required this.profile});
+
+  static const double _strokeWidth = 0.75;
+  static const double _quietestPeak = 0.15;
+
+  final List<double> profile;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final middle = size.height / 2;
+    final reach = middle - _strokeWidth;
+    final step = size.width / (profile.length + 1);
+    final points = [
+      Offset(0, middle),
+      for (var index = 0; index < profile.length; index++)
+        Offset(
+          step * (index + 1),
+          middle -
+              (index.isEven ? 1 : -1) *
+                  reach *
+                  (_quietestPeak + (1 - _quietestPeak) * profile[index]),
+        ),
+      Offset(size.width, middle),
+    ];
+
+    final path = Path()..moveTo(points.first.dx, points.first.dy);
+    for (var index = 1; index < points.length; index++) {
+      final previous = points[index - 1];
+      final current = points[index];
+      final handleX = (previous.dx + current.dx) / 2;
+      path.cubicTo(
+        handleX,
+        previous.dy,
+        handleX,
+        current.dy,
+        current.dx,
+        current.dy,
+      );
+    }
+
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = AppColors.champagneGold
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = _strokeWidth,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_WaveformPainter oldDelegate) =>
+      !listEquals(oldDelegate.profile, profile);
 }
 
 class _CymaticColumn extends ConsumerWidget {
@@ -259,10 +357,11 @@ class _CymaticColumn extends ConsumerWidget {
 class _RitualColumn extends StatelessWidget {
   const _RitualColumn();
 
-  static const List<String> _steps = [
-    'Regulation\nMerkaba',
-    'Gua Sha\nPhysical Massage',
-    'Frequency &\nCymatics Integration',
+  /// The same order for every crystal: regulate, massage, then integrate.
+  static const List<({String name, String subtitle})> _steps = [
+    (name: 'Regulation', subtitle: 'The Merkaba Room'),
+    (name: 'Gua Sha', subtitle: 'Physical Massage'),
+    (name: 'Frequency & Cymatics Integration', subtitle: 'Closing Integration'),
   ];
 
   @override
@@ -286,7 +385,11 @@ class _RitualColumn extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.s9),
                 ],
-                _RitualStep(number: index + 1, label: _steps[index]),
+                _RitualStep(
+                  number: index + 1,
+                  name: _steps[index].name,
+                  subtitle: _steps[index].subtitle,
+                ),
               ],
             ],
           ),
@@ -297,12 +400,17 @@ class _RitualColumn extends StatelessWidget {
 }
 
 class _RitualStep extends StatelessWidget {
-  const _RitualStep({required this.number, required this.label});
+  const _RitualStep({
+    required this.number,
+    required this.name,
+    required this.subtitle,
+  });
 
   static const double _badgeSize = 20;
 
   final int number;
-  final String label;
+  final String name;
+  final String subtitle;
 
   @override
   Widget build(BuildContext context) {
@@ -324,8 +432,16 @@ class _RitualStep extends StatelessWidget {
         ),
         const SizedBox(width: AppSpacing.s6),
         Expanded(
-          child: Text(
-            label,
+          child: Text.rich(
+            TextSpan(
+              children: [
+                TextSpan(text: '$name\n'),
+                TextSpan(
+                  text: subtitle,
+                  style: const TextStyle(color: AppColors.fog),
+                ),
+              ],
+            ),
             style: _chamberText.copyWith(
               fontSize: AppFontSizes.s9_5,
               height: 1.45,
@@ -337,133 +453,109 @@ class _RitualStep extends StatelessWidget {
   }
 }
 
-typedef _Benefit = ({
-  String? icon,
-  String? medallion,
-  String title,
-  String detail,
-});
-
-class CrystalBenefits extends StatelessWidget {
+class CrystalBenefits extends ConsumerWidget {
   const CrystalBenefits({super.key});
 
-  static const List<_Benefit> _benefits = [
-    (
-      icon: 'assets/images/resonance_icon_brain.svg',
-      medallion: null,
-      title: '1. NERVOUS SYSTEM\nREGULATION',
-      detail: '& Stress\nReduction',
-    ),
-    (
-      icon: 'assets/images/resonance_icon_heart.svg',
-      medallion: null,
-      title: '2. MIND-HEART\nCOHERENCE',
-      detail: '& Emotional\nBalance',
-    ),
-    (
-      icon: 'assets/images/resonance_icon_network.svg',
-      medallion: null,
-      title: '3. CELLULAR\nVITALITY',
-      detail: '& Renewal\nSupport',
-    ),
-    (
-      icon: null,
-      medallion: 'assets/images/resonance_medallion_glow.svg',
-      title: '4. NATURAL GLOW',
-      detail: '& Skin Firmness\nEnhancement',
-    ),
-    (
-      icon: 'assets/images/resonance_icon_calendar.svg',
-      medallion: null,
-      title: '5. DAILY HABIT\nRHYTHM',
-      detail: 'That Deepens\nOver Time',
-    ),
-  ];
-
   @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget build(BuildContext context, WidgetRef ref) {
+    final crystal = ref.watch(selectedCrystalProvider).value ?? Crystal.jade;
+    final benefits = crystal.benefits;
+
+    return Column(
       children: [
-        for (var index = 0; index < _benefits.length; index++) ...[
+        for (var index = 0; index < benefits.length; index++) ...[
           if (index > 0)
             const Padding(
-              padding: EdgeInsets.only(top: AppSpacing.s7),
+              padding: EdgeInsets.symmetric(vertical: AppSpacing.s9),
               child: HikaruGoldRule(
-                width: AppSpacing.s0_6,
-                height: 70,
-                opacity: 0.6,
+                width: double.infinity,
+                height: AppSpacing.s0_5,
+                opacity: 0.4,
               ),
             ),
-          Expanded(child: _BenefitColumn(benefit: _benefits[index])),
+          _BenefitRow(number: index + 1, benefit: benefits[index]),
         ],
       ],
     );
   }
 }
 
-class _BenefitColumn extends StatelessWidget {
-  const _BenefitColumn({required this.benefit});
+class _BenefitRow extends StatelessWidget {
+  const _BenefitRow({required this.number, required this.benefit});
 
-  static const double _medallionSize = 31;
-  static const double _iconSize = 16.43;
-  static const double _titleHeight = 24;
-
-  final _Benefit benefit;
+  final int number;
+  final CrystalBenefit benefit;
 
   @override
   Widget build(BuildContext context) {
-    final medallion = benefit.medallion;
-    final icon = benefit.icon;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s3),
-      child: Column(
+    return Semantics(
+      label: '$number. ${benefit.title}. ${benefit.detail}',
+      excludeSemantics: true,
+      child: Row(
         children: [
-          if (medallion != null)
-            SvgPicture.asset(
-              medallion,
-              width: _medallionSize,
-              height: _medallionSize,
-            )
-          else
-            Container(
-              width: _medallionSize,
-              height: _medallionSize,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.champagneGold, width: 0.75),
-              ),
-              child: SvgPicture.asset(
-                icon!,
-                width: _iconSize,
-                height: _iconSize,
-              ),
-            ),
-          const SizedBox(height: AppSpacing.s4),
-          SizedBox(
-            height: _titleHeight,
-            child: Text(
-              benefit.title,
-              textAlign: TextAlign.center,
-              style: _chamberText.copyWith(
-                fontSize: AppFontSizes.s7_5,
-                height: 1.4,
-              ),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.s4),
-          Text(
-            benefit.detail,
-            textAlign: TextAlign.center,
-            style: _chamberText.copyWith(
-              fontSize: AppFontSizes.s9,
-              height: 1.4,
+          _BenefitBadge(icon: benefit.icon),
+          const SizedBox(width: AppSpacing.s12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$number. ${benefit.title.toUpperCase()}',
+                  style: _goldLabel.copyWith(letterSpacing: 1),
+                ),
+                const SizedBox(height: AppSpacing.s2),
+                Text(
+                  benefit.detail,
+                  style: _chamberText.copyWith(
+                    fontSize: AppFontSizes.s10_5,
+                    height: 1.4,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _BenefitBadge extends StatelessWidget {
+  const _BenefitBadge({required this.icon});
+
+  static const double _medallionSize = 31;
+  static const double _iconSize = 16.43;
+  static const String _glowMedallion =
+      'assets/images/resonance_medallion_glow.svg';
+  static const Map<BenefitIcon, String> _iconAssets = {
+    BenefitIcon.mind: 'assets/images/resonance_icon_brain.svg',
+    BenefitIcon.heart: 'assets/images/resonance_icon_heart.svg',
+    BenefitIcon.flow: 'assets/images/resonance_icon_network.svg',
+    BenefitIcon.rhythm: 'assets/images/resonance_icon_calendar.svg',
+  };
+
+  final BenefitIcon icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final iconAsset = _iconAssets[icon];
+    if (iconAsset == null) {
+      return SvgPicture.asset(
+        _glowMedallion,
+        width: _medallionSize,
+        height: _medallionSize,
+      );
+    }
+
+    return Container(
+      width: _medallionSize,
+      height: _medallionSize,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: AppColors.champagneGold, width: 0.75),
+      ),
+      child: SvgPicture.asset(iconAsset, width: _iconSize, height: _iconSize),
     );
   }
 }

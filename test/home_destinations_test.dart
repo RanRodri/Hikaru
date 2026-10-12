@@ -3,12 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hiraku/core/design_system/theme/app_theme.dart';
-import 'package:hiraku/core/design_system/tokens/app_colors.dart';
 import 'package:hiraku/features/crystals/application/selected_crystal_controller.dart';
 import 'package:hiraku/features/crystals/domain/crystal.dart';
 import 'package:hiraku/core/router/app_routes.dart';
 import 'package:hiraku/features/harmony_garden/presentation/harmony_garden_screen.dart';
 import 'package:hiraku/features/library/domain/library_article.dart';
+import 'package:hiraku/features/library/domain/library_collection.dart';
+import 'package:hiraku/features/library/presentation/library_collection_circle.dart';
 import 'package:hiraku/features/library/presentation/library_detail_screen.dart';
 import 'package:hiraku/features/library/presentation/library_screen.dart';
 import 'package:hiraku/features/massage/domain/massage_ritual.dart';
@@ -118,45 +119,41 @@ void main() {
 
     await tester.tap(find.bySemanticsLabel('Hikaru Ritual Face'));
     await tester.pumpAndSettle();
-    expect(find.text('FACIAL'), findsOneWidget);
-    expect(find.text('Gua Sha'), findsWidgets);
-    expect(find.text('Light'), findsOneWidget);
-    expect(find.text('Moderate'), findsOneWidget);
-    expect(find.text('Firm'), findsOneWidget);
-    expect(
-      find.text('Follow the meridian path (Stomach & Gallbladder)'),
-      findsOneWidget,
-    );
+    expect(find.text('THE FACE TEMPLE'), findsOneWidget);
+    expect(find.bySemanticsLabel('Ritual video'), findsOneWidget);
+    expect(find.text('01 / 05'), findsOneWidget);
+    expect(find.text(faceRitual.zones.first.instruction), findsOneWidget);
     expect(find.text('00:00'), findsOneWidget);
+    expect(find.text('MERIDIAN'), findsNothing);
 
-    await tester.tap(find.text('PLAY'));
+    await tester.tap(find.bySemanticsLabel('Play'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 1200));
     expect(find.text('00:00'), findsNothing);
-    await tester.tap(find.text('PAUSE'));
+    await tester.tap(find.bySemanticsLabel('Pause'));
     await tester.pump();
     await tester.tap(find.text('RESTART'));
     await tester.pump();
     expect(find.text('00:00'), findsOneWidget);
 
-    await tester.tap(find.text('Firm'));
+    await tester.tap(find.bySemanticsLabel('Firm pressure'));
     await tester.pump();
-    await tester.tap(find.text('NEXT'));
+    await tester.tap(find.bySemanticsLabel('Next zone'));
     await tester.pump();
-    expect(find.text('Jawline'), findsWidgets);
-    await tester.tap(find.text('NEXT'));
+    expect(find.text('02 / 05'), findsOneWidget);
+    expect(find.text(faceRitual.zones[1].instruction), findsOneWidget);
+    await tester.tap(find.bySemanticsLabel('Forehead'));
     await tester.pump();
-    expect(find.text('Meridians'), findsOneWidget);
+    expect(find.text('05 / 05'), findsOneWidget);
 
     await tester.tap(find.text('BACK'));
     await tester.pumpAndSettle();
 
     await tester.tap(find.bySemanticsLabel('Hikaru Ritual Body'));
     await tester.pumpAndSettle();
-    expect(find.text('BODY'), findsOneWidget);
-    expect(find.text('Chest'), findsWidgets);
-    expect(find.text('BODY RITUAL'), findsOneWidget);
-    expect(find.text('Meridians'), findsOneWidget);
+    expect(find.text('THE BODY TEMPLE'), findsOneWidget);
+    expect(find.text('01 / 04'), findsOneWidget);
+    expect(find.text('CHEST'), findsWidgets);
 
     await tester.tap(find.text('BACK'));
     await tester.pumpAndSettle();
@@ -194,6 +191,40 @@ void main() {
       'Temple of Transformation',
     );
     await openTopic('HIKARU RITUALS, Face & Body', 'Light, Moderate, Firm');
+
+    await tester.tap(find.bySemanticsLabel('JADE, Balance & Harmony'));
+    await tester.pumpAndSettle();
+    expect(find.text('CRYSTAL GUIDE'), findsOneWidget);
+    expect(find.text('528 Hz'), findsOneWidget);
+    await tester.tap(find.bySemanticsLabel('Go to chapter 2, Purpose'));
+    await tester.pumpAndSettle();
+    expect(find.text('CHAPTER 02'), findsOneWidget);
+
+    final intentionTile = find.bySemanticsLabel('Open chapter 7, Intention');
+    await tester.ensureVisible(intentionTile);
+    await tester.tap(intentionTile);
+    await tester.pumpAndSettle();
+    expect(find.text('CHAPTER 07'), findsOneWidget);
+    expect(find.text('Harmony, Self-Love, Renewal'), findsOneWidget);
+
+    await tester.ensureVisible(find.bySemanticsLabel('Show all chapters'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsLabel('Show all chapters'));
+    await tester.pumpAndSettle();
+    expect(find.text('CHAPTER 01'), findsOneWidget);
+
+    await tester.ensureVisible(
+      find.bySemanticsLabel('Next in library, WHITE QUARTZ, Clarity & Renewal'),
+    );
+    await tester.tap(
+      find.bySemanticsLabel('Next in library, WHITE QUARTZ, Clarity & Renewal'),
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Temple of Illumination'), findsWidgets);
+
+    await tester.tap(find.text('BACK'));
+    await tester.pumpAndSettle();
+    expect(find.text('LIBRARY'), findsOneWidget);
   });
 
   testWidgets('merkaba and listening match the other destination circles', (
@@ -204,7 +235,7 @@ void main() {
     final face = tester.getSize(find.bySemanticsLabel('Hikaru Ritual Face'));
     expect(tester.getSize(find.bySemanticsLabel('Merkaba')), face);
     expect(tester.getSize(find.bySemanticsLabel('Listening Sanctuary')), face);
-    expect(find.byWidgetPredicate(_isDestinationRing), findsNWidgets(2));
+    expect(find.byType(LibraryCollectionCircle), findsNWidgets(2));
   });
 
   testWidgets('listening circle shows the selected crystal inside the ring', (
@@ -248,21 +279,12 @@ void main() {
         (widget) =>
             widget is Image &&
             widget.image is AssetImage &&
-            (widget.image as AssetImage).assetName == Crystal.jade.imageAsset,
+            (widget.image as AssetImage).assetName ==
+                crystalCollections[Crystal.jade]!.imageAsset,
       ),
       findsOneWidget,
     );
-    expect(find.byWidgetPredicate(_isDestinationRing), findsNWidgets(2));
+    expect(find.text('JADE'), findsOneWidget);
+    expect(find.byType(LibraryCollectionCircle), findsNWidgets(2));
   });
-}
-
-bool _isDestinationRing(Widget widget) {
-  if (widget is! DecoratedBox) return false;
-  final decoration = widget.decoration;
-  if (decoration is! BoxDecoration) return false;
-  final border = decoration.border;
-  if (border is! Border) return false;
-  return border.top.color == AppColors.champagneGold &&
-      border.left.color == AppColors.champagneGold &&
-      border.top.width > 1;
 }

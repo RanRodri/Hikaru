@@ -35,6 +35,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.bySemanticsLabel('Your crystal in the garden'), findsOneWidget);
+    expect(_sceneImage('resonance_crystal.png'), findsOneWidget);
 
     await container
         .read(selectedCrystalProvider.notifier)
@@ -43,7 +44,11 @@ void main() {
 
     expect(find.bySemanticsLabel('RED JASPER crystal'), findsOneWidget);
     expect(find.bySemanticsLabel('Your crystal in the garden'), findsNothing);
-    expect(find.textContaining('639'), findsOneWidget);
+    expect(_sceneImage('jasper.png'), findsOneWidget);
+    expect(find.text('639 Hz'), findsOneWidget);
+    expect(find.text('Metabolic Flow • Vitality • Grounding'), findsOneWidget);
+    expect(find.text('1. METABOLIC & VASCULAR FLOW'), findsOneWidget);
+    expect(find.text('1. NERVOUS SYSTEM REGULATION'), findsNothing);
     expect(
       find.bySemanticsLabel('Assigned crystal RED JASPER'),
       findsOneWidget,
@@ -54,7 +59,26 @@ void main() {
 
     expect(find.bySemanticsLabel('JADE crystal'), findsOneWidget);
     expect(find.bySemanticsLabel('RED JASPER crystal'), findsNothing);
+    expect(_sceneImage('jade.png'), findsOneWidget);
     expect(find.text('528 Hz'), findsOneWidget);
+    expect(find.text('1. NERVOUS SYSTEM REGULATION'), findsOneWidget);
+    expect(find.text(Crystal.compositionCredit), findsOneWidget);
     expect(find.bySemanticsLabel('Assigned crystal JADE'), findsOneWidget);
+
+    for (final (crystal, asset) in [
+      (Crystal.obsidian, 'obsidian.png'),
+      (Crystal.whiteQuartz, 'resonance_crystal.png'),
+    ]) {
+      await container.read(selectedCrystalProvider.notifier).select(crystal);
+      await tester.pumpAndSettle();
+      expect(_sceneImage(asset), findsOneWidget);
+    }
   });
 }
+
+Finder _sceneImage(String fileName) => find.byWidgetPredicate(
+  (widget) =>
+      widget is Image &&
+      widget.image is AssetImage &&
+      (widget.image as AssetImage).assetName == 'assets/images/$fileName',
+);

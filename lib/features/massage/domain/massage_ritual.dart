@@ -11,54 +11,108 @@ enum MassagePressure {
 }
 
 class MassageZone {
-  const MassageZone(this.name);
+  const MassageZone({
+    required this.name,
+    required this.focus,
+    required this.instruction,
+  });
 
   final String name;
+  final String focus;
+  final String instruction;
 }
 
-const List<MassageZone> facialZones = [
-  MassageZone('Neck'),
-  MassageZone('Jawline'),
-  MassageZone('Cheeks'),
-  MassageZone('Nasolabial'),
-  MassageZone('Forehead'),
-];
+class MassageRitual {
+  const MassageRitual({
+    required this.surface,
+    required this.temple,
+    required this.subtitle,
+    required this.zones,
+    this.sessionLength = const Duration(minutes: 10),
+    this.videoUrl,
+  });
 
-const List<MassageZone> bodyZones = [
-  MassageZone('Chest'),
-  MassageZone('Abdomen'),
-  MassageZone('Glutes'),
-  MassageZone('Legs'),
-];
+  final MassageSurface surface;
+  final String temple;
+  final String subtitle;
+  final List<MassageZone> zones;
+  final Duration sessionLength;
+  final String? videoUrl;
 
-const String massageStrokeGuidance =
-    'Use slow and gentle strokes. Apply light pressure and breathe deeply.';
-
-const List<String> massageGuideLabels = [
-  'Meridians',
-  'Lymphatic Drainage',
-  'Fascia Release',
-  'Gua Sha',
-];
-
-/// Guided map for Neck & Jawline from the facial massage reference.
-const List<String> neckJawlineSteps = [
-  'Follow the meridian path (Stomach & Gallbladder)',
-  'Drain the lymphatic system (from center outwards)',
-  'Release fascia points (gentle pressure)',
-  'Use Gua Sha direction (upward and outward)',
-];
-
-List<MassageZone> zonesFor(MassageSurface surface) =>
-    surface == MassageSurface.face ? facialZones : bodyZones;
-
-List<String> guidedStepsFor(MassageSurface surface, MassageZone zone) {
-  final isNeckOrJaw =
-      surface == MassageSurface.face &&
-      (zone.name == 'Neck' || zone.name == 'Jawline');
-  if (isNeckOrJaw) return neckJawlineSteps;
-  return massageGuideLabels;
+  Duration get zoneLength => sessionLength ~/ zones.length;
 }
+
+const MassageRitual faceRitual = MassageRitual(
+  surface: MassageSurface.face,
+  temple: 'THE FACE TEMPLE',
+  subtitle: 'HIKARU LIFT RITUAL · FACE',
+  zones: [
+    MassageZone(
+      name: 'Jawline',
+      focus: 'Lift · Drain · Firm',
+      instruction:
+          'Place Hikaru beneath the ear, then glide upward along the jawline.',
+    ),
+    MassageZone(
+      name: 'Neck',
+      focus: 'Drain · Release · Soften',
+      instruction:
+          'Glide Hikaru down the sides of the neck, from the jaw to the collarbone.',
+    ),
+    MassageZone(
+      name: 'Cheeks',
+      focus: 'Lift · Sculpt · Glow',
+      instruction:
+          'Sweep Hikaru from the side of the nose outward across the cheekbones.',
+    ),
+    MassageZone(
+      name: 'Nasolabial',
+      focus: 'Smooth · Lift · Renew',
+      instruction:
+          'Glide Hikaru from the corner of the mouth up toward the temple.',
+    ),
+    MassageZone(
+      name: 'Forehead',
+      focus: 'Release · Smooth · Calm',
+      instruction:
+          'Glide Hikaru from the brows upward to the hairline, then out to the temples.',
+    ),
+  ],
+);
+
+const MassageRitual bodyRitual = MassageRitual(
+  surface: MassageSurface.body,
+  temple: 'THE BODY TEMPLE',
+  subtitle: 'HIKARU LIFT RITUAL · BODY',
+  zones: [
+    MassageZone(
+      name: 'Chest',
+      focus: 'Open · Drain · Breathe',
+      instruction:
+          'Glide Hikaru from the sternum outward toward the underarms.',
+    ),
+    MassageZone(
+      name: 'Abdomen',
+      focus: 'Release · Flow · Warm',
+      instruction: 'Trace slow clockwise circles around the navel.',
+    ),
+    MassageZone(
+      name: 'Glutes',
+      focus: 'Lift · Sculpt · Firm',
+      instruction:
+          'Sweep Hikaru upward from the base of the glutes toward the hips.',
+    ),
+    MassageZone(
+      name: 'Legs',
+      focus: 'Drain · Lift · Renew',
+      instruction:
+          'Glide Hikaru upward from the ankles toward the knees and thighs.',
+    ),
+  ],
+);
+
+MassageRitual ritualFor(MassageSurface surface) =>
+    surface == MassageSurface.face ? faceRitual : bodyRitual;
 
 String formatMassageClock(Duration duration) {
   final bounded = duration.isNegative ? Duration.zero : duration;

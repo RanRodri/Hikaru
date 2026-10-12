@@ -2,7 +2,9 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hiraku/features/merkaba/data/merkaba_progress_repository.dart';
 import 'package:hiraku/features/merkaba/domain/merkaba_session.dart';
 import 'package:hiraku/features/merkaba/presentation/merkaba_painter.dart';
 import 'package:hiraku/features/merkaba/presentation/merkaba_screen.dart';
@@ -33,16 +35,21 @@ void main() {
     );
     expect(
       merkabaFrameAt(const Duration(seconds: 40)).scene.title,
-      'Breath Creates the Star',
+      'Air Becomes the Vehicle',
     );
     expect(
-      merkabaFrameAt(const Duration(seconds: 90)).scene.mudra,
+      merkabaFrameAt(const Duration(seconds: 40)).scene.mudra,
       'Vayu Mudra',
     );
     expect(
-      merkabaFrameAt(const Duration(seconds: 140)).scene.mudra,
+      merkabaFrameAt(const Duration(seconds: 90)).scene.mudra,
       'Lotus Mudra',
     );
+    expect(
+      merkabaFrameAt(const Duration(seconds: 219)).scene.title,
+      'Breath Builds the Merkaba',
+    );
+    expect(merkabaScenes, hasLength(5));
     expect(
       merkabaFrameAt(const Duration(seconds: 220)).scene.mudra,
       'Akash Mudra',
@@ -70,11 +77,13 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(
-      const MaterialApp(
-        home: MediaQuery(
-          data: MediaQueryData(disableAnimations: true),
-          child: MerkabaMeditationScreen(
-            initialElapsed: Duration(seconds: 154),
+      const ProviderScope(
+        child: MaterialApp(
+          home: MediaQuery(
+            data: MediaQueryData(disableAnimations: true),
+            child: MerkabaMeditationScreen(
+              initialElapsed: Duration(seconds: 154),
+            ),
           ),
         ),
       ),
@@ -92,6 +101,44 @@ void main() {
     expect(find.text('Lotus Mudra'), findsOneWidget);
     expect(find.text('Inhale'), findsOneWidget);
     expect(find.bySemanticsLabel('Seated woman in meditation'), findsOneWidget);
+  });
+
+  testWidgets('finishing the session records it and REPEAT restarts', (
+    tester,
+  ) async {
+    final progress = InMemoryMerkabaProgressRepository();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          merkabaProgressRepositoryProvider.overrideWithValue(progress),
+        ],
+        child: const MaterialApp(
+          home: MediaQuery(
+            data: MediaQueryData(disableAnimations: true),
+            child: MerkabaMeditationScreen(
+              initialElapsed: Duration(minutes: 4, seconds: 59),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('PLAY'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.pump(const Duration(milliseconds: 600));
+
+    expect(find.text('Silence.'), findsOneWidget);
+    expect(await progress.completions(), hasLength(1));
+
+    await tester.tap(find.text('REPEAT'));
+    await tester.pump();
+    expect(find.text('Human Blueprint'), findsOneWidget);
+    expect(find.text('PAUSE'), findsOneWidget);
+
+    await tester.tap(find.text('PAUSE'));
+    await tester.pump(const Duration(seconds: 3));
+    expect(await progress.completions(), hasLength(1));
   });
 }
 

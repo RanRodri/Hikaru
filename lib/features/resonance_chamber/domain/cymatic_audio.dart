@@ -139,6 +139,28 @@ class CymaticEnvelope {
     );
   }
 
+  /// Mean RMS of [count] equal slices of the whole track, scaled so the
+  /// loudest slice is 1. It traces the shape of the composition.
+  List<double> loudnessProfile(int count) {
+    if (count <= 0 || frames < count) return const [];
+
+    final slices = [
+      for (var slice = 0; slice < count; slice++)
+        _mean(rms, slice * frames ~/ count, (slice + 1) * frames ~/ count),
+    ];
+    final loudest = slices.reduce(math.max);
+    if (loudest <= 0) return List.filled(count, 0);
+    return [for (final value in slices) value / loudest];
+  }
+
+  static double _mean(Float32List values, int start, int end) {
+    var sum = 0.0;
+    for (var index = start; index < end; index++) {
+      sum += values[index];
+    }
+    return sum / (end - start);
+  }
+
   Uint8List encode() {
     final bytes = Uint8List(_headerBytes + frames * 4);
     final data = ByteData.sublistView(bytes);

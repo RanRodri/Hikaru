@@ -15,92 +15,94 @@ void main() {
         InMemorySharedPreferencesAsync.empty();
   });
 
-  testWidgets('logged-in navigation keeps tab stacks and does not return to onboarding', (
-    tester,
-  ) async {
-    tester.view.physicalSize = const Size(390, 844);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
+  testWidgets(
+    'logged-in navigation keeps tab stacks and does not return to onboarding',
+    (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-    final container = ProviderContainer();
-    addTearDown(container.dispose);
-    final router = container.read(appRouterProvider);
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final router = container.read(appRouterProvider);
 
-    await tester.pumpWidget(
-      UncontrolledProviderScope(
-        container: container,
-        child: MaterialApp.router(theme: AppTheme.dark, routerConfig: router),
-      ),
-    );
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp.router(theme: AppTheme.dark, routerConfig: router),
+        ),
+      );
 
-    router.go(AppRoutes.resonanceChamber);
-    await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('ENTER MY 30-DAY JOURNEY'));
-    await tester.tap(find.text('ENTER MY 30-DAY JOURNEY'));
-    await tester.pumpAndSettle();
+      await tester.pump(splashMinimumDuration);
+      router.go(AppRoutes.resonanceChamber);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('ENTER MY 30-DAY JOURNEY'));
+      await tester.tap(find.text('ENTER MY 30-DAY JOURNEY'));
+      await tester.pumpAndSettle();
 
-    expect(find.text('Harmony Garden'), findsOneWidget);
-    expect(find.text('THE RESONANCE CHAMBER'), findsNothing);
-    expect(router.canPop(), isFalse);
+      expect(find.text('Harmony Garden'), findsOneWidget);
+      expect(find.text('THE RESONANCE CHAMBER'), findsNothing);
+      expect(router.canPop(), isFalse);
 
-    await tester.tap(find.bySemanticsLabel('Sanctuary'));
-    await tester.pumpAndSettle();
-    expect(find.text('Harmony Garden'), findsOneWidget);
-    expect(router.routeInformationProvider.value.uri.path, AppRoutes.home);
+      await tester.tap(find.bySemanticsLabel('Sanctuary'));
+      await tester.pumpAndSettle();
+      expect(find.text('Harmony Garden'), findsOneWidget);
+      expect(router.routeInformationProvider.value.uri.path, AppRoutes.home);
 
-    await tester.tap(find.bySemanticsLabel('Merkaba'));
-    await tester.pumpAndSettle();
-    expect(find.text('Human Blueprint'), findsOneWidget);
-    await tester.tap(find.text('BACK'));
-    await tester.pumpAndSettle();
-    expect(find.text('Harmony Garden'), findsOneWidget);
-    expect(router.canPop(), isFalse);
+      await tester.tap(find.bySemanticsLabel('Merkaba'));
+      await tester.pumpAndSettle();
+      expect(find.text('Human Blueprint'), findsOneWidget);
+      await tester.tap(find.text('BACK'));
+      await tester.pumpAndSettle();
+      expect(find.text('Harmony Garden'), findsOneWidget);
+      expect(router.canPop(), isFalse);
 
-    await tester.tap(find.bySemanticsLabel('Hikaru Ritual Face'));
-    await tester.pumpAndSettle();
-    expect(find.text('FACIAL'), findsOneWidget);
-    await tester.tap(find.text('BACK'));
-    await tester.pumpAndSettle();
-    expect(find.text('Harmony Garden'), findsOneWidget);
+      await tester.tap(find.bySemanticsLabel('Hikaru Ritual Face'));
+      await tester.pumpAndSettle();
+      expect(find.text('THE FACE TEMPLE'), findsOneWidget);
+      await tester.tap(find.text('BACK'));
+      await tester.pumpAndSettle();
+      expect(find.text('Harmony Garden'), findsOneWidget);
 
-    await tester.tap(
-      find.descendant(
-        of: find.byType(HikaruNavigationBar),
-        matching: find.bySemanticsLabel('Library'),
-      ),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.bySemanticsLabel('JADE, Balance & Harmony'));
-    await tester.pumpAndSettle();
-    expect(find.text('Temple of Harmony'), findsOneWidget);
+      await tester.tap(
+        find.descendant(
+          of: find.byType(HikaruNavigationBar),
+          matching: find.bySemanticsLabel('Library'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('JADE, Balance & Harmony'));
+      await tester.pumpAndSettle();
+      expect(find.text('Temple of Harmony'), findsOneWidget);
 
-    await tester.tap(find.text('Journey'));
-    await tester.pumpAndSettle();
-    expect(find.text('JOURNEY'), findsOneWidget);
-    expect(find.text('Temple of Harmony'), findsNothing);
+      await tester.tap(find.text('Journey'));
+      await tester.pumpAndSettle();
+      expect(find.text('JOURNEY'), findsOneWidget);
+      expect(find.text('Temple of Harmony'), findsNothing);
 
-    await tester.tap(find.text('Library'));
-    await tester.pumpAndSettle();
-    expect(find.text('Temple of Harmony'), findsOneWidget);
+      await tester.tap(find.text('Library'));
+      await tester.pumpAndSettle();
+      expect(find.text('Temple of Harmony'), findsOneWidget);
 
-    await tester.tap(find.text('BACK'));
-    await tester.pumpAndSettle();
-    expect(find.text('LIBRARY'), findsOneWidget);
-    expect(find.text('Temple of Harmony'), findsNothing);
+      await tester.tap(find.text('BACK'));
+      await tester.pumpAndSettle();
+      expect(find.text('LIBRARY'), findsOneWidget);
+      expect(find.text('Temple of Harmony'), findsNothing);
 
-    await tester.tap(find.text('Home'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.bySemanticsLabel('Listening Sanctuary'));
-    await tester.pumpAndSettle();
-    expect(find.text('THE FOUR TEMPLES'), findsOneWidget);
+      await tester.tap(find.text('Home'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('Listening Sanctuary'));
+      await tester.pumpAndSettle();
+      expect(find.text('THE FOUR TEMPLES'), findsOneWidget);
 
-    router.pop();
-    await tester.pumpAndSettle();
-    expect(find.text('Harmony Garden'), findsOneWidget);
-    expect(find.text('THE RESONANCE CHAMBER'), findsNothing);
-    expect(router.canPop(), isFalse);
-  });
+      router.pop();
+      await tester.pumpAndSettle();
+      expect(find.text('Harmony Garden'), findsOneWidget);
+      expect(find.text('THE RESONANCE CHAMBER'), findsNothing);
+      expect(router.canPop(), isFalse);
+    },
+  );
 
   testWidgets('crystal detail goes back to the tab that opened it', (
     tester,

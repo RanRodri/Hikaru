@@ -1,35 +1,57 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
 import '../../../core/design_system/tokens/app_font_sizes.dart';
-import '../../../core/design_system/tokens/app_radii.dart';
 import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
+import '../../../core/design_system/widgets/hikaru_header.dart';
+import '../../../core/router/app_routes.dart';
+import '../../crystals/application/selected_crystal_controller.dart';
+import '../../crystals/domain/crystal.dart';
 import '../domain/massage_ritual.dart';
+import 'ritual_video_slot.dart';
 
-class MassageScreen extends StatefulWidget {
+const double _designWidth = 390;
+const double _heroHeight = 482;
+const double _panelOverlap = 26;
+const Duration _inhale = Duration(seconds: 4);
+const Duration _breathCycle = Duration(seconds: 10);
+const double _pressureStopHeight = 30;
+
+const List<Shadow> _textShadow = [
+  Shadow(color: AppColors.scrim80, offset: Offset(0, 1), blurRadius: 6),
+];
+
+class MassageScreen extends ConsumerStatefulWidget {
   const MassageScreen({super.key, required this.surface});
 
   final MassageSurface surface;
 
   @override
-  State<MassageScreen> createState() => _MassageScreenState();
+  ConsumerState<MassageScreen> createState() => _MassageScreenState();
 }
 
-class _MassageScreenState extends State<MassageScreen>
+class _MassageScreenState extends ConsumerState<MassageScreen>
     with SingleTickerProviderStateMixin {
   late final Ticker _ticker;
-  Duration _elapsed = Duration.zero;
+  Duration _zoneElapsed = Duration.zero;
   Duration _lastTick = Duration.zero;
   bool _playing = false;
   int _zoneIndex = 0;
-  MassagePressure _pressure = MassagePressure.light;
+  MassagePressure _pressure = MassagePressure.moderate;
 
-  List<MassageZone> get _zones => zonesFor(widget.surface);
+  MassageRitual get _ritual => ritualFor(widget.surface);
 
-  MassageZone get _zone => _zones[_zoneIndex];
+  bool get _isLastZone => _zoneIndex >= _ritual.zones.length - 1;
+
+  Duration get _sessionElapsed =>
+      _ritual.zoneLength * _zoneIndex + _zoneElapsed;
 
   @override
   void initState() {
@@ -47,207 +69,932 @@ class _MassageScreenState extends State<MassageScreen>
     if (!_playing) return;
     final delta = sinceStart - _lastTick;
     _lastTick = sinceStart;
-    setState(() => _elapsed += delta);
+    final zoneLength = _ritual.zoneLength;
+    final elapsed = _zoneElapsed + delta;
+
+    if (elapsed < zoneLength) {
+      setState(() => _zoneElapsed = elapsed);
+      return;
+    }
+    if (_isLastZone) {
+      _stop();
+      setState(() => _zoneElapsed = zoneLength);
+      return;
+    }
+    setState(() {
+      _zoneIndex += 1;
+      _zoneElapsed = Duration.zero;
+    });
+  }
+
+  void _stop() {
+    _ticker.stop();
+    _playing = false;
+  }
+
+  void _handleBackPressed() {
+    if (context.canPop()) {
+      context.pop();
+      return;
+    }
+    context.go(AppRoutes.home);
   }
 
   void _handlePlayPause() {
     if (_playing) {
-      setState(() => _playing = false);
-      _ticker.stop();
+      setState(_stop);
       return;
     }
-    setState(() => _playing = true);
+    final finished = _isLastZone && _zoneElapsed >= _ritual.zoneLength;
+    setState(() {
+      if (finished) {
+        _zoneIndex = 0;
+        _zoneElapsed = Duration.zero;
+      }
+      _playing = true;
+    });
     _lastTick = Duration.zero;
     _ticker.start();
   }
 
   void _handleRestart() {
-    _ticker.stop();
     setState(() {
-      _playing = false;
-      _elapsed = Duration.zero;
-    });
-  }
-
-  void _handleNextZone() {
-    if (_zoneIndex >= _zones.length - 1) return;
-    setState(() {
-      _zoneIndex += 1;
-      _elapsed = Duration.zero;
+      _stop();
+      _zoneIndex = 0;
+      _zoneElapsed = Duration.zero;
     });
   }
 
   void _handleZoneSelected(int index) {
-    setState(() => _zoneIndex = index);
+    if (index < 0 || index >= _ritual.zones.length) return;
+    setState(() {
+      _zoneIndex = index;
+      _zoneElapsed = Duration.zero;
+    });
   }
 
-  void _handlePressure(MassagePressure pressure) {
+  void _handlePressureSelected(MassagePressure pressure) {
     setState(() => _pressure = pressure);
   }
 
   @override
   Widget build(BuildContext context) {
-    final isFace = widget.surface == MassageSurface.face;
-    final steps = guidedStepsFor(widget.surface, _zone);
+    final crystal = ref.watch(selectedCrystalProvider).value;
+    final insets = MediaQuery.paddingOf(context);
+    final ritual = _ritual;
 
     return Scaffold(
       backgroundColor: AppColors.darkIndigoBlue,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.s24,
-            AppSpacing.s8,
-            AppSpacing.s24,
-            AppSpacing.s16,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Align(
-                alignment: Alignment.centerLeft,
-                child: _Control(label: 'BACK', onPressed: () => context.pop()),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final scale = constraints.maxWidth / _designWidth;
+          final heroHeight = insets.top + _heroHeight * scale;
+
+          return DecoratedBox(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  AppColors.darkIndigoBlue,
+                  AppColors.indigoBlue,
+                  AppColors.indigoBlue80,
+                ],
+                stops: [0, 0.45, 1],
               ),
-              Text(
-                'HIKARU MASSAGE',
-                textAlign: TextAlign.center,
-                style: AppTypography.subheadline.copyWith(
-                  color: AppColors.champagneGold,
-                  fontSize: AppFontSizes.s12,
-                  letterSpacing: 1.8,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.s4),
-              Text(
-                isFace ? 'FACIAL' : 'BODY',
-                textAlign: TextAlign.center,
-                style: AppTypography.title.copyWith(
-                  color: AppColors.white,
-                  fontSize: AppFontSizes.s28,
-                ),
-              ),
-              Text(
-                'SCULPT · LIFT · AWAKEN',
-                textAlign: TextAlign.center,
-                style: AppTypography.body.copyWith(
-                  color: AppColors.fog,
-                  fontSize: AppFontSizes.s12,
-                  letterSpacing: 1.2,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.s16),
-              const _VideoPlaceholder(),
-              const SizedBox(height: AppSpacing.s16),
-              Text(
-                _zone.name,
-                textAlign: TextAlign.center,
-                style: AppTypography.headline.copyWith(
-                  color: AppColors.white,
-                  fontSize: AppFontSizes.s18,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.s8),
-              Text(
-                massageStrokeGuidance,
-                textAlign: TextAlign.center,
-                style: AppTypography.body.copyWith(
-                  color: AppColors.fog,
-                  fontSize: AppFontSizes.s12,
-                  letterSpacing: 0.2,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.s12),
-              Text(
-                formatMassageClock(_elapsed),
-                textAlign: TextAlign.center,
-                style: AppTypography.title.copyWith(
-                  color: AppColors.champagneGold,
-                  fontSize: AppFontSizes.s28,
-                ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            ),
+            child: SingleChildScrollView(
+              child: Stack(
                 children: [
-                  _Control(label: 'RESTART', onPressed: _handleRestart),
-                  _Control(
-                    label: _playing ? 'PAUSE' : 'PLAY',
-                    onPressed: _handlePlayPause,
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: heroHeight + _panelOverlap * scale,
+                    child: RitualVideoSlot(videoUrl: ritual.videoUrl),
                   ),
-                  _Control(
-                    label: 'NEXT',
-                    onPressed: _zoneIndex >= _zones.length - 1
-                        ? null
-                        : _handleNextZone,
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.s8),
-              Wrap(
-                alignment: WrapAlignment.center,
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (var index = 0; index < _zones.length; index++)
-                    _ChoiceChip(
-                      label: _zones[index].name,
-                      selected: index == _zoneIndex,
-                      onPressed: () => _handleZoneSelected(index),
-                    ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.s12),
-              Text(
-                'PRESSURE',
-                textAlign: TextAlign.center,
-                style: AppTypography.subheadline.copyWith(
-                  color: AppColors.champagneGold,
-                  fontSize: AppFontSizes.s10,
-                  letterSpacing: 1.4,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.s8),
-              Row(
-                children: [
-                  for (final pressure in MassagePressure.values)
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.s4,
-                        ),
-                        child: _ChoiceChip(
-                          label: pressure.label,
-                          selected: pressure == _pressure,
-                          onPressed: () => _handlePressure(pressure),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.s12),
-              Expanded(
-                child: ListView(
-                  children: [
-                    for (final step in steps)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: AppSpacing.s8),
-                        child: Text(
-                          step,
-                          textAlign: TextAlign.center,
-                          style: AppTypography.body.copyWith(
-                            color: AppColors.white,
-                            fontSize: AppFontSizes.s12,
-                            letterSpacing: 0.2,
+                  Column(
+                    children: [
+                      SizedBox(
+                        height: heroHeight,
+                        child: Padding(
+                          padding: EdgeInsets.only(top: insets.top),
+                          child: _RitualHero(
+                            scale: scale,
+                            ritual: ritual,
+                            crystal: crystal,
+                            onBackPressed: _handleBackPressed,
                           ),
                         ),
                       ),
-                  ],
+                      _ControlPanel(
+                        scale: scale,
+                        bottomInset: insets.bottom,
+                        ritual: ritual,
+                        zoneIndex: _zoneIndex,
+                        zoneElapsed: _zoneElapsed,
+                        sessionElapsed: _sessionElapsed,
+                        playing: _playing,
+                        pressure: _pressure,
+                        onZoneSelected: _handleZoneSelected,
+                        onPressureSelected: _handlePressureSelected,
+                        onPrevious: () => _handleZoneSelected(_zoneIndex - 1),
+                        onPlayPause: _handlePlayPause,
+                        onNext: () => _handleZoneSelected(_zoneIndex + 1),
+                        onRestart: _handleRestart,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+TextStyle _spaced(double size, {Color color = AppColors.silver}) {
+  return AppTypography.footnote.copyWith(
+    color: color,
+    fontSize: size,
+    height: 1.25,
+    letterSpacing: size * 0.3,
+  );
+}
+
+class _RitualHero extends StatelessWidget {
+  const _RitualHero({
+    required this.scale,
+    required this.ritual,
+    required this.crystal,
+    required this.onBackPressed,
+  });
+
+  final double scale;
+  final MassageRitual ritual;
+  final Crystal? crystal;
+  final VoidCallback onBackPressed;
+
+  Widget _place({
+    double? left,
+    double? right,
+    required double top,
+    double? width,
+    required Widget child,
+  }) {
+    return Positioned(
+      left: left == null ? null : left * scale,
+      right: right == null ? null : right * scale,
+      top: top * scale,
+      width: width == null ? null : width * scale,
+      child: child,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final activeCrystal = crystal;
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        const Positioned(top: 0, left: 0, right: 0, child: HikaruHeader()),
+        _place(
+          left: 6,
+          top: 18,
+          child: _TextControl(
+            label: 'BACK',
+            semanticsLabel: 'Back',
+            scale: scale,
+            onPressed: onBackPressed,
+          ),
+        ),
+        _place(right: 16, top: 22, child: _HeaderActions(scale: scale)),
+        _place(
+          left: 0,
+          right: 0,
+          top: 69,
+          child: Column(
+            children: [
+              Text(
+                ritual.temple,
+                textAlign: TextAlign.center,
+                style: AppTypography.headline.copyWith(
+                  color: AppColors.silver,
+                  fontSize: AppFontSizes.s18 * scale,
+                  letterSpacing: 4.5 * scale,
+                  shadows: _textShadow,
+                ),
+              ),
+              SizedBox(height: AppSpacing.s4 * scale),
+              Text(
+                ritual.subtitle,
+                textAlign: TextAlign.center,
+                style: _spaced(
+                  AppFontSizes.s8 * scale,
+                ).copyWith(shadows: _textShadow),
+              ),
+            ],
+          ),
+        ),
+        if (activeCrystal != null)
+          _place(
+            left: 145,
+            top: 368,
+            width: 100,
+            child: _CrystalBadge(crystal: activeCrystal, scale: scale),
+          ),
+      ],
+    );
+  }
+}
+
+class _TextControl extends StatelessWidget {
+  const _TextControl({
+    required this.label,
+    required this.semanticsLabel,
+    required this.scale,
+    required this.onPressed,
+  });
+
+  final String label;
+  final String semanticsLabel;
+  final double scale;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: semanticsLabel,
+      excludeSemantics: true,
+      child: TextButton(
+        onPressed: onPressed,
+        style: TextButton.styleFrom(
+          minimumSize: Size(AppSpacing.s40 * scale, AppSpacing.s36 * scale),
+          padding: EdgeInsets.symmetric(horizontal: AppSpacing.s10 * scale),
+        ),
+        child: Text(
+          label,
+          style: _spaced(
+            AppFontSizes.s10 * scale,
+            color: AppColors.champagneGold80,
+          ).copyWith(shadows: _textShadow),
+        ),
+      ),
+    );
+  }
+}
+
+class _HeaderActions extends StatelessWidget {
+  const _HeaderActions({required this.scale});
+
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Semantics(
+          button: true,
+          label: 'Sound',
+          excludeSemantics: true,
+          child: GestureDetector(
+            onTap: () {},
+            behavior: HitTestBehavior.opaque,
+            child: Padding(
+              padding: EdgeInsets.all(AppSpacing.s6 * scale),
+              child: SvgPicture.asset(
+                'assets/images/ritual_sound.svg',
+                width: 21 * scale,
+                height: 15 * scale,
+              ),
+            ),
+          ),
+        ),
+        SizedBox(width: AppSpacing.s6 * scale),
+        Semantics(
+          button: true,
+          label: 'More options',
+          excludeSemantics: true,
+          child: GestureDetector(
+            onTap: () {},
+            behavior: HitTestBehavior.opaque,
+            child: Padding(
+              padding: EdgeInsets.all(AppSpacing.s6 * scale),
+              child: Row(
+                children: [
+                  for (var dot = 0; dot < 3; dot++)
+                    Container(
+                      width: 2.4 * scale,
+                      height: 2.4 * scale,
+                      margin: EdgeInsets.symmetric(horizontal: 2.4 * scale),
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.champagneGold80,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CrystalBadge extends StatelessWidget {
+  const _CrystalBadge({required this.crystal, required this.scale});
+
+  final Crystal crystal;
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    final size = 68 * scale;
+
+    return Column(
+      children: [
+        Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.champagneGold.withValues(alpha: 0.45),
+                blurRadius: 14 * scale,
+              ),
+            ],
+          ),
+          child: ClipOval(
+            child: Transform.scale(
+              scale: 1.04,
+              child: Image.asset(
+                crystal.imageAsset,
+                fit: BoxFit.cover,
+                excludeFromSemantics: true,
+              ),
+            ),
+          ),
+        ),
+        SizedBox(height: AppSpacing.s6 * scale),
+        Text(
+          crystal.displayName,
+          textAlign: TextAlign.center,
+          style: _spaced(
+            AppFontSizes.s9 * scale,
+          ).copyWith(shadows: _textShadow),
+        ),
+        Text(
+          crystal.temple,
+          textAlign: TextAlign.center,
+          style: AppTypography.footnote.copyWith(
+            color: AppColors.silver,
+            fontSize: AppFontSizes.s8_5 * scale,
+            fontStyle: FontStyle.italic,
+            shadows: _textShadow,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ControlPanel extends StatelessWidget {
+  const _ControlPanel({
+    required this.scale,
+    required this.bottomInset,
+    required this.ritual,
+    required this.zoneIndex,
+    required this.zoneElapsed,
+    required this.sessionElapsed,
+    required this.playing,
+    required this.pressure,
+    required this.onZoneSelected,
+    required this.onPressureSelected,
+    required this.onPrevious,
+    required this.onPlayPause,
+    required this.onNext,
+    required this.onRestart,
+  });
+
+  final double scale;
+  final double bottomInset;
+  final MassageRitual ritual;
+  final int zoneIndex;
+  final Duration zoneElapsed;
+  final Duration sessionElapsed;
+  final bool playing;
+  final MassagePressure pressure;
+  final ValueChanged<int> onZoneSelected;
+  final ValueChanged<MassagePressure> onPressureSelected;
+  final VoidCallback onPrevious;
+  final VoidCallback onPlayPause;
+  final VoidCallback onNext;
+  final VoidCallback onRestart;
+
+  @override
+  Widget build(BuildContext context) {
+    final zone = ritual.zones[zoneIndex];
+    final zoneLength = ritual.zoneLength;
+    final zoneProgress = zoneElapsed.inMilliseconds / zoneLength.inMilliseconds;
+    final breathPosition =
+        sessionElapsed.inMilliseconds % _breathCycle.inMilliseconds;
+    final isInhaling = breathPosition < _inhale.inMilliseconds;
+    final cardGap = AppSpacing.s6 * scale;
+
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.s20 * scale,
+        AppSpacing.s12 * scale,
+        AppSpacing.s20 * scale,
+        bottomInset + AppSpacing.s24 * scale,
+      ),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(_panelOverlap * scale),
+        ),
+        border: const Border(
+          top: BorderSide(color: AppColors.champagneGold, width: 0.5),
+        ),
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            AppColors.indigoBlue,
+            AppColors.darkIndigoBlue,
+            AppColors.darkClear,
+          ],
+          stops: [0, 0.8, 1],
+        ),
+      ),
+      child: Column(
+        children: [
+          _StepSummary(
+            scale: scale,
+            zone: zone,
+            number: zoneIndex + 1,
+            total: ritual.zones.length,
+          ),
+          SizedBox(height: AppSpacing.s10 * scale),
+          SizedBox(
+            height: 95 * scale,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  flex: 117,
+                  child: _ControlCard(
+                    scale: scale,
+                    label: 'BREATHE',
+                    icon: const _FlowEmblem(),
+                    child: _BreathingGauge(
+                      scale: scale,
+                      isInhaling: isInhaling,
+                      progress: isInhaling
+                          ? breathPosition / _inhale.inMilliseconds
+                          : 1 -
+                                (breathPosition - _inhale.inMilliseconds) /
+                                    (_breathCycle - _inhale).inMilliseconds,
+                    ),
+                  ),
+                ),
+                SizedBox(width: cardGap),
+                Expanded(
+                  flex: 121,
+                  child: _ControlCard(
+                    scale: scale,
+                    label: 'PRESSURE',
+                    icon: const _FlowEmblem(),
+                    child: _PressureSelector(
+                      scale: scale,
+                      selected: pressure,
+                      onSelected: onPressureSelected,
+                    ),
+                  ),
+                ),
+                SizedBox(width: cardGap),
+                Expanded(
+                  flex: 101,
+                  child: _ControlCard(
+                    scale: scale,
+                    label: 'DURATION',
+                    icon: SvgPicture.asset(
+                      'assets/images/ritual_lotus.svg',
+                      width: 20 * scale,
+                      height: 18 * scale,
+                      excludeFromSemantics: true,
+                    ),
+                    child: _DurationGauge(
+                      scale: scale,
+                      elapsed: zoneElapsed,
+                      total: zoneLength,
+                      progress: zoneProgress,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: AppSpacing.s14 * scale),
+          _ZoneTimeline(
+            scale: scale,
+            zones: ritual.zones,
+            activeIndex: zoneIndex,
+            onSelected: onZoneSelected,
+          ),
+          SizedBox(height: AppSpacing.s10 * scale),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _RoundControl(
+                scale: scale,
+                size: 28,
+                icon: Icons.skip_previous_rounded,
+                semanticsLabel: 'Previous zone',
+                onPressed: zoneIndex == 0 ? null : onPrevious,
+              ),
+              SizedBox(width: AppSpacing.s26 * scale),
+              _RoundControl(
+                scale: scale,
+                size: 43,
+                icon: playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                semanticsLabel: playing ? 'Pause' : 'Play',
+                isPrimary: true,
+                onPressed: onPlayPause,
+              ),
+              SizedBox(width: AppSpacing.s26 * scale),
+              _RoundControl(
+                scale: scale,
+                size: 28,
+                icon: Icons.skip_next_rounded,
+                semanticsLabel: 'Next zone',
+                onPressed: zoneIndex >= ritual.zones.length - 1 ? null : onNext,
+              ),
+            ],
+          ),
+          SizedBox(height: AppSpacing.s10 * scale),
+          _TextControl(
+            label: 'RESTART',
+            semanticsLabel: 'Restart ritual',
+            scale: scale,
+            onPressed: onRestart,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StepSummary extends StatelessWidget {
+  const _StepSummary({
+    required this.scale,
+    required this.zone,
+    required this.number,
+    required this.total,
+  });
+
+  final double scale;
+  final MassageZone zone;
+  final int number;
+  final int total;
+
+  String _pad(int value) => value.toString().padLeft(2, '0');
+
+  @override
+  Widget build(BuildContext context) {
+    final frameSize = 71 * scale;
+
+    return Row(
+      children: [
+        Container(
+          width: frameSize,
+          height: frameSize,
+          padding: EdgeInsets.all(3 * scale),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.champagneGold80, width: 0.8),
+          ),
+          child: DecoratedBox(
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.darkIndigoBlue,
+            ),
+            child: Center(
+              child: SvgPicture.asset(
+                'assets/images/ritual_lotus.svg',
+                width: 26 * scale,
+                height: 23 * scale,
+                excludeFromSemantics: true,
+              ),
+            ),
+          ),
+        ),
+        SizedBox(width: AppSpacing.s11 * scale),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${_pad(number)} / ${_pad(total)}',
+                style: AppTypography.footnote.copyWith(
+                  color: AppColors.champagneGold80,
+                  fontSize: AppFontSizes.s9 * scale,
+                ),
+              ),
+              SizedBox(height: AppSpacing.s4 * scale),
+              Text(
+                zone.name.toUpperCase(),
+                style: AppTypography.headline.copyWith(
+                  color: AppColors.silver,
+                  fontSize: AppFontSizes.s15 * scale,
+                  letterSpacing: 4 * scale,
+                ),
+              ),
+              SizedBox(height: AppSpacing.s4 * scale),
+              Text(
+                zone.instruction,
+                style: AppTypography.body.copyWith(
+                  color: AppColors.silver,
+                  fontSize: AppFontSizes.s10_5 * scale,
+                  height: 1.3,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ControlCard extends StatelessWidget {
+  const _ControlCard({
+    required this.scale,
+    required this.label,
+    required this.icon,
+    required this.child,
+  });
+
+  final double scale;
+  final String label;
+  final Widget icon;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppColors.darkIndigoBlue.withValues(alpha: 0.95),
+        borderRadius: BorderRadius.circular(11 * scale),
+        border: Border.all(color: AppColors.champagneGold, width: 0.45),
+      ),
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: AppSpacing.s8 * scale),
+        child: Column(
+          children: [
+            SizedBox(
+              width: 20 * scale,
+              height: 19 * scale,
+              child: FittedBox(child: icon),
+            ),
+            SizedBox(height: AppSpacing.s5 * scale),
+            Text(
+              label,
+              style: _spaced(
+                AppFontSizes.s6_6 * scale,
+                color: AppColors.champagneGold80,
+              ),
+            ),
+            Expanded(child: child),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FlowEmblem extends StatelessWidget {
+  const _FlowEmblem();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 19,
+      height: 19,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: AppColors.champagneGold80, width: 0.65),
+      ),
+      alignment: Alignment.center,
+      child: SvgPicture.asset(
+        'assets/images/ritual_flow_waves.svg',
+        width: 11,
+        height: 8,
+        excludeFromSemantics: true,
+      ),
+    );
+  }
+}
+
+class _BreathingGauge extends StatelessWidget {
+  const _BreathingGauge({
+    required this.scale,
+    required this.isInhaling,
+    required this.progress,
+  });
+
+  final double scale;
+  final bool isInhaling;
+  final double progress;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(height: AppSpacing.s2 * scale),
+        Text(
+          isInhaling ? 'INHALE' : 'EXHALE',
+          style: AppTypography.footnote.copyWith(
+            color: AppColors.silver,
+            fontSize: AppFontSizes.s6_6 * scale,
+            letterSpacing: 0.6 * scale,
+          ),
+        ),
+        const Spacer(),
+        SizedBox.square(
+          dimension: 30 * scale,
+          child: CustomPaint(
+            painter: _RingPainter(progress: progress, glow: true),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PressureSelector extends StatelessWidget {
+  const _PressureSelector({
+    required this.scale,
+    required this.selected,
+    required this.onSelected,
+  });
+
+  final double scale;
+  final MassagePressure selected;
+  final ValueChanged<MassagePressure> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final trackInset = AppSpacing.s16 * scale;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: AppSpacing.s6 * scale),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned(
+            left: trackInset,
+            right: trackInset,
+            top: _pressureStopHeight / 2 * scale,
+            child: Container(
+              height: AppSpacing.s0_5,
+              color: AppColors.champagneGold80,
+            ),
+          ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (final pressure in MassagePressure.values)
+                Expanded(
+                  child: _PressureStop(
+                    scale: scale,
+                    pressure: pressure,
+                    selected: pressure == selected,
+                    onPressed: () => onSelected(pressure),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PressureStop extends StatelessWidget {
+  const _PressureStop({
+    required this.scale,
+    required this.pressure,
+    required this.selected,
+    required this.onPressed,
+  });
+
+  final double scale;
+  final MassagePressure pressure;
+  final bool selected;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final dot = selected ? 7.4 * scale : 3 * scale;
+
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: '${pressure.label} pressure',
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: onPressed,
+        behavior: HitTestBehavior.opaque,
+        child: Column(
+          children: [
+            SizedBox(
+              height: _pressureStopHeight * scale,
+              child: Center(
+                child: Container(
+                  width: dot,
+                  height: dot,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.champagneGold80,
+                    border: selected
+                        ? Border.all(
+                            color: AppColors.goldGlow,
+                            width: 1.2 * scale,
+                          )
+                        : null,
+                    boxShadow: selected
+                        ? [
+                            BoxShadow(
+                              color: AppColors.champagneGold,
+                              blurRadius: 6 * scale,
+                              spreadRadius: 1.5 * scale,
+                            ),
+                          ]
+                        : null,
+                  ),
+                ),
+              ),
+            ),
+            Text(
+              pressure.label.toUpperCase(),
+              style: AppTypography.footnote.copyWith(
+                color: selected ? AppColors.champagneGold80 : AppColors.silver,
+                fontSize: AppFontSizes.s6_6 * scale,
+                letterSpacing: 0.3 * scale,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DurationGauge extends StatelessWidget {
+  const _DurationGauge({
+    required this.scale,
+    required this.elapsed,
+    required this.total,
+    required this.progress,
+  });
+
+  final double scale;
+  final Duration elapsed;
+  final Duration total;
+  final double progress;
+
+  @override
+  Widget build(BuildContext context) {
+    final size = 46 * scale;
+
+    return Center(
+      child: SizedBox.square(
+        dimension: size,
+        child: CustomPaint(
+          painter: _RingPainter(progress: progress, track: true),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                formatMassageClock(elapsed),
+                style: AppTypography.headline.copyWith(
+                  color: AppColors.silver,
+                  fontSize: AppFontSizes.s12 * scale,
+                  height: 1.1,
                 ),
               ),
               Text(
-                isFace ? 'FACIAL RITUAL' : 'BODY RITUAL',
-                textAlign: TextAlign.center,
+                '/ ${formatMassageClock(total)}',
                 style: AppTypography.footnote.copyWith(
-                  color: AppColors.champagneGold,
-                  letterSpacing: 1.4,
+                  color: AppColors.silver,
+                  fontSize: AppFontSizes.s6_6 * scale,
                 ),
               ),
             ],
@@ -258,101 +1005,227 @@ class _MassageScreenState extends State<MassageScreen>
   }
 }
 
-class _VideoPlaceholder extends StatelessWidget {
-  const _VideoPlaceholder();
+class _RingPainter extends CustomPainter {
+  const _RingPainter({
+    required this.progress,
+    this.glow = false,
+    this.track = false,
+  });
+
+  final double progress;
+  final bool glow;
+  final bool track;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final ring = rect.deflate(2);
+    final sweep = 2 * math.pi * progress.clamp(0.0, 1.0);
+
+    if (track) {
+      canvas.drawOval(
+        ring,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.6
+          ..color = AppColors.champagneGold80.withValues(alpha: 0.35),
+      );
+    }
+    if (glow) {
+      canvas.drawCircle(
+        rect.center,
+        size.width / 2,
+        Paint()
+          ..color = AppColors.champagneGold.withValues(alpha: 0.18)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
+      );
+    }
+    canvas.drawArc(
+      ring,
+      -math.pi / 2,
+      sweep,
+      false,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeWidth = glow ? 1.6 : 1
+        ..color = AppColors.champagneGold80,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _RingPainter oldDelegate) =>
+      oldDelegate.progress != progress;
+}
+
+class _ZoneTimeline extends StatelessWidget {
+  const _ZoneTimeline({
+    required this.scale,
+    required this.zones,
+    required this.activeIndex,
+    required this.onSelected,
+  });
+
+  final double scale;
+  final List<MassageZone> zones;
+  final int activeIndex;
+  final ValueChanged<int> onSelected;
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
-      label: 'Gua Sha video',
-      child: AspectRatio(
-        aspectRatio: 16 / 9,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: AppColors.indigoBlue,
-            borderRadius: BorderRadius.circular(AppRadii.r16),
-            border: Border.all(color: AppColors.champagneGold),
+    final markerTop = 7 * scale;
+
+    return Stack(
+      children: [
+        Positioned(
+          left: 0,
+          right: 0,
+          top: markerTop + 4.75 * scale,
+          child: Container(
+            height: AppSpacing.s0_5,
+            color: AppColors.champagneGold80.withValues(alpha: 0.7),
           ),
-          child: Center(
-            child: Text(
-              'Gua Sha',
-              style: AppTypography.subheadline.copyWith(
-                color: AppColors.champagneGold,
-                fontSize: AppFontSizes.s12,
-                letterSpacing: 1.4,
+        ),
+        Row(
+          children: [
+            for (final (index, zone) in zones.indexed)
+              Expanded(
+                child: _ZoneStage(
+                  scale: scale,
+                  name: zone.name,
+                  isActive: index == activeIndex,
+                  isDone: index < activeIndex,
+                  markerTop: markerTop,
+                  onPressed: () => onSelected(index),
+                ),
               ),
-            ),
-          ),
+          ],
         ),
-      ),
+      ],
     );
   }
 }
 
-class _Control extends StatelessWidget {
-  const _Control({required this.label, required this.onPressed});
-
-  final String label;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return TextButton(
-      onPressed: onPressed,
-      child: Text(
-        label,
-        style: AppTypography.subheadline.copyWith(
-          color: onPressed == null
-              ? AppColors.champagneGold.withValues(alpha: 0.35)
-              : AppColors.champagneGold,
-          fontSize: AppFontSizes.s12,
-          letterSpacing: 1.4,
-        ),
-      ),
-    );
-  }
-}
-
-class _ChoiceChip extends StatelessWidget {
-  const _ChoiceChip({
-    required this.label,
-    required this.selected,
+class _ZoneStage extends StatelessWidget {
+  const _ZoneStage({
+    required this.scale,
+    required this.name,
+    required this.isActive,
+    required this.isDone,
+    required this.markerTop,
     required this.onPressed,
   });
 
-  final String label;
-  final bool selected;
+  final double scale;
+  final String name;
+  final bool isActive;
+  final bool isDone;
+  final double markerTop;
   final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
+    final marker = 9.5 * scale;
+    final filled = isActive || isDone;
+
     return Semantics(
       button: true,
-      selected: selected,
-      label: label,
-      child: TextButton(
-        onPressed: onPressed,
-        style: TextButton.styleFrom(
-          backgroundColor: selected
-              ? AppColors.champagneGold
-              : AppColors.champagneGold.withValues(alpha: 0),
-          foregroundColor: selected ? AppColors.darkIndigoBlue : AppColors.fog,
-          shape: const StadiumBorder(
-            side: BorderSide(color: AppColors.champagneGold),
-          ),
-          minimumSize: const Size(0, 36),
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.s12,
-            vertical: AppSpacing.s8,
-          ),
+      selected: isActive,
+      label: name,
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: onPressed,
+        behavior: HitTestBehavior.opaque,
+        child: Column(
+          children: [
+            SizedBox(height: markerTop),
+            Container(
+              width: marker,
+              height: marker,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: filled ? AppColors.champagneGold80 : AppColors.black,
+                border: Border.all(
+                  color: AppColors.champagneGold80,
+                  width: 0.6,
+                ),
+                boxShadow: isActive
+                    ? [
+                        BoxShadow(
+                          color: AppColors.champagneGold,
+                          blurRadius: 5 * scale,
+                          spreadRadius: 2 * scale,
+                        ),
+                      ]
+                    : null,
+              ),
+            ),
+            SizedBox(height: AppSpacing.s9 * scale),
+            Text(
+              name.toUpperCase(),
+              style: AppTypography.footnote.copyWith(
+                color: isActive ? AppColors.champagneGold80 : AppColors.silver,
+                fontSize: AppFontSizes.s7_5 * scale,
+                letterSpacing: 0.4 * scale,
+              ),
+            ),
+          ],
         ),
-        child: Text(
-          label,
-          style: AppTypography.body.copyWith(
-            color: selected ? AppColors.darkIndigoBlue : AppColors.fog,
-            fontSize: AppFontSizes.s11,
-            letterSpacing: 0.4,
+      ),
+    );
+  }
+}
+
+class _RoundControl extends StatelessWidget {
+  const _RoundControl({
+    required this.scale,
+    required this.size,
+    required this.icon,
+    required this.semanticsLabel,
+    required this.onPressed,
+    this.isPrimary = false,
+  });
+
+  final double scale;
+  final double size;
+  final IconData icon;
+  final String semanticsLabel;
+  final VoidCallback? onPressed;
+  final bool isPrimary;
+
+  @override
+  Widget build(BuildContext context) {
+    final diameter = size * scale;
+    final enabled = onPressed != null;
+    final color = enabled
+        ? AppColors.champagneGold80
+        : AppColors.champagneGold80.withValues(alpha: 0.35);
+
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      label: semanticsLabel,
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: onPressed,
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          width: diameter,
+          height: diameter,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.black,
+            border: Border.all(color: color, width: isPrimary ? 0.7 : 0.3),
+            boxShadow: isPrimary
+                ? [
+                    BoxShadow(
+                      color: AppColors.champagneGold,
+                      blurRadius: 2.7 * scale,
+                    ),
+                  ]
+                : null,
           ),
+          child: Icon(icon, color: color, size: diameter * 0.5),
         ),
       ),
     );

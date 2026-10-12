@@ -27,10 +27,11 @@ class MerkabaStage extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        const Image(
-          image: AssetImage(merkabaWomanAsset),
+        Image(
+          image: const AssetImage(merkabaWomanAsset),
           fit: BoxFit.contain,
           semanticLabel: 'Seated woman in meditation',
+          frameBuilder: _fadeInWoman,
         ),
         CustomPaint(
           painter: MerkabaFieldPainter(
@@ -42,6 +43,24 @@ class MerkabaStage extends StatelessWidget {
       ],
     );
   }
+
+  static const Duration _womanFade = Duration(milliseconds: 900);
+
+  static Widget _fadeInWoman(
+    BuildContext context,
+    Widget child,
+    int? frame,
+    bool wasSynchronouslyLoaded,
+  ) {
+    if (wasSynchronouslyLoaded) return child;
+    return AnimatedOpacity(
+      opacity: frame == null ? 0 : 1,
+      duration: _womanFade,
+      curve: Curves.easeOut,
+      alwaysIncludeSemantics: true,
+      child: child,
+    );
+  }
 }
 
 class MerkabaFieldPainter extends CustomPainter {
@@ -49,6 +68,21 @@ class MerkabaFieldPainter extends CustomPainter {
 
   final MerkabaFrame frame;
   final bool reduceMotion;
+
+  /// Indexes into [merkabaScenes].
+  static const int _blueprintScene = 0;
+  static const int _ribbonScene = 1;
+  static const int _buildScene = 2;
+  static const int _expansionScene = 3;
+  static const int _blossomScene = 4;
+
+  /// Share of the blueprint scene spent on the woman and heart alone
+  /// before the star starts tracing, and the share spent tracing it.
+  static const double _starDelay = 0.25;
+  static const double _starTrace = 0.6;
+
+  /// The two tetrahedra close slightly before the rotation scene begins.
+  static const double _buildShare = 0.9;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -84,7 +118,7 @@ class MerkabaFieldPainter extends CustomPainter {
     int sceneIndex,
     double sceneT,
   ) {
-    final calm = sceneIndex == 5 ? sceneT : 0.0;
+    final calm = sceneIndex == _blossomScene ? sceneT : 0.0;
     final pulse = breath + (0.55 - breath) * calm;
     final radius = height * (0.07 + 0.035 * pulse);
     final rect = Rect.fromCircle(center: heart, radius: radius);
@@ -102,7 +136,7 @@ class MerkabaFieldPainter extends CustomPainter {
           stops: const [0, 0.42, 1],
         ).createShader(rect),
     );
-    if (sceneIndex == 4) {
+    if (sceneIndex == _expansionScene) {
       final field = height * (0.34 + 0.06 * pulse);
       final fieldRect = Rect.fromCircle(center: heart, radius: field);
       canvas.drawCircle(
@@ -127,11 +161,16 @@ class MerkabaFieldPainter extends CustomPainter {
     double sceneT,
     double breath,
   ) {
-    final draw = sceneIndex == 1
-        ? (reduceMotion ? 1.0 : (sceneT / 0.72).clamp(0.0, 1.0))
-        : (sceneIndex == 2 ? 1.0 : 0.0);
+    final draw = switch (sceneIndex) {
+      _blueprintScene when reduceMotion => 1.0,
+      _blueprintScene => ((sceneT - _starDelay) / _starTrace).clamp(0.0, 1.0),
+      _ribbonScene => 1.0,
+      _ => 0.0,
+    };
     if (draw <= 0) return;
-    final fade = sceneIndex == 2 ? (1 - sceneT / 0.28).clamp(0.0, 1.0) : 1.0;
+    final fade = sceneIndex == _ribbonScene
+        ? (1 - sceneT / 0.28).clamp(0.0, 1.0)
+        : 1.0;
     if (fade <= 0) return;
     final pulse = draw >= 1 && !reduceMotion ? 1 + breath * 0.035 : 1.0;
     final radius = woman.height * 0.30 * pulse;
@@ -148,12 +187,10 @@ class MerkabaFieldPainter extends CustomPainter {
     double breath,
   ) {
     var opacity = 0.0;
-    if (sceneIndex == 2) {
-      final enter = (sceneT / 0.18).clamp(0.0, 1.0);
-      final leave = sceneT < 0.82 ? 1.0 : (1 - (sceneT - 0.82) / 0.18);
-      opacity = enter * leave.clamp(0.0, 1.0);
-    } else if (sceneIndex == 3) {
-      opacity = (1 - sceneT / 0.16).clamp(0.0, 1.0);
+    if (sceneIndex == _ribbonScene) {
+      opacity = (sceneT / 0.18).clamp(0.0, 1.0);
+    } else if (sceneIndex == _buildScene) {
+      opacity = (1 - sceneT / 0.06).clamp(0.0, 1.0);
     }
     if (opacity <= 0) return;
     final turn = reduceMotion
@@ -179,12 +216,18 @@ class MerkabaFieldPainter extends CustomPainter {
     double sceneT,
     double breath,
   ) {
-    if (sceneIndex < 3) return;
-    final built = sceneIndex == 3 ? (reduceMotion ? 6.0 : sceneT * 6) : 6.0;
+    if (sceneIndex < _buildScene) return;
+    final built = sceneIndex == _buildScene && !reduceMotion
+        ? (sceneT / _buildShare).clamp(0.0, 1.0) * 6
+        : 6.0;
     if (built <= 0) return;
-    final fade = sceneIndex == 5 ? (1 - sceneT).clamp(0.0, 1.0) : 1.0;
+    final fade = sceneIndex == _blossomScene
+        ? (1 - sceneT).clamp(0.0, 1.0)
+        : 1.0;
     if (fade <= 0) return;
-    final scale = sceneIndex == 4 ? 1 + breath * 0.08 : 1 + breath * 0.02;
+    final scale = sceneIndex == _expansionScene
+        ? 1 + breath * 0.08
+        : 1 + breath * 0.02;
     final radius = woman.height * 0.42 * scale;
     final spin = _spin(frame);
     _drawTetra(
@@ -214,7 +257,7 @@ class MerkabaFieldPainter extends CustomPainter {
     int sceneIndex,
     double sceneT,
   ) {
-    if (sceneIndex != 5) return;
+    if (sceneIndex != _blossomScene) return;
     final appear = reduceMotion ? 1.0 : sceneT.clamp(0.0, 1.0);
     if (appear <= 0) return;
     final radius = woman.height * 0.16 * (0.65 + 0.35 * appear);
@@ -348,16 +391,16 @@ class MerkabaFieldPainter extends CustomPainter {
   /// then turn gently in opposite directions.
   double _spin(MerkabaFrame frame) {
     if (reduceMotion) return 0;
-    final start = merkabaScenes[4].start;
+    final start = merkabaScenes[_expansionScene].start;
     if (frame.elapsed <= start) return 0;
     const rate = 0.012;
-    final scene6 = merkabaScenes[5].start;
-    if (frame.elapsed <= scene6) {
+    final blossom = merkabaScenes[_blossomScene];
+    if (frame.elapsed <= blossom.start) {
       return (frame.elapsed - start).inMilliseconds / 1000 * rate;
     }
-    final settled = (scene6 - start).inMilliseconds / 1000 * rate;
-    final sceneLength = (merkabaScenes[5].end - scene6).inMilliseconds / 1000;
-    final into = (frame.elapsed - scene6).inMilliseconds / 1000;
+    final settled = (blossom.start - start).inMilliseconds / 1000 * rate;
+    final sceneLength = (blossom.end - blossom.start).inMilliseconds / 1000;
+    final into = (frame.elapsed - blossom.start).inMilliseconds / 1000;
     final t = into.clamp(0.0, sceneLength);
     return settled + rate * t * (1 - t / (2 * sceneLength));
   }

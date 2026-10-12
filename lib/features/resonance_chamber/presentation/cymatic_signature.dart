@@ -27,11 +27,7 @@ class CymaticMotif {
   int get hashCode => Object.hash(folds, rings);
 }
 
-/// Hertz named in [Crystal.frequency], or 528 when the copy has no number.
-double cymaticHertz(Crystal crystal) {
-  final match = RegExp(r'(\d+(?:\.\d+)?)\s*Hz').firstMatch(crystal.frequency);
-  return double.tryParse(match?.group(1) ?? '') ?? _referenceHertz;
-}
+double cymaticHertz(Crystal crystal) => crystal.hertz.toDouble();
 
 /// One pulse of the pattern. Higher frequencies cycle a little faster.
 Duration cymaticCycle(Crystal crystal) {

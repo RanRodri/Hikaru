@@ -105,6 +105,23 @@ void main() {
     );
     expect(wrapped.rms, closeTo(loud.rms, 1 / 255));
   });
+
+  test('loudness profile follows the composition from start to end', () {
+    final envelope = CymaticEnvelope(
+      rms: Float32List.fromList([0.1, 0.1, 0.2, 0.2, 0.8, 0.8, 0.4, 0.4]),
+      low: Float32List(8),
+      mid: Float32List(8),
+      high: Float32List(8),
+    );
+
+    final profile = envelope.loudnessProfile(4);
+    expect(profile, hasLength(4));
+    expect(profile[0], closeTo(0.125, 1e-6));
+    expect(profile[1], closeTo(0.25, 1e-6));
+    expect(profile[2], 1);
+    expect(profile[3], closeTo(0.5, 1e-6));
+    expect(envelope.loudnessProfile(20), isEmpty);
+  });
 }
 
 List<double> _tone(double hertz) {

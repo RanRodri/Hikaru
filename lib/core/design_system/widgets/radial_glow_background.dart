@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../tokens/app_colors.dart';
 
 /// Dark indigo field with a soft blue glow that fades from the center
-/// to every edge. The splash uses a flat [AppColors.darkIndigoBlue] instead.
+/// to every edge.
 class RadialGlowBackground extends StatelessWidget {
   const RadialGlowBackground({super.key, required this.child});
 

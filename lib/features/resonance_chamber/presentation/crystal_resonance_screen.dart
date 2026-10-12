@@ -130,7 +130,13 @@ class _CrystalResonanceScreenState
     );
   }
 
-  void _handleEnterJourney() => context.go(AppRoutes.home);
+  void _handleBackPressed() {
+    if (context.canPop()) {
+      context.pop();
+      return;
+    }
+    context.go(AppRoutes.home);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -146,33 +152,30 @@ class _CrystalResonanceScreenState
       backgroundColor: resonanceChamberColor,
       body: Column(
         children: [
-          Padding(
-            padding: EdgeInsets.fromLTRB(
-              _horizontalPadding,
-              insets.top + AppSpacing.s28,
-              _horizontalPadding,
-              AppSpacing.s0,
-            ),
-            child: _CrystalIntroduction(crystal: _crystal),
-          ),
-          SizedBox(
-            height: heroHeight,
-            child: _CrystalHero(
-              crystal: _crystal,
-              playing: _isPlaying && !_isAudioUnavailable,
-              envelope: _envelope,
-              playbackPosition: _position,
-            ),
-          ),
           Expanded(
             child: ChamberScrollView(
-              padding: const EdgeInsets.fromLTRB(
+              padding: EdgeInsets.fromLTRB(
                 _horizontalPadding,
-                AppSpacing.s12,
+                insets.top + AppSpacing.s8,
                 _horizontalPadding,
                 AppSpacing.s16,
               ),
               children: [
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: _BackButton(onPressed: _handleBackPressed),
+                ),
+                _CrystalIntroduction(crystal: _crystal),
+                SizedBox(
+                  height: heroHeight,
+                  child: _CrystalHero(
+                    crystal: _crystal,
+                    playing: _isPlaying && !_isAudioUnavailable,
+                    envelope: _envelope,
+                    playbackPosition: _position,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.s12),
                 _FrequencyPlayer(
                   crystal: _crystal,
                   isPlaying: _isPlaying,
@@ -207,16 +210,83 @@ class _CrystalResonanceScreenState
               math.max(AppSpacing.s24, insets.bottom + AppSpacing.s12),
             ),
             child: isSelected
-                ? HikaruPillButton(
-                    label: 'ENTER MY 30-DAY JOURNEY',
-                    onPressed: _handleEnterJourney,
-                  )
+                ? _YourCrystalBadge(crystal: _crystal)
                 : HikaruPillButton(
                     label: 'CHOOSE THIS CRYSTAL',
                     onPressed: _handleChooseCrystal,
                   ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _BackButton extends StatelessWidget {
+  const _BackButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: 'Back',
+      excludeSemantics: true,
+      child: TextButton(
+        onPressed: onPressed,
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.champagneGold,
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s8),
+        ),
+        child: Text(
+          'BACK',
+          style: AppTypography.subheadline.copyWith(
+            color: AppColors.champagneGold,
+            fontSize: AppFontSizes.s11,
+            letterSpacing: 1.8,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _YourCrystalBadge extends StatelessWidget {
+  const _YourCrystalBadge({required this.crystal});
+
+  final Crystal crystal;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: '${crystal.displayName} is your crystal',
+      excludeSemantics: true,
+      child: Center(
+        child: DecoratedBox(
+          decoration: ShapeDecoration(
+            color: AppColors.champagneGold.withValues(alpha: 0.08),
+            shape: StadiumBorder(
+              side: BorderSide(
+                color: AppColors.champagneGold.withValues(alpha: 0.7),
+              ),
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.s24,
+              vertical: AppSpacing.s12,
+            ),
+            child: Text(
+              'YOUR CRYSTAL',
+              style: AppTypography.subheadline.copyWith(
+                color: AppColors.champagneGold,
+                fontSize: AppFontSizes.s12,
+                letterSpacing: 2.4,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -386,7 +456,7 @@ class _FrequencyPlayer extends StatelessWidget {
                   Text(
                     isUnavailable
                         ? 'Frequency unavailable right now'
-                        : 'Composed by ${Crystal.composer}',
+                        : Crystal.compositionCredit,
                     style: _bodyStyle.copyWith(
                       fontSize: AppFontSizes.s10,
                       height: 1.4,

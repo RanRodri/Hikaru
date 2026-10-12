@@ -12,13 +12,20 @@ class LibraryArticle {
     required this.id,
     required this.title,
     required this.blocks,
-    this.imageAsset,
   });
 
   final String id;
   final String title;
-  final String? imageAsset;
   final List<LibraryBlock> blocks;
+
+  int get readingMinutes {
+    final words = blocks
+        .map((block) => block.body.split(RegExp(r'\s+')).length)
+        .fold(0, (total, count) => total + count);
+    return (words / _wordsPerMinute).ceil().clamp(1, 60);
+  }
+
+  static const int _wordsPerMinute = 200;
 }
 
 const String libraryMerkabaId = 'merkaba';
@@ -37,7 +44,6 @@ LibraryArticle _crystalArticle(Crystal crystal) {
   return LibraryArticle(
     id: crystal.name,
     title: crystal.displayName,
-    imageAsset: crystal.imageAsset,
     blocks: [
       LibraryBlock('Temple', crystal.temple),
       LibraryBlock('Purpose', crystal.purpose),
@@ -68,7 +74,6 @@ const Map<Crystal, String> _intentions = {
 final LibraryArticle _merkaba = LibraryArticle(
   id: libraryMerkabaId,
   title: 'MERKABA',
-  imageAsset: 'assets/images/library_merkaba.png',
   blocks: [
     const LibraryBlock('Duration', '5 minutes'),
     const LibraryBlock(
@@ -81,12 +86,17 @@ final LibraryArticle _merkaba = LibraryArticle(
     LibraryBlock(
       'Scenes',
       [
-        '0:00–0:40 Human Blueprint. Gyan Mudra. Presence and awareness.',
-        '0:40–1:30 Breath Creates the Star. Hridaya Mudra. Opening the heart.',
-        '1:30–2:20 Air Becomes the Vehicle. Vayu Mudra. Air, movement, and breath.',
-        '2:20–3:40 Breath Builds the Merkaba. Lotus Mudra. Receiving and expansion.',
-        '3:40–4:30 Expansion Through Coherence. Akash Mudra. Spaciousness and consciousness.',
-        '4:30–5:00 The Heart Blossoms. Anjali. Integration and gratitude.',
+        '0:00–0:40 Human Blueprint. A figure of light with a pulsing heart '
+            'traces the five-pointed star. Gyan Mudra. Presence and awareness.',
+        '0:40–1:30 Air Becomes the Vehicle. The star dissolves into ribbons of '
+            'air that spiral with the breath. Vayu Mudra. Air, movement, and breath.',
+        '1:30–3:40 Breath Builds the Merkaba. The two interlocking tetrahedra '
+            'are drawn edge by edge around the body. Lotus Mudra. Receiving and expansion.',
+        '3:40–4:30 Expansion Through Coherence. The triangles counter-rotate '
+            'and the field expands with heart coherence. Akash Mudra. '
+            'Spaciousness and consciousness.',
+        '4:30–5:00 The Heart Blossoms. The Merkaba slows, its lines soften and '
+            'bloom into the Anahata heart mandala. Anjali. Integration and gratitude.',
       ].join('\n'),
     ),
     const LibraryBlock(
@@ -101,7 +111,6 @@ final LibraryArticle _merkaba = LibraryArticle(
 const LibraryArticle _rituals = LibraryArticle(
   id: libraryRitualsId,
   title: 'HIKARU RITUALS',
-  imageAsset: 'assets/images/library_rituals.png',
   blocks: [
     LibraryBlock(
       'Sequence',

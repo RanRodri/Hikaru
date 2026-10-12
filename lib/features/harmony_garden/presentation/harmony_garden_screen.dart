@@ -12,6 +12,8 @@ import '../../../core/design_system/widgets/hikaru_shell.dart';
 import '../../../core/router/app_routes.dart';
 import '../../crystals/application/selected_crystal_controller.dart';
 import '../../crystals/domain/crystal.dart';
+import '../../library/domain/library_collection.dart';
+import '../../library/presentation/library_collection_circle.dart';
 
 class HarmonyGardenScreen extends ConsumerWidget {
   const HarmonyGardenScreen({super.key});
@@ -39,47 +41,39 @@ class _Layer {
 class _DestinationSpec {
   const _DestinationSpec({
     required this.bounds,
-    required this.layers,
-    required this.label,
-    required this.labelBounds,
     required this.semanticsLabel,
+    this.layers = const [],
+    this.label,
+    this.labelBounds,
+    this.collection,
     this.route,
     this.showsSelectedCrystal = false,
-    this.framed = false,
   });
 
   final Rect bounds;
+  final String semanticsLabel;
+  final List<_Layer> layers;
+  final String? label;
+  final Rect? labelBounds;
+  final LibraryCollection? collection;
   final String? route;
   final bool showsSelectedCrystal;
-  final bool framed;
-  final List<_Layer> layers;
-  final String label;
-  final Rect labelBounds;
-  final String semanticsLabel;
 }
+
+const LibraryCollection _listeningCollection = LibraryCollection(
+  id: 'listening',
+  name: 'LISTENING',
+  detail: 'Sanctuary',
+  category: 'LISTENING SANCTUARY',
+  imageAsset: 'assets/images/harmony_listening.png',
+  photoHeight: 70,
+);
 
 const List<_DestinationSpec> _destinations = [
   _DestinationSpec(
     semanticsLabel: 'Merkaba',
-    framed: true,
     bounds: Rect.fromLTWH(134.5, 187, 122, 130),
-    layers: [
-      _Layer(
-        'assets/images/harmony_merkaba_halo.svg',
-        Rect.fromLTWH(134.5, 187, 122, 130),
-      ),
-      _Layer(
-        'assets/images/harmony_merkaba.png',
-        Rect.fromLTWH(146.5, 199, 98, 106),
-        isPhoto: true,
-      ),
-      _Layer(
-        'assets/images/harmony_face_scrim.svg',
-        Rect.fromLTWH(146.5, 199, 98, 106),
-      ),
-    ],
-    label: 'Merkaba',
-    labelBounds: Rect.fromLTWH(156.5, 263, 78, 13),
+    collection: merkabaCollection,
     route: AppRoutes.merkaba,
   ),
   _DestinationSpec(
@@ -106,27 +100,10 @@ const List<_DestinationSpec> _destinations = [
   ),
   _DestinationSpec(
     semanticsLabel: 'Listening Sanctuary',
+    bounds: Rect.fromLTWH(256, 268, 122, 130),
+    collection: _listeningCollection,
     route: AppRoutes.fourTemples,
     showsSelectedCrystal: true,
-    framed: true,
-    bounds: Rect.fromLTWH(256, 268, 122, 130),
-    layers: [
-      _Layer(
-        'assets/images/harmony_listening_halo.svg',
-        Rect.fromLTWH(256, 268, 122, 130),
-      ),
-      _Layer(
-        'assets/images/harmony_listening.png',
-        Rect.fromLTWH(268, 280, 98, 106),
-        isPhoto: true,
-      ),
-      _Layer(
-        'assets/images/harmony_listening_scrim.svg',
-        Rect.fromLTWH(268, 280, 98, 106),
-      ),
-    ],
-    label: 'Listening\nSanctuary',
-    labelBounds: Rect.fromLTWH(278, 344, 78, 26),
   ),
   _DestinationSpec(
     semanticsLabel: 'Hikaru Ritual Body',
@@ -259,32 +236,55 @@ class _Destination extends StatelessWidget {
   final VoidCallback onPressed;
   final Crystal? crystal;
 
-  Widget _buildPhoto(_Layer layer) {
+  Widget _buildCollection(LibraryCollection fallback) {
     final selectedCrystal = crystal;
-    final image = Image.asset(
-      selectedCrystal == null ? layer.asset : selectedCrystal.imageAsset,
-      fit: BoxFit.cover,
-    );
-    if (!spec.framed) return image;
+    final collection = selectedCrystal == null
+        ? fallback
+        : crystalCollections[selectedCrystal] ?? fallback;
+    final diameter = collection.diameter * scale;
 
-    final width = layer.rect.width * scale;
-    final height = layer.rect.height * scale;
-    final ring = 2 * scale;
+    return Center(
+      child: SizedBox.square(
+        dimension: diameter,
+        child: LibraryCollectionCircle(collection: collection, scale: scale),
+      ),
+    );
+  }
+
+  Widget _buildLayers() {
+    final bounds = spec.bounds;
+    final label = spec.label;
+    final labelBounds = spec.labelBounds;
+
     return Stack(
-      fit: StackFit.expand,
+      clipBehavior: Clip.none,
       children: [
-        const ColoredBox(color: AppColors.darkIndigoBlue),
-        ClipOval(child: image),
-        IgnorePointer(
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.all(
-                Radius.elliptical(width / 2, height / 2),
+        for (final layer in spec.layers)
+          Positioned(
+            left: (layer.rect.left - bounds.left) * scale,
+            top: (layer.rect.top - bounds.top) * scale,
+            width: layer.rect.width * scale,
+            height: layer.rect.height * scale,
+            child: layer.isPhoto
+                ? Image.asset(layer.asset, fit: BoxFit.cover)
+                : SvgPicture.asset(layer.asset, fit: BoxFit.fill),
+          ),
+        if (label != null && labelBounds != null)
+          Positioned(
+            left: (labelBounds.left - bounds.left) * scale,
+            top: (labelBounds.top - bounds.top) * scale,
+            width: labelBounds.width * scale,
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: AppTypography.headline.copyWith(
+                color: AppColors.white,
+                fontSize: AppFontSizes.s10_5 * scale,
+                height: 1.14,
+                letterSpacing: 0.42 * scale,
               ),
-              border: Border.all(color: AppColors.champagneGold, width: ring),
             ),
           ),
-        ),
       ],
     );
   }
@@ -292,6 +292,7 @@ class _Destination extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bounds = spec.bounds;
+    final collection = spec.collection;
 
     return Positioned(
       left: bounds.left * scale,
@@ -306,36 +307,10 @@ class _Destination extends StatelessWidget {
         excludeSemantics: true,
         child: GestureDetector(
           onTap: onPressed,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              for (final layer in spec.layers)
-                Positioned(
-                  left: (layer.rect.left - bounds.left) * scale,
-                  top: (layer.rect.top - bounds.top) * scale,
-                  width: layer.rect.width * scale,
-                  height: layer.rect.height * scale,
-                  child: layer.isPhoto
-                      ? _buildPhoto(layer)
-                      : SvgPicture.asset(layer.asset, fit: BoxFit.fill),
-                ),
-              Positioned(
-                left: (spec.labelBounds.left - bounds.left) * scale,
-                top: (spec.labelBounds.top - bounds.top) * scale,
-                width: spec.labelBounds.width * scale,
-                child: Text(
-                  spec.label,
-                  textAlign: TextAlign.center,
-                  style: AppTypography.headline.copyWith(
-                    color: AppColors.white,
-                    fontSize: AppFontSizes.s10_5 * scale,
-                    height: 1.14,
-                    letterSpacing: 0.42 * scale,
-                  ),
-                ),
-              ),
-            ],
-          ),
+          behavior: HitTestBehavior.opaque,
+          child: collection == null
+              ? _buildLayers()
+              : _buildCollection(collection),
         ),
       ),
     );

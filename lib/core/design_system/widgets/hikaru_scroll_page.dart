@@ -9,6 +9,7 @@ class HikaruScrollPage extends StatelessWidget {
     super.key,
     required this.active,
     required this.children,
+    this.backgroundAsset = HikaruShell.gardenBackground,
     this.dimBackground = false,
   });
 
@@ -17,6 +18,7 @@ class HikaruScrollPage extends StatelessWidget {
 
   final HikaruDestination active;
   final List<Widget> children;
+  final String backgroundAsset;
   final bool dimBackground;
 
   @override
@@ -25,6 +27,7 @@ class HikaruScrollPage extends StatelessWidget {
 
     return HikaruShell(
       active: active,
+      backgroundAsset: backgroundAsset,
       dimBackground: dimBackground,
       builder: (context, scale) => Positioned.fill(
         child: SingleChildScrollView(

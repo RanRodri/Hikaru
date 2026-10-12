@@ -139,7 +139,7 @@ class ActiveCrystalCard extends ConsumerWidget {
                   width: _imageWidth,
                   child: crystal == null
                       ? const _EmptyCrystal()
-                      : Image.asset(crystal.imageAsset, fit: BoxFit.cover),
+                      : _CrystalMedallion(asset: crystal.imageAsset),
                 ),
                 Expanded(
                   child: Padding(
@@ -155,6 +155,44 @@ class ActiveCrystalCard extends ConsumerWidget {
                   ),
                 ),
               ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CrystalMedallion extends StatelessWidget {
+  const _CrystalMedallion({required this.asset});
+
+  static const double _size = 100;
+  static const double _edgeTrim = 1.04;
+
+  final String asset;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        width: _size,
+        height: _size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.champagneGold.withValues(alpha: 0.35),
+              blurRadius: 14,
+            ),
+          ],
+        ),
+        child: ClipOval(
+          child: Transform.scale(
+            scale: _edgeTrim,
+            child: Image.asset(
+              asset,
+              fit: BoxFit.cover,
+              excludeFromSemantics: true,
             ),
           ),
         ),

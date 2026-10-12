@@ -3,14 +3,16 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
-import '../../../core/design_system/tokens/app_font_sizes.dart';
 import '../../../core/design_system/tokens/app_spacing.dart';
-import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/design_system/widgets/hikaru_navigation_bar.dart';
 import '../../../core/design_system/widgets/hikaru_page_intro.dart';
 import '../../../core/design_system/widgets/hikaru_scroll_page.dart';
 import '../../../core/router/app_routes.dart';
-import '../domain/library_article.dart';
+import '../../crystals/domain/crystal.dart';
+import '../domain/library_collection.dart';
+import 'library_collection_circle.dart';
+
+const String libraryBackgroundAsset = 'assets/images/library.png';
 
 class LibraryScreen extends StatelessWidget {
   const LibraryScreen({super.key});
@@ -19,7 +21,7 @@ class LibraryScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return HikaruScrollPage(
       active: HikaruDestination.library,
-      dimBackground: true,
+      backgroundAsset: libraryBackgroundAsset,
       children: [
         const HikaruPageIntro(
           title: 'LIBRARY',
@@ -34,76 +36,13 @@ class LibraryScreen extends StatelessWidget {
   }
 }
 
-class _LibraryCollection {
-  const _LibraryCollection({
-    required this.id,
-    required this.name,
-    required this.detail,
-    required this.imageAsset,
-    required this.bounds,
-    required this.photoHeight,
-    this.isHighlighted = false,
-  });
-
-  final String id;
-  final String name;
-  final String detail;
-  final String imageAsset;
-  final Rect bounds;
-  final double photoHeight;
-  final bool isHighlighted;
-}
-
-const List<_LibraryCollection> _collections = [
-  _LibraryCollection(
-    id: libraryMerkabaId,
-    name: 'MERKABA',
-    detail: 'Geometry & Energy',
-    imageAsset: 'assets/images/library_merkaba.png',
-    bounds: Rect.fromLTWH(120, 5, 110, 110),
-    photoHeight: 79,
-    isHighlighted: true,
-  ),
-  _LibraryCollection(
-    id: 'jade',
-    name: 'JADE',
-    detail: 'Balance\n& Harmony',
-    imageAsset: 'assets/images/library_jade.png',
-    bounds: Rect.fromLTWH(6, 71, 104, 104),
-    photoHeight: 70,
-  ),
-  _LibraryCollection(
-    id: 'whiteQuartz',
-    name: 'WHITE QUARTZ',
-    detail: 'Clarity\n& Renewal',
-    imageAsset: 'assets/images/library_white_quartz.png',
-    bounds: Rect.fromLTWH(238, 71, 104, 104),
-    photoHeight: 70,
-  ),
-  _LibraryCollection(
-    id: 'redJasper',
-    name: 'RED JASPER',
-    detail: 'Vitality\n& Grounding',
-    imageAsset: 'assets/images/library_red_jasper.png',
-    bounds: Rect.fromLTWH(6, 200, 104, 104),
-    photoHeight: 66,
-  ),
-  _LibraryCollection(
-    id: 'obsidian',
-    name: 'OBSIDIAN',
-    detail: 'Protection\n& Transformation',
-    imageAsset: 'assets/images/library_obsidian.png',
-    bounds: Rect.fromLTWH(238, 200, 104, 104),
-    photoHeight: 66,
-  ),
-  _LibraryCollection(
-    id: libraryRitualsId,
-    name: 'HIKARU RITUALS',
-    detail: 'Face & Body',
-    imageAsset: 'assets/images/library_rituals.png',
-    bounds: Rect.fromLTWH(120, 245, 106, 106),
-    photoHeight: 74,
-  ),
+final List<(LibraryCollection, Offset)> _placements = [
+  (merkabaCollection, const Offset(120, 5)),
+  (crystalCollections[Crystal.jade]!, const Offset(6, 71)),
+  (crystalCollections[Crystal.whiteQuartz]!, const Offset(238, 71)),
+  (crystalCollections[Crystal.redJasper]!, const Offset(6, 200)),
+  (crystalCollections[Crystal.obsidian]!, const Offset(238, 200)),
+  (ritualsCollection, const Offset(120, 245)),
 ];
 
 class _CollectionsConstellation extends StatelessWidget {
@@ -143,9 +82,9 @@ class _CollectionsConstellation extends StatelessWidget {
                 Rect.fromCircle(center: _center, radius: 49),
                 const IgnorePointer(child: _LightCenter()),
               ),
-              for (final collection in _collections)
+              for (final (collection, topLeft) in _placements)
                 place(
-                  collection.bounds,
+                  topLeft & Size.square(collection.diameter),
                   _CollectionCircle(
                     collection: collection,
                     scale: scale,
@@ -258,114 +197,20 @@ class _CollectionCircle extends StatelessWidget {
     required this.onPressed,
   });
 
-  final _LibraryCollection collection;
+  final LibraryCollection collection;
   final double scale;
   final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
-    final glowBlur = collection.isHighlighted ? 5.0 : 2.0;
-
     return Semantics(
       button: true,
-      label: '${collection.name}, ${collection.detail.replaceAll('\n', ' ')}',
+      label: collection.semanticsLabel,
       excludeSemantics: true,
       child: GestureDetector(
         onTap: onPressed,
         behavior: HitTestBehavior.opaque,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.black,
-            border: Border.all(color: AppColors.champagneGold80),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.champagneGold.withValues(alpha: 0.7),
-                blurRadius: glowBlur * scale,
-              ),
-            ],
-          ),
-          child: ClipOval(
-            child: Column(
-              children: [
-                SizedBox(
-                  height: collection.photoHeight * scale,
-                  width: double.infinity,
-                  child: _FadedPhoto(asset: collection.imageAsset),
-                ),
-                Expanded(child: _CollectionCaption(collection, scale: scale)),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _FadedPhoto extends StatelessWidget {
-  const _FadedPhoto({required this.asset});
-
-  final String asset;
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        Image.asset(asset, fit: BoxFit.cover, excludeFromSemantics: true),
-        const DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [AppColors.transparent, AppColors.black],
-              stops: [0.78, 1],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _CollectionCaption extends StatelessWidget {
-  const _CollectionCaption(this.collection, {required this.scale});
-
-  final _LibraryCollection collection;
-  final double scale;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: AppSpacing.s14 * scale),
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        alignment: Alignment.topCenter,
-        child: Column(
-          children: [
-            Text(
-              collection.name,
-              textAlign: TextAlign.center,
-              style: AppTypography.subheadline.copyWith(
-                color: AppColors.white,
-                fontSize: AppFontSizes.s8_2 * scale,
-                height: 1.2,
-                letterSpacing: 1.2 * scale,
-              ),
-            ),
-            Text(
-              collection.detail,
-              textAlign: TextAlign.center,
-              style: AppTypography.footnote.copyWith(
-                color: AppColors.fog,
-                fontSize: AppFontSizes.s6_6 * scale,
-                height: 1.3,
-                letterSpacing: 0.2 * scale,
-              ),
-            ),
-          ],
-        ),
+        child: LibraryCollectionCircle(collection: collection, scale: scale),
       ),
     );
   }

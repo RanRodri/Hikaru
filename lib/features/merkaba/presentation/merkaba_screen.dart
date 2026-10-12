@@ -1,24 +1,27 @@
 import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
 import '../../../core/design_system/tokens/app_font_sizes.dart';
 import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
+import '../../../core/router/app_routes.dart';
+import '../data/merkaba_progress_repository.dart';
 import '../domain/merkaba_session.dart';
 import 'merkaba_painter.dart';
+import 'merkaba_soundscape.dart';
 
 /// Called when the breath phase changes while the session is playing.
 ///
-/// Optional listener. The screen also plays the synthesized phase chime.
+/// Optional listener. The screen also plays the breath sound and chime.
 typedef MerkabaPhaseCue = void Function(BreathPhase phase);
 
-class MerkabaMeditationScreen extends StatefulWidget {
+class MerkabaMeditationScreen extends ConsumerStatefulWidget {
   const MerkabaMeditationScreen({
     super.key,
     this.initialElapsed = Duration.zero,
@@ -34,11 +37,12 @@ class MerkabaMeditationScreen extends StatefulWidget {
   final Widget Function(MerkabaFrame frame)? replacementVisual;
 
   @override
-  State<MerkabaMeditationScreen> createState() =>
+  ConsumerState<MerkabaMeditationScreen> createState() =>
       _MerkabaMeditationScreenState();
 }
 
-class _MerkabaMeditationScreenState extends State<MerkabaMeditationScreen>
+class _MerkabaMeditationScreenState
+    extends ConsumerState<MerkabaMeditationScreen>
     with SingleTickerProviderStateMixin {
   late Duration _elapsed = widget.initialElapsed >= merkabaDuration
       ? merkabaDuration
@@ -48,14 +52,8 @@ class _MerkabaMeditationScreenState extends State<MerkabaMeditationScreen>
   late final Ticker _ticker;
   Duration _lastTick = Duration.zero;
   bool _playing = false;
-  AudioPlayer? _chime;
-
-  static const double _chimeVolume = 0.22;
-  static const Map<BreathPhase, String> _chimeAssets = {
-    BreathPhase.inhale: 'audio/merkaba_inhale.wav',
-    BreathPhase.hold: 'audio/merkaba_hold.wav',
-    BreathPhase.exhale: 'audio/merkaba_exhale.wav',
-  };
+  bool _womanPrecached = false;
+  final MerkabaSoundscape _sound = MerkabaSoundscape();
 
   MerkabaFrame get _frame => merkabaFrameAt(_elapsed);
 
@@ -66,29 +64,23 @@ class _MerkabaMeditationScreenState extends State<MerkabaMeditationScreen>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_womanPrecached) return;
+    _womanPrecached = true;
+    unawaited(precacheImage(const AssetImage(merkabaWomanAsset), context));
+  }
+
+  @override
   void dispose() {
     _ticker.dispose();
-    unawaited(_chime?.dispose() ?? Future<void>.value());
+    unawaited(_sound.dispose());
     super.dispose();
   }
 
-  void _cuePhase(BreathPhase phase) {
+  void _cuePhase(BreathPhase phase, {Duration into = Duration.zero}) {
     widget.onPhaseCue?.call(phase);
-    unawaited(_playChime(phase));
-  }
-
-  Future<void> _playChime(BreathPhase phase) async {
-    final asset = _chimeAssets[phase];
-    if (asset == null) return;
-    try {
-      final player = _chime ??= AudioPlayer();
-      await player.setReleaseMode(ReleaseMode.stop);
-      await player.setVolume(_chimeVolume);
-      await player.stop();
-      await player.play(AssetSource(asset));
-    } catch (_) {
-      // Widget tests have no audio backend. A missing chime stays silent.
-    }
+    unawaited(_sound.cue(phase, into: into));
   }
 
   void _handleTick(Duration sinceStart) {
@@ -96,19 +88,11 @@ class _MerkabaMeditationScreenState extends State<MerkabaMeditationScreen>
     final delta = sinceStart - _lastTick;
     _lastTick = sinceStart;
     final next = _elapsed + delta;
-    final previous = merkabaFrameAt(_elapsed);
     if (next >= merkabaDuration) {
-      final finished = merkabaFrameAt(merkabaDuration);
-      if (previous.phase != finished.phase) {
-        _cuePhase(finished.phase);
-      }
-      setState(() {
-        _elapsed = merkabaDuration;
-        _playing = false;
-      });
-      _ticker.stop();
+      _completeSession();
       return;
     }
+    final previous = merkabaFrameAt(_elapsed);
     final frame = merkabaFrameAt(next);
     if (previous.phase != frame.phase) {
       _cuePhase(frame.phase);
@@ -116,18 +100,47 @@ class _MerkabaMeditationScreenState extends State<MerkabaMeditationScreen>
     setState(() => _elapsed = next);
   }
 
+  void _completeSession() {
+    _ticker.stop();
+    setState(() {
+      _elapsed = merkabaDuration;
+      _playing = false;
+    });
+    unawaited(_sound.finish());
+    unawaited(
+      ref
+          .read(merkabaProgressRepositoryProvider)
+          .recordCompletion(DateTime.now()),
+    );
+  }
+
   void _handlePlayPause() {
     if (_frame.isFinished) return;
     if (_playing) {
       setState(() => _playing = false);
       _ticker.stop();
+      unawaited(_sound.pause());
       return;
     }
     final frame = _frame;
     setState(() => _playing = true);
-    _cuePhase(frame.phase);
+    unawaited(_sound.startAmbient());
+    _cuePhase(frame.phase, into: frame.phaseElapsed);
     _lastTick = Duration.zero;
     _ticker.start();
+  }
+
+  void _handleRepeat() {
+    setState(() => _elapsed = Duration.zero);
+    _handlePlayPause();
+  }
+
+  void _handleBack() {
+    if (context.canPop()) {
+      context.pop();
+      return;
+    }
+    context.go(AppRoutes.home);
   }
 
   @override
@@ -146,14 +159,14 @@ class _MerkabaMeditationScreenState extends State<MerkabaMeditationScreen>
             AppSpacing.s16,
           ),
           child: frame.isFinished
-              ? _Finished(onBack: () => context.pop())
+              ? _Finished(onBack: _handleBack, onRepeat: _handleRepeat)
               : Column(
                   children: [
                     Align(
                       alignment: Alignment.centerLeft,
                       child: _TextControl(
                         label: 'BACK',
-                        onPressed: () => context.pop(),
+                        onPressed: _handleBack,
                       ),
                     ),
                     Text(
@@ -214,9 +227,10 @@ class _MerkabaMeditationScreenState extends State<MerkabaMeditationScreen>
 }
 
 class _Finished extends StatelessWidget {
-  const _Finished({required this.onBack});
+  const _Finished({required this.onBack, required this.onRepeat});
 
   final VoidCallback onBack;
+  final VoidCallback onRepeat;
 
   @override
   Widget build(BuildContext context) {
@@ -244,6 +258,8 @@ class _Finished extends StatelessWidget {
             letterSpacing: 1.4,
           ),
         ),
+        const SizedBox(height: AppSpacing.s24),
+        _TextControl(label: 'REPEAT', onPressed: onRepeat),
         const Spacer(),
       ],
     );
