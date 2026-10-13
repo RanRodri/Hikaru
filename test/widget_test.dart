@@ -158,7 +158,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Harmony Garden'), findsOneWidget);
-    expect(find.bySemanticsLabel('Listening Sanctuary, JADE'), findsOneWidget);
+    expect(find.bySemanticsLabel('Red Jasper'), findsOneWidget);
     expect(find.text('Home'), findsOneWidget);
     expect(find.text('Settings'), findsOneWidget);
   });

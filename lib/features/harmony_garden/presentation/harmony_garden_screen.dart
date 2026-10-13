@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
@@ -10,147 +9,81 @@ import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/design_system/widgets/hikaru_navigation_bar.dart';
 import '../../../core/design_system/widgets/hikaru_shell.dart';
 import '../../../core/router/app_routes.dart';
-import '../../crystals/application/selected_crystal_controller.dart';
-import '../../crystals/domain/crystal.dart';
-import '../../library/domain/library_collection.dart';
-import '../../library/presentation/library_collection_circle.dart';
 
-class HarmonyGardenScreen extends ConsumerWidget {
+class HarmonyGardenScreen extends StatelessWidget {
   const HarmonyGardenScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final selectedCrystal = ref.watch(selectedCrystalProvider).value;
-
+  Widget build(BuildContext context) {
     return HikaruShell(
       active: HikaruDestination.home,
-      builder: (context, scale) =>
-          _Garden(scale: scale, selectedCrystal: selectedCrystal),
+      builder: (context, scale) => _Garden(scale: scale),
     );
   }
 }
 
-class _Layer {
-  const _Layer(this.asset, this.rect, {this.isPhoto = false});
+/// Diameter of the Merkaba circle already on Home. Every access uses it.
+const double homeCircleDiameter = 110;
 
-  final String asset;
-  final Rect rect;
-  final bool isPhoto;
-}
+const double _captionBand = 32;
 
-class _DestinationSpec {
-  const _DestinationSpec({
-    required this.bounds,
+class _Access {
+  const _Access({
     required this.semanticsLabel,
-    this.layers = const [],
-    this.label,
-    this.labelBounds,
-    this.collection,
-    this.route,
-    this.showsSelectedCrystal = false,
+    required this.left,
+    required this.top,
+    required this.imageAsset,
+    required this.label,
+    required this.route,
   });
 
-  final Rect bounds;
   final String semanticsLabel;
-  final List<_Layer> layers;
-  final String? label;
-  final Rect? labelBounds;
-  final LibraryCollection? collection;
-  final String? route;
-  final bool showsSelectedCrystal;
+  final double left;
+  final double top;
+  final String imageAsset;
+  final String label;
+  final String route;
 }
 
-const LibraryCollection _listeningCollection = LibraryCollection(
-  id: 'listening',
-  name: 'LISTENING',
-  detail: 'Sanctuary',
-  category: 'LISTENING SANCTUARY',
-  imageAsset: 'assets/images/harmony_listening.png',
-  photoHeight: 70,
-);
-
-/// Shared size for the garden circles on the left and the right.
-const double homeSideCircleWidth = 122;
-const double homeSideCircleHeight = 130;
-
-const List<_DestinationSpec> _destinations = [
-  _DestinationSpec(
+const List<_Access> _accesses = [
+  _Access(
     semanticsLabel: 'Merkaba',
-    bounds: Rect.fromLTWH(134, 36, homeSideCircleWidth, homeSideCircleHeight),
-    collection: merkabaCollection,
+    left: (HikaruShell.designWidth - homeCircleDiameter) / 2,
+    top: 22,
+    imageAsset: 'assets/images/library_merkaba.png',
+    label: 'MERKABA\nGeometry & Energy',
     route: AppRoutes.merkaba,
   ),
-  _DestinationSpec(
+  _Access(
     semanticsLabel: 'Hikaru Ritual Face',
-    bounds: Rect.fromLTWH(260, 228, homeSideCircleWidth, homeSideCircleHeight),
-    layers: [
-      _Layer(
-        'assets/images/harmony_face_halo.svg',
-        Rect.fromLTWH(260, 228, homeSideCircleWidth, homeSideCircleHeight),
-      ),
-      _Layer(
-        'assets/images/harmony_face.png',
-        Rect.fromLTWH(272, 240, 98, 106),
-        isPhoto: true,
-      ),
-      _Layer(
-        'assets/images/harmony_face_scrim.svg',
-        Rect.fromLTWH(272, 240, 98, 106),
-      ),
-    ],
+    left: 266,
+    top: 238,
+    imageAsset: 'assets/images/harmony_face.png',
     label: 'Hikaru Ritual\nFace',
-    labelBounds: Rect.fromLTWH(282, 304, 78, 26),
     route: AppRoutes.ritualFace,
   ),
-  _DestinationSpec(
+  _Access(
     semanticsLabel: 'Hikaru Ritual Body',
-    bounds: Rect.fromLTWH(260, 392, homeSideCircleWidth, homeSideCircleHeight),
-    layers: [
-      _Layer(
-        'assets/images/harmony_body_halo.svg',
-        Rect.fromLTWH(260, 392, homeSideCircleWidth, homeSideCircleHeight),
-      ),
-      _Layer(
-        'assets/images/harmony_body.png',
-        Rect.fromLTWH(272, 404, 98, 106),
-        isPhoto: true,
-      ),
-      _Layer(
-        'assets/images/harmony_body_scrim.svg',
-        Rect.fromLTWH(272, 404, 98, 106),
-      ),
-    ],
+    left: 266,
+    top: 402,
+    imageAsset: 'assets/images/harmony_body.png',
     label: 'Hikaru Ritual\nBody',
-    labelBounds: Rect.fromLTWH(281, 468, 80, 26),
     route: AppRoutes.ritualBody,
   ),
-  _DestinationSpec(
-    semanticsLabel: 'Listening Sanctuary',
-    bounds: Rect.fromLTWH(8, 392, homeSideCircleWidth, homeSideCircleHeight),
-    collection: _listeningCollection,
+  _Access(
+    semanticsLabel: 'Red Jasper',
+    left: 14,
+    top: 402,
+    imageAsset: 'assets/images/library_red_jasper.png',
+    label: 'Red Jasper',
     route: AppRoutes.fourTemples,
-    showsSelectedCrystal: true,
   ),
-  _DestinationSpec(
+  _Access(
     semanticsLabel: 'Library',
-    bounds: Rect.fromLTWH(8, 228, homeSideCircleWidth, homeSideCircleHeight),
-    layers: [
-      _Layer(
-        'assets/images/harmony_library_halo.svg',
-        Rect.fromLTWH(8, 228, homeSideCircleWidth, homeSideCircleHeight),
-      ),
-      _Layer(
-        'assets/images/harmony_library.png',
-        Rect.fromLTWH(20, 240, 98, 106),
-        isPhoto: true,
-      ),
-      _Layer(
-        'assets/images/harmony_library_scrim.svg',
-        Rect.fromLTWH(20, 240, 98, 106),
-      ),
-    ],
+    left: 14,
+    top: 238,
+    imageAsset: 'assets/images/harmony_library.png',
     label: 'Library',
-    labelBounds: Rect.fromLTWH(36.5, 304, 65, 13),
     route: AppRoutes.library,
   ),
 ];
@@ -165,10 +98,9 @@ const List<Offset> _glowDots = [
 ];
 
 class _Garden extends StatelessWidget {
-  const _Garden({required this.scale, required this.selectedCrystal});
+  const _Garden({required this.scale});
 
   final double scale;
-  final Crystal? selectedCrystal;
 
   @override
   Widget build(BuildContext context) {
@@ -191,25 +123,15 @@ class _Garden extends StatelessWidget {
               excludeFromSemantics: true,
             ),
           ),
-        for (final destination in _destinations)
-          _Destination(
-            spec: destination,
+        for (final access in _accesses)
+          _AccessCircle(
+            access: access,
             scale: scale,
-            crystal: destination.showsSelectedCrystal ? selectedCrystal : null,
-            onPressed: () => _handleDestinationPressed(context, destination),
+            onPressed: () => context.push(access.route),
           ),
         _Title(scale: scale),
       ],
     );
-  }
-
-  void _handleDestinationPressed(
-    BuildContext context,
-    _DestinationSpec destination,
-  ) {
-    final route = destination.route;
-    if (route == null) return;
-    context.push(route);
   }
 
   Widget _scaled(Rect rect, Widget child) {
@@ -223,94 +145,81 @@ class _Garden extends StatelessWidget {
   }
 }
 
-class _Destination extends StatelessWidget {
-  const _Destination({
-    required this.spec,
+class _AccessCircle extends StatelessWidget {
+  const _AccessCircle({
+    required this.access,
     required this.scale,
     required this.onPressed,
-    this.crystal,
   });
 
-  final _DestinationSpec spec;
+  final _Access access;
   final double scale;
   final VoidCallback onPressed;
-  final Crystal? crystal;
-
-  Widget _buildCollection(LibraryCollection fallback) {
-    final selectedCrystal = crystal;
-    final collection = selectedCrystal == null
-        ? fallback
-        : crystalCollections[selectedCrystal] ?? fallback;
-    final diameter = collection.diameter * scale;
-
-    return Center(
-      child: SizedBox.square(
-        dimension: diameter,
-        child: LibraryCollectionCircle(collection: collection, scale: scale),
-      ),
-    );
-  }
-
-  Widget _buildLayers() {
-    final bounds = spec.bounds;
-    final label = spec.label;
-    final labelBounds = spec.labelBounds;
-
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        for (final layer in spec.layers)
-          Positioned(
-            left: (layer.rect.left - bounds.left) * scale,
-            top: (layer.rect.top - bounds.top) * scale,
-            width: layer.rect.width * scale,
-            height: layer.rect.height * scale,
-            child: layer.isPhoto
-                ? Image.asset(layer.asset, fit: BoxFit.cover)
-                : SvgPicture.asset(layer.asset, fit: BoxFit.fill),
-          ),
-        if (label != null && labelBounds != null)
-          Positioned(
-            left: (labelBounds.left - bounds.left) * scale,
-            top: (labelBounds.top - bounds.top) * scale,
-            width: labelBounds.width * scale,
-            child: Text(
-              label,
-              textAlign: TextAlign.center,
-              style: AppTypography.headline.copyWith(
-                color: AppColors.white,
-                fontSize: AppFontSizes.s10_5 * scale,
-                height: 1.14,
-                letterSpacing: 0.42 * scale,
-              ),
-            ),
-          ),
-      ],
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
-    final bounds = spec.bounds;
-    final collection = spec.collection;
+    final diameter = homeCircleDiameter * scale;
 
     return Positioned(
-      left: bounds.left * scale,
-      top: bounds.top * scale,
-      width: bounds.width * scale,
-      height: bounds.height * scale,
+      left: access.left * scale,
+      top: access.top * scale,
+      width: diameter,
+      height: diameter,
       child: Semantics(
         button: true,
-        label: crystal == null
-            ? spec.semanticsLabel
-            : '${spec.semanticsLabel}, ${crystal!.displayName}',
+        label: access.semanticsLabel,
         excludeSemantics: true,
         child: GestureDetector(
           onTap: onPressed,
           behavior: HitTestBehavior.opaque,
-          child: collection == null
-              ? _buildLayers()
-              : _buildCollection(collection),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.black,
+              border: Border.all(color: AppColors.champagneGold80),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.champagneGold.withValues(alpha: 0.7),
+                  blurRadius: 2 * scale,
+                ),
+              ],
+            ),
+            child: ClipOval(
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Image.asset(
+                      access.imageAsset,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      excludeFromSemantics: true,
+                    ),
+                  ),
+                  SizedBox(
+                    height: _captionBand * scale,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: AppSpacing.s8 * scale,
+                      ),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          access.label,
+                          textAlign: TextAlign.center,
+                          style: AppTypography.subheadline.copyWith(
+                            color: AppColors.white,
+                            fontSize: AppFontSizes.s8_2 * scale,
+                            height: 1.15,
+                            letterSpacing: 0.4 * scale,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );

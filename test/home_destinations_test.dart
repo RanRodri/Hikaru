@@ -8,8 +8,6 @@ import 'package:hiraku/features/crystals/domain/crystal.dart';
 import 'package:hiraku/core/router/app_routes.dart';
 import 'package:hiraku/features/harmony_garden/presentation/harmony_garden_screen.dart';
 import 'package:hiraku/features/library/domain/library_article.dart';
-import 'package:hiraku/features/library/domain/library_collection.dart';
-import 'package:hiraku/features/library/presentation/library_collection_circle.dart';
 import 'package:hiraku/features/library/presentation/library_detail_screen.dart';
 import 'package:hiraku/features/library/presentation/library_screen.dart';
 import 'package:hiraku/features/massage/domain/massage_ritual.dart';
@@ -227,16 +225,17 @@ void main() {
     expect(find.text('LIBRARY'), findsOneWidget);
   });
 
-  testWidgets('merkaba and listening match the other destination circles', (
+  testWidgets('home accesses are equal circles in clockwise order', (
     tester,
   ) async {
     await pumpGarden(tester);
 
     final face = tester.getSize(find.bySemanticsLabel('Hikaru Ritual Face'));
     expect(tester.getSize(find.bySemanticsLabel('Merkaba')), face);
-    expect(tester.getSize(find.bySemanticsLabel('Listening Sanctuary')), face);
+    expect(tester.getSize(find.bySemanticsLabel('Red Jasper')), face);
     expect(tester.getSize(find.bySemanticsLabel('Hikaru Ritual Body')), face);
-    expect(face, const Size(homeSideCircleWidth, homeSideCircleHeight));
+    expect(face, const Size(homeCircleDiameter, homeCircleDiameter));
+    expect(face.width, face.height);
     final librarySizes = [
       for (final element in tester.elementList(
         find.bySemanticsLabel('Library'),
@@ -248,24 +247,44 @@ void main() {
     expect(librarySizes, contains(face));
 
     final merkaba = tester.getTopLeft(find.bySemanticsLabel('Merkaba'));
+    expect(merkaba.dx + face.width / 2, closeTo(390 / 2, 0.5));
     final faceOrigin = tester.getTopLeft(
       find.bySemanticsLabel('Hikaru Ritual Face'),
     );
     final bodyOrigin = tester.getTopLeft(
       find.bySemanticsLabel('Hikaru Ritual Body'),
     );
-    final crystal = tester.getTopLeft(
-      find.bySemanticsLabel('Listening Sanctuary'),
-    );
+    final crystal = tester.getTopLeft(find.bySemanticsLabel('Red Jasper'));
     expect(merkaba.dy, lessThan(faceOrigin.dy));
     expect(faceOrigin.dx, greaterThan(merkaba.dx));
     expect(bodyOrigin.dy, greaterThan(faceOrigin.dy));
     expect(bodyOrigin.dx, greaterThan(crystal.dx));
+    expect(bodyOrigin.dx, faceOrigin.dx);
+    final libraryElement = tester
+        .elementList(find.bySemanticsLabel('Library'))
+        .firstWhere(
+          (element) =>
+              tester.getSize(
+                find.byElementPredicate(
+                  (candidate) => identical(candidate, element),
+                ),
+              ) ==
+              face,
+        );
+    final library = tester.getTopLeft(
+      find.byElementPredicate(
+        (candidate) => identical(candidate, libraryElement),
+      ),
+    );
+    expect(library.dx, crystal.dx);
+    expect(library.dy, faceOrigin.dy);
+    expect(crystal.dy, bodyOrigin.dy);
     expect(crystal.dy, greaterThan(faceOrigin.dy));
-    expect(find.byType(LibraryCollectionCircle), findsNWidgets(2));
+    expect(find.text('Red Jasper'), findsOneWidget);
+    expect(find.text('Listening Sanctuary'), findsNothing);
   });
 
-  testWidgets('listening circle shows the selected crystal inside the ring', (
+  testWidgets('red jasper stays when another crystal is assigned', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(390, 844);
@@ -297,21 +316,18 @@ void main() {
     await tester.pumpAndSettle();
 
     final face = tester.getSize(find.bySemanticsLabel('Hikaru Ritual Face'));
-    expect(
-      tester.getSize(find.bySemanticsLabel('Listening Sanctuary, JADE')),
-      face,
-    );
+    expect(tester.getSize(find.bySemanticsLabel('Red Jasper')), face);
     expect(
       find.byWidgetPredicate(
         (widget) =>
             widget is Image &&
             widget.image is AssetImage &&
             (widget.image as AssetImage).assetName ==
-                crystalCollections[Crystal.jade]!.imageAsset,
+                'assets/images/library_red_jasper.png',
       ),
       findsOneWidget,
     );
-    expect(find.text('JADE'), findsOneWidget);
-    expect(find.byType(LibraryCollectionCircle), findsNWidgets(2));
+    expect(find.text('JADE'), findsNothing);
+    expect(find.text('Red Jasper'), findsOneWidget);
   });
 }

@@ -92,7 +92,7 @@ void main() {
 
       await tester.tap(find.text('Home'));
       await tester.pumpAndSettle();
-      await tester.tap(find.bySemanticsLabel('Listening Sanctuary'));
+      await tester.tap(find.bySemanticsLabel('Red Jasper'));
       await tester.pumpAndSettle();
       expect(find.text('THE FOUR TEMPLES'), findsOneWidget);
 
