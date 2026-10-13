@@ -4,11 +4,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 
-import 'package:hikaru/app.dart';
-import 'package:hikaru/core/design_system/widgets/radial_glow_background.dart';
-import 'package:hikaru/features/sanctuary/presentation/sanctuary_screen.dart';
-import 'package:hikaru/features/splash/presentation/splash_controller.dart';
-import 'package:hikaru/features/splash/presentation/splash_screen.dart';
+import 'package:hiraku/app.dart';
+import 'package:hiraku/core/design_system/widgets/radial_glow_background.dart';
+import 'package:hiraku/features/sanctuary/presentation/sanctuary_screen.dart';
+import 'package:hiraku/features/splash/presentation/splash_controller.dart';
+import 'package:hiraku/features/splash/presentation/splash_screen.dart';
 
 import 'support/quiz_driver.dart';
 
@@ -158,7 +158,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Harmony Garden'), findsOneWidget);
-    expect(find.bySemanticsLabel('JADE'), findsOneWidget);
+    expect(find.bySemanticsLabel('Listening Sanctuary, JADE'), findsOneWidget);
     expect(find.text('Home'), findsOneWidget);
     expect(find.text('Settings'), findsOneWidget);
   });

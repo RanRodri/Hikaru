@@ -301,7 +301,9 @@ class _Destination extends StatelessWidget {
       height: bounds.height * scale,
       child: Semantics(
         button: true,
-        label: crystal == null ? spec.semanticsLabel : crystal!.displayName,
+        label: crystal == null
+            ? spec.semanticsLabel
+            : '${spec.semanticsLabel}, ${crystal!.displayName}',
         excludeSemantics: true,
         child: GestureDetector(
           onTap: onPressed,

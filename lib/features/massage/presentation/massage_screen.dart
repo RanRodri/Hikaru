@@ -199,7 +199,6 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
                         scale: scale,
                         bottomInset: insets.bottom,
                         ritual: ritual,
-                        crystal: crystal,
                         zoneIndex: _zoneIndex,
                         zoneElapsed: _zoneElapsed,
                         sessionElapsed: _sessionElapsed,
@@ -486,7 +485,6 @@ class _ControlPanel extends StatelessWidget {
     required this.zoneElapsed,
     required this.sessionElapsed,
     required this.playing,
-    required this.crystal,
     required this.onZoneSelected,
     required this.onPrevious,
     required this.onPlayPause,
@@ -501,7 +499,6 @@ class _ControlPanel extends StatelessWidget {
   final Duration zoneElapsed;
   final Duration sessionElapsed;
   final bool playing;
-  final Crystal? crystal;
   final ValueChanged<int> onZoneSelected;
   final VoidCallback onPrevious;
   final VoidCallback onPlayPause;
@@ -561,7 +558,6 @@ class _ControlPanel extends StatelessWidget {
             zone: zone,
             number: zoneIndex + 1,
             total: ritual.zones.length,
-            crystal: crystal,
           ),
           SizedBox(height: AppSpacing.s10 * scale),
           SizedBox(
@@ -664,14 +660,12 @@ class _StepSummary extends StatelessWidget {
     required this.zone,
     required this.number,
     required this.total,
-    required this.crystal,
   });
 
   final double scale;
   final MassageZone zone;
   final int number;
   final int total;
-  final Crystal? crystal;
 
   String _pad(int value) => value.toString().padLeft(2, '0');
 
@@ -695,7 +689,12 @@ class _StepSummary extends StatelessWidget {
               color: AppColors.darkIndigoBlue,
             ),
             child: Center(
-              child: _ChestCrystal(crystal: crystal, scale: scale),
+              child: SvgPicture.asset(
+                'assets/images/ritual_lotus.svg',
+                width: 26 * scale,
+                height: 23 * scale,
+                excludeFromSemantics: true,
+              ),
             ),
           ),
         ),
@@ -733,37 +732,6 @@ class _StepSummary extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _ChestCrystal extends StatelessWidget {
-  const _ChestCrystal({required this.crystal, required this.scale});
-
-  final Crystal? crystal;
-  final double scale;
-
-  @override
-  Widget build(BuildContext context) {
-    final selected = crystal;
-    if (selected == null) {
-      return Semantics(
-        label: 'Crystal at the chest',
-        child: SizedBox(width: 26 * scale, height: 26 * scale),
-      );
-    }
-
-    return Semantics(
-      label: '${selected.displayName} at the chest',
-      image: true,
-      child: ClipOval(
-        child: Image.asset(
-          selected.imageAsset,
-          width: 40 * scale,
-          height: 40 * scale,
-          fit: BoxFit.cover,
-        ),
-      ),
     );
   }
 }
