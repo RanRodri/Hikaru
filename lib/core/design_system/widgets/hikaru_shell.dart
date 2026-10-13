@@ -24,6 +24,9 @@ class HikaruShell extends StatelessWidget {
 
   /// Neutral landscape with no figure. Journal uses it.
   static const String journalLandscape = 'assets/images/sanctuary_hero.png';
+
+  /// Garden landscape with the figure removed. Settings uses it.
+  static const String profileLandscape = 'assets/images/profile_landscape.png';
   static const Map<HikaruDestination, String> _destinationRoutes = {
     HikaruDestination.home: AppRoutes.home,
     HikaruDestination.journey: AppRoutes.journey,
