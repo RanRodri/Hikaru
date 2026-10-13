@@ -1,4 +1,4 @@
-package com.hikaru.lift
+package com.hiraku.hiraku
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -2,7 +2,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hikaru/features/resonance_chamber/domain/cymatic_audio.dart';
+import 'package:hiraku/features/resonance_chamber/domain/cymatic_audio.dart';
 
 void main() {
   test('silence has no loudness and a tone lands in its band', () {

@@ -1,11 +1,11 @@
 {
-    "name": "Hikaru Lift",
-    "short_name": "Hikaru Lift",
+    "name": "Hiraku",
+    "short_name": "Hiraku",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#000000",
     "theme_color": "#000000",
-    "description": "Hikaru Lift",
+    "description": "Proyecto Hiraku",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

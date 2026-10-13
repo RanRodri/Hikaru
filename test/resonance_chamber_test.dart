@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hikaru/core/design_system/theme/app_theme.dart';
-import 'package:hikaru/features/crystals/application/selected_crystal_controller.dart';
-import 'package:hikaru/features/crystals/domain/crystal.dart';
-import 'package:hikaru/features/resonance_chamber/presentation/resonance_chamber_screen.dart';
+import 'package:hiraku/core/design_system/theme/app_theme.dart';
+import 'package:hiraku/features/crystals/application/selected_crystal_controller.dart';
+import 'package:hiraku/features/crystals/domain/crystal.dart';
+import 'package:hiraku/features/resonance_chamber/presentation/resonance_chamber_screen.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 

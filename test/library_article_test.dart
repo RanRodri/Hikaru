@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hikaru/features/crystals/domain/crystal.dart';
-import 'package:hikaru/features/library/domain/library_article.dart';
+import 'package:hiraku/features/crystals/domain/crystal.dart';
+import 'package:hiraku/features/library/domain/library_article.dart';
 
 void main() {
   test('library topics reuse source copy and omit empty sections', () {

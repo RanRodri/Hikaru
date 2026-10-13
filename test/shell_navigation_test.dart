@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hikaru/core/design_system/theme/app_theme.dart';
-import 'package:hikaru/core/design_system/widgets/hikaru_navigation_bar.dart';
-import 'package:hikaru/core/router/app_router.dart';
-import 'package:hikaru/core/router/app_routes.dart';
-import 'package:hikaru/features/splash/presentation/splash_controller.dart';
+import 'package:hiraku/core/design_system/theme/app_theme.dart';
+import 'package:hiraku/core/design_system/widgets/hikaru_navigation_bar.dart';
+import 'package:hiraku/core/router/app_router.dart';
+import 'package:hiraku/core/router/app_routes.dart';
+import 'package:hiraku/features/splash/presentation/splash_controller.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 

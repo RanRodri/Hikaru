@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hikaru/features/crystals/domain/crystal.dart';
-import 'package:hikaru/features/crystals/domain/crystal_assignment.dart';
-import 'package:hikaru/features/listening_room/domain/discovery_quiz.dart';
-import 'package:hikaru/features/listening_room/domain/quiz_answers.dart';
+import 'package:hiraku/features/crystals/domain/crystal.dart';
+import 'package:hiraku/features/crystals/domain/crystal_assignment.dart';
+import 'package:hiraku/features/listening_room/domain/discovery_quiz.dart';
+import 'package:hiraku/features/listening_room/domain/quiz_answers.dart';
 
 QuizAnswers _answers(Map<int, List<String>> selected) => QuizAnswers({
   for (final entry in selected.entries) entry.key: entry.value.toSet(),

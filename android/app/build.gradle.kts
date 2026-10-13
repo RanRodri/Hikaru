@@ -16,7 +16,7 @@ if (hasReleaseKeystore) {
 }
 
 android {
-    namespace = "com.hikaru.lift"
+    namespace = "com.hiraku.hiraku"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -30,7 +30,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.hikaru.lift"
+        applicationId = "com.hiraku.hiraku"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

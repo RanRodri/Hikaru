@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hikaru/features/listening_room/presentation/listening_room_quiz_screen.dart';
+import 'package:hiraku/features/listening_room/presentation/listening_room_quiz_screen.dart';
 
 Future<void> tapQuizChoice(WidgetTester tester, String label) async {
   final scrollable = find.descendant(
