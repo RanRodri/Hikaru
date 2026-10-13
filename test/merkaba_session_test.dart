@@ -3,13 +3,22 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hiraku/features/merkaba/data/merkaba_progress_repository.dart';
 import 'package:hiraku/features/merkaba/domain/merkaba_session.dart';
 import 'package:hiraku/features/merkaba/presentation/merkaba_painter.dart';
 import 'package:hiraku/features/merkaba/presentation/merkaba_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
+import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 
 void main() {
+  setUp(() {
+    SharedPreferencesAsyncPlatform.instance =
+        InMemorySharedPreferencesAsync.empty();
+  });
+
   test('breath phases follow the 4-4-6 cycle', () {
     expect(merkabaFrameAt(Duration.zero).phase, BreathPhase.inhale);
     expect(merkabaFrameAt(Duration.zero).phaseSecondsRemaining, 4);
@@ -34,6 +43,13 @@ void main() {
     );
     expect(merkabaFrameAt(const Duration(seconds: 14)).completedCycles, 1);
     expect(merkabaFrameAt(const Duration(seconds: 28)).completedCycles, 2);
+    expect(merkabaFrameAt(Duration.zero).sessionProgress, 0);
+    expect(
+      merkabaFrameAt(const Duration(seconds: 150)).sessionProgress,
+      closeTo(0.5, 0.001),
+    );
+    expect(merkabaFrameAt(merkabaDuration).sessionProgress, 1);
+    expect(merkabaFrameAt(merkabaDuration).completedCycles, 21);
   });
 
   test('scenes change at the brief timestamps', () {
@@ -114,9 +130,35 @@ void main() {
     await tester.pump();
 
     expect(find.text('Breath Builds the Merkaba'), findsOneWidget);
-    expect(find.text('Lotus Mudra'), findsOneWidget);
+    expect(find.text('Lotus Mudra'), findsNWidgets(2));
+    expect(find.text('Cycles 11'), findsOneWidget);
     expect(find.text('Inhale'), findsOneWidget);
+    expect(_mudraSvg('assets/images/mudras/lotus.svg'), findsOneWidget);
+    expect(_mudraSvg('assets/images/mudras/gyan.svg'), findsNothing);
+    expect(find.bySemanticsLabel('Session progress'), findsOneWidget);
     expect(find.bySemanticsLabel('Seated woman in meditation'), findsOneWidget);
+  });
+
+  testWidgets('scene one keeps the Gyan mudra over the whole opening', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: MaterialApp(
+          home: MediaQuery(
+            data: MediaQueryData(disableAnimations: true),
+            child: MerkabaMeditationScreen(),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('Human Blueprint'), findsOneWidget);
+    expect(find.text('Gyan Mudra'), findsNWidgets(2));
+    expect(find.text('Cycles 0'), findsOneWidget);
+    expect(_mudraSvg('assets/images/mudras/gyan.svg'), findsOneWidget);
+    expect(find.bySemanticsLabel('Session progress'), findsOneWidget);
   });
 
   testWidgets('finishing the session records it and REPEAT restarts', (
@@ -145,18 +187,93 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
 
     expect(find.text('Silence.'), findsOneWidget);
-    expect(await progress.completions(), hasLength(1));
+    final finished = await progress.history();
+    expect(finished, hasLength(1));
+    expect(finished.single.completed, isTrue);
+    expect(finished.single.completedCycles, 21);
 
     await tester.tap(find.text('REPEAT'));
     await tester.pump();
     expect(find.text('Human Blueprint'), findsOneWidget);
+    expect(find.text('Cycles 0'), findsOneWidget);
     expect(find.text('PAUSE'), findsOneWidget);
 
     await tester.tap(find.text('PAUSE'));
     await tester.pump(const Duration(seconds: 3));
-    expect(await progress.completions(), hasLength(1));
+    expect(await progress.history(), hasLength(1));
+  });
+
+  testWidgets('leaving mid-session stores the cycles so far', (tester) async {
+    final progress = InMemoryMerkabaProgressRepository();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          merkabaProgressRepositoryProvider.overrideWithValue(progress),
+        ],
+        child: const MaterialApp(
+          home: MediaQuery(
+            data: MediaQueryData(disableAnimations: true),
+            child: MerkabaMeditationScreen(
+              initialElapsed: Duration(seconds: 28),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.text('Cycles 2'), findsOneWidget);
+
+    await tester.tap(find.text('PLAY'));
+    await tester.pump();
+    await tester.tap(find.text('PAUSE'));
+    await tester.pump();
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+
+    final history = await progress.history();
+    expect(history, hasLength(1));
+    expect(history.single.completed, isFalse);
+    expect(history.single.completedCycles, 2);
+  });
+
+  test('session history persists date, cycles, and completion', () async {
+    SharedPreferencesAsyncPlatform.instance =
+        InMemorySharedPreferencesAsync.empty();
+    final repository = SharedPreferencesMerkabaProgressRepository(
+      SharedPreferencesAsync(),
+    );
+    final started = DateTime.utc(2026, 10, 13, 16);
+    await repository.recordSession(
+      MerkabaSessionRecord(
+        date: started,
+        completedCycles: 11,
+        completed: false,
+      ),
+    );
+    await repository.recordSession(
+      MerkabaSessionRecord(
+        date: started.add(const Duration(days: 1)),
+        completedCycles: 21,
+        completed: true,
+      ),
+    );
+
+    final history = await repository.history();
+    expect(history, hasLength(2));
+    expect(history.first.date.toUtc(), started);
+    expect(history.first.completedCycles, 11);
+    expect(history.first.completed, isFalse);
+    expect(history.last.completedCycles, 21);
+    expect(history.last.completed, isTrue);
   });
 }
+
+Finder _mudraSvg(String asset) => find.byWidgetPredicate(
+  (widget) =>
+      widget is SvgPicture &&
+      widget.bytesLoader is SvgAssetLoader &&
+      (widget.bytesLoader as SvgAssetLoader).assetName == asset,
+);
 
 (int, int, int, int) _rgba(ByteData bytes, int width, int x, int y) {
   final offset = (y * width + x) * 4;

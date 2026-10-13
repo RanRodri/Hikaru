@@ -4,10 +4,12 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
 import '../../../core/design_system/tokens/app_font_sizes.dart';
+import '../../../core/design_system/tokens/app_radii.dart';
 import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/router/app_routes.dart';
@@ -52,8 +54,11 @@ class _MerkabaMeditationScreenState
             ? Duration.zero
             : widget.initialElapsed);
   late final Ticker _ticker;
+  late final MerkabaProgressRepository _progress;
   Duration _lastTick = Duration.zero;
   bool _playing = false;
+  bool _started = false;
+  bool _recorded = false;
   bool _womanPrecached = false;
   final MerkabaSoundscape _sound = MerkabaSoundscape();
 
@@ -62,6 +67,7 @@ class _MerkabaMeditationScreenState
   @override
   void initState() {
     super.initState();
+    _progress = ref.read(merkabaProgressRepositoryProvider);
     _ticker = createTicker(_handleTick);
   }
 
@@ -75,9 +81,26 @@ class _MerkabaMeditationScreenState
 
   @override
   void dispose() {
+    unawaited(_saveSession(completed: false));
     _ticker.dispose();
     unawaited(_sound.dispose());
     super.dispose();
+  }
+
+  Future<void> _saveSession({required bool completed}) async {
+    if (_recorded) return;
+    if (!completed && !_started) return;
+    _recorded = true;
+    final frame = merkabaFrameAt(_elapsed);
+    try {
+      await _progress.recordSession(
+        MerkabaSessionRecord(
+          date: DateTime.now(),
+          completedCycles: frame.completedCycles,
+          completed: completed,
+        ),
+      );
+    } catch (_) {}
   }
 
   void _cuePhase(BreathPhase phase, {Duration into = Duration.zero}) {
@@ -109,15 +132,12 @@ class _MerkabaMeditationScreenState
       _playing = false;
     });
     unawaited(_sound.finish());
-    unawaited(
-      ref
-          .read(merkabaProgressRepositoryProvider)
-          .recordCompletion(DateTime.now()),
-    );
+    unawaited(_saveSession(completed: true));
   }
 
   void _handlePlayPause() {
     if (_frame.isFinished) return;
+    _started = true;
     if (_playing) {
       setState(() => _playing = false);
       _ticker.stop();
@@ -133,11 +153,13 @@ class _MerkabaMeditationScreenState
   }
 
   void _handleRepeat() {
+    _recorded = false;
     setState(() => _elapsed = Duration.zero);
     _handlePlayPause();
   }
 
   void _handleBack() {
+    unawaited(_saveSession(completed: false));
     if (context.canPop()) {
       context.pop();
       return;
@@ -173,7 +195,16 @@ class _MerkabaMeditationScreenState
                         ),
                       ),
                       Expanded(
-                        child: MerkabaStage(frame: frame, replacement: visual),
+                        child: Stack(
+                          children: [
+                            MerkabaStage(frame: frame, replacement: visual),
+                            Positioned(
+                              top: AppSpacing.s8,
+                              right: AppSpacing.s16,
+                              child: _MudraMark(scene: frame.scene),
+                            ),
+                          ],
+                        ),
                       ),
                       _SessionBand(
                         frame: frame,
@@ -265,21 +296,7 @@ class _SessionBand extends StatelessWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.s8),
-            Semantics(
-              label: 'Breath cycle progress',
-              value: '${(frame.cycleProgress * 100).round()} percent',
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(2),
-                child: LinearProgressIndicator(
-                  value: frame.cycleProgress,
-                  minHeight: 4,
-                  backgroundColor: AppColors.champagneGold.withValues(
-                    alpha: 0.25,
-                  ),
-                  color: AppColors.champagneGold,
-                ),
-              ),
-            ),
+            _SessionProgressBar(progress: frame.sessionProgress),
             Text(
               clock,
               style: AppTypography.subheadline.copyWith(
@@ -297,6 +314,120 @@ class _SessionBand extends StatelessWidget {
       ),
     );
   }
+}
+
+class _MudraMark extends StatelessWidget {
+  const _MudraMark({required this.scene});
+
+  final MerkabaScene scene;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppColors.darkIndigoBlue.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(AppRadii.r12),
+        border: Border.all(
+          color: AppColors.champagneGold.withValues(alpha: 0.45),
+          width: 0.6,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.s8,
+          AppSpacing.s6,
+          AppSpacing.s8,
+          AppSpacing.s6,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SvgPicture.asset(
+              scene.mudraAsset,
+              width: 36,
+              height: 36,
+              excludeFromSemantics: true,
+            ),
+            const SizedBox(height: AppSpacing.s4),
+            Text(
+              scene.mudra,
+              style: AppTypography.subheadline.copyWith(
+                color: AppColors.champagneGold,
+                fontSize: AppFontSizes.s10,
+                letterSpacing: 0.6,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SessionProgressBar extends StatelessWidget {
+  const _SessionProgressBar({required this.progress});
+
+  final double progress;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: 'Session progress',
+      value: '${(progress * 100).round()} percent',
+      child: SizedBox(
+        height: 8,
+        width: double.infinity,
+        child: CustomPaint(
+          painter: _SessionBarPainter(progress: progress),
+          child: const SizedBox.expand(),
+        ),
+      ),
+    );
+  }
+}
+
+class _SessionBarPainter extends CustomPainter {
+  const _SessionBarPainter({required this.progress});
+
+  final double progress;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final total = merkabaDuration.inMilliseconds;
+    if (total == 0 || size.width <= 0) return;
+    const gap = 3.0;
+    final usable = size.width - gap * (merkabaScenes.length - 1);
+    final radius = Radius.circular(size.height / 2);
+    final track = Paint()
+      ..color = AppColors.champagneGold.withValues(alpha: 0.28);
+    final fill = Paint()..color = AppColors.champagneGold;
+    var x = 0.0;
+    final clamped = progress.clamp(0.0, 1.0);
+    for (final scene in merkabaScenes) {
+      final span = (scene.end - scene.start).inMilliseconds / total;
+      final width = usable * span;
+      final rect = RRect.fromRectAndRadius(
+        Rect.fromLTWH(x, 0, width, size.height),
+        radius,
+      );
+      canvas.drawRRect(rect, track);
+      final start = scene.start.inMilliseconds / total;
+      final local = span == 0
+          ? 0.0
+          : ((clamped - start) / span).clamp(0.0, 1.0);
+      if (local > 0) {
+        canvas.save();
+        canvas.clipRRect(rect);
+        canvas.drawRect(Rect.fromLTWH(x, 0, width * local, size.height), fill);
+        canvas.restore();
+      }
+      x += width + gap;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _SessionBarPainter oldDelegate) =>
+      oldDelegate.progress != progress;
 }
 
 class _Finished extends StatelessWidget {

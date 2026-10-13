@@ -83,6 +83,7 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/images/mudras/
     - assets/audio/
 
   fonts:

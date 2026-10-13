@@ -108,7 +108,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Human Blueprint'), findsOneWidget);
-    expect(find.text('Gyan Mudra'), findsOneWidget);
+    expect(find.text('Gyan Mudra'), findsNWidgets(2));
     expect(find.text('Inhale'), findsOneWidget);
     expect(find.text('00:00 / 05:00'), findsOneWidget);
 

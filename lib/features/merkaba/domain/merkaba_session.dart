@@ -14,6 +14,16 @@ class MerkabaScene {
   final String mudraPurpose;
   final Duration start;
   final Duration end;
+
+  /// Line icon for this scene. One mudra stays up for the whole scene.
+  String get mudraAsset => switch (mudra) {
+    'Gyan Mudra' => 'assets/images/mudras/gyan.svg',
+    'Vayu Mudra' => 'assets/images/mudras/vayu.svg',
+    'Lotus Mudra' => 'assets/images/mudras/lotus.svg',
+    'Akash Mudra' => 'assets/images/mudras/akash.svg',
+    'Anjali' => 'assets/images/mudras/anjali.svg',
+    _ => 'assets/images/mudras/gyan.svg',
+  };
 }
 
 const Duration merkabaDuration = Duration(minutes: 5);
@@ -101,7 +111,7 @@ class MerkabaFrame {
     BreathPhase.exhale => 'Exhale',
   };
 
-  /// Completed 4-4-6 cycles. The in-progress cycle is the progress bar.
+  /// Completed 4-4-6 cycles in this session. A new session starts at zero.
   int get completedCycles =>
       elapsed.inMilliseconds ~/ breathCycle.inMilliseconds;
 
@@ -110,6 +120,13 @@ class MerkabaFrame {
     final cycleMs = breathCycle.inMilliseconds;
     if (cycleMs == 0) return 0;
     return (elapsed.inMilliseconds % cycleMs) / cycleMs;
+  }
+
+  /// Share of the five-minute session that has elapsed, from 0 to 1.
+  double get sessionProgress {
+    final total = merkabaDuration.inMilliseconds;
+    if (total == 0) return 0;
+    return (elapsed.inMilliseconds / total).clamp(0.0, 1.0);
   }
 }
 
