@@ -376,8 +376,16 @@ class CymaticSignatureState extends State<CymaticSignature>
 
   @override
   Widget build(BuildContext context) {
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
     final seal = widget.showSeal
-        ? Center(
+        ? AnimatedAlign(
+            alignment: widget.playing
+                ? const Alignment(0, 0.86)
+                : Alignment.center,
+            duration: reduceMotion
+                ? Duration.zero
+                : const Duration(milliseconds: 700),
+            curve: Curves.easeInOutCubic,
             child: FractionallySizedBox(
               widthFactor: _sealFactor,
               heightFactor: _sealFactor,

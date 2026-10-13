@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -38,8 +39,8 @@ class CrystalResonanceScreen extends ConsumerStatefulWidget {
       _CrystalResonanceScreenState();
 }
 
-class _CrystalResonanceScreenState
-    extends ConsumerState<CrystalResonanceScreen> {
+class _CrystalResonanceScreenState extends ConsumerState<CrystalResonanceScreen>
+    with WidgetsBindingObserver {
   static const double _horizontalPadding = AppSpacing.s24;
   static const double _heroScreenRatio = 0.3;
   static const double _minHeroHeight = 180;
@@ -51,13 +52,22 @@ class _CrystalResonanceScreenState
   late final StreamSubscription<Duration> _positionSubscription;
   bool _isPlaying = false;
   bool _isAudioUnavailable = false;
+  bool _immersive = false;
   CymaticEnvelope? _envelope;
+
+  static const List<DeviceOrientation> _rotatable = [
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.landscapeLeft,
+    DeviceOrientation.landscapeRight,
+  ];
 
   Crystal get _crystal => widget.crystal;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    unawaited(_setOrientations(_rotatable));
     _playerStateSubscription = _player.onPlayerStateChanged.listen(
       _handlePlayerStateChanged,
     );
@@ -65,17 +75,80 @@ class _CrystalResonanceScreenState
       _position.value = position;
     });
     _loadEnvelope();
-    _startFrequency();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _offerSelection());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_preparePlayback());
+    });
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    unawaited(_setOrientations(const [DeviceOrientation.portraitUp]));
+    unawaited(_setUiMode(SystemUiMode.edgeToEdge));
     _playerStateSubscription.cancel();
     _positionSubscription.cancel();
     _position.dispose();
     _player.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeMetrics() {
+    if (!mounted) return;
+    final views = WidgetsBinding.instance.platformDispatcher.views;
+    if (views.isEmpty) return;
+    final size = views.first.physicalSize;
+    final landscape = size.width > size.height;
+    if (landscape == _immersive) return;
+    setState(() => _immersive = landscape);
+    unawaited(
+      _setUiMode(
+        landscape ? SystemUiMode.immersiveSticky : SystemUiMode.edgeToEdge,
+      ),
+    );
+  }
+
+  Future<void> _setOrientations(List<DeviceOrientation> orientations) async {
+    try {
+      await SystemChrome.setPreferredOrientations(orientations);
+    } catch (_) {
+      // Tests and platforms without an orientation channel keep the current UI.
+    }
+  }
+
+  Future<void> _setUiMode(SystemUiMode mode) async {
+    try {
+      await SystemChrome.setEnabledSystemUIMode(mode);
+    } catch (_) {}
+  }
+
+  Future<void> _enterFullscreen() async {
+    setState(() => _immersive = true);
+    await _setOrientations(const [
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+    await _setUiMode(SystemUiMode.immersiveSticky);
+  }
+
+  Future<void> _exitFullscreen() async {
+    if (mounted) setState(() => _immersive = false);
+    await _setOrientations(const [DeviceOrientation.portraitUp]);
+    await _setUiMode(SystemUiMode.edgeToEdge);
+    await _setOrientations(_rotatable);
+  }
+
+  Future<void> _preparePlayback() async {
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const _HeadphonesDialog(),
+    );
+    if (!mounted) return;
+    await _startFrequency();
+    if (!mounted) return;
+    await _offerSelection();
   }
 
   Future<void> _loadEnvelope() async {
@@ -148,6 +221,34 @@ class _CrystalResonanceScreenState
     );
     final isSelected = ref.watch(selectedCrystalProvider).value == _crystal;
 
+    final hero = _CrystalHero(
+      crystal: _crystal,
+      playing: _isPlaying && !_isAudioUnavailable,
+      envelope: _envelope,
+      playbackPosition: _position,
+    );
+
+    if (_immersive) {
+      return PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) unawaited(_exitFullscreen());
+        },
+        child: Scaffold(
+          backgroundColor: resonanceChamberColor,
+          body: GestureDetector(
+            onTap: () => unawaited(_exitFullscreen()),
+            behavior: HitTestBehavior.opaque,
+            child: Semantics(
+              button: true,
+              label: 'Exit fullscreen',
+              child: hero,
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: resonanceChamberColor,
       body: Column(
@@ -166,21 +267,14 @@ class _CrystalResonanceScreenState
                   child: _BackButton(onPressed: _handleBackPressed),
                 ),
                 _CrystalIntroduction(crystal: _crystal),
-                SizedBox(
-                  height: heroHeight,
-                  child: _CrystalHero(
-                    crystal: _crystal,
-                    playing: _isPlaying && !_isAudioUnavailable,
-                    envelope: _envelope,
-                    playbackPosition: _position,
-                  ),
-                ),
+                SizedBox(height: heroHeight, child: hero),
                 const SizedBox(height: AppSpacing.s12),
                 _FrequencyPlayer(
                   crystal: _crystal,
                   isPlaying: _isPlaying,
                   isUnavailable: _isAudioUnavailable,
                   onToggle: _handleTogglePlayback,
+                  onFullscreen: () => unawaited(_enterFullscreen()),
                 ),
                 const SizedBox(height: AppSpacing.s24),
                 _CrystalDetail(
@@ -378,6 +472,7 @@ class _FrequencyPlayer extends StatelessWidget {
     required this.isPlaying,
     required this.isUnavailable,
     required this.onToggle,
+    required this.onFullscreen,
   });
 
   static const double _buttonSize = AppSpacing.s52;
@@ -386,6 +481,7 @@ class _FrequencyPlayer extends StatelessWidget {
   final bool isPlaying;
   final bool isUnavailable;
   final VoidCallback onToggle;
+  final VoidCallback onFullscreen;
 
   @override
   Widget build(BuildContext context) {
@@ -467,6 +563,23 @@ class _FrequencyPlayer extends StatelessWidget {
             ),
           ],
         ),
+        const SizedBox(height: AppSpacing.s12),
+        Semantics(
+          button: true,
+          label: 'Fullscreen',
+          excludeSemantics: true,
+          child: TextButton(
+            onPressed: onFullscreen,
+            child: Text(
+              'FULLSCREEN',
+              style: AppTypography.subheadline.copyWith(
+                color: AppColors.champagneGold,
+                fontSize: AppFontSizes.s12,
+                letterSpacing: 1.6,
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -489,6 +602,47 @@ class _CrystalDetail extends StatelessWidget {
           Text(text, textAlign: TextAlign.center, style: _bodyStyle),
         ],
       ),
+    );
+  }
+}
+
+class _HeadphonesDialog extends StatelessWidget {
+  const _HeadphonesDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: resonanceChamberColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadii.r20),
+        side: BorderSide(
+          color: AppColors.champagneGold.withValues(alpha: 0.6),
+          width: 0.75,
+        ),
+      ),
+      content: Text(
+        'This experience will be better with headphones',
+        textAlign: TextAlign.center,
+        style: _bodyStyle.copyWith(color: AppColors.fog),
+      ),
+      actionsAlignment: MainAxisAlignment.center,
+      actions: [
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(),
+          style: FilledButton.styleFrom(
+            backgroundColor: AppColors.champagneGold,
+            foregroundColor: AppColors.darkIndigoBlue,
+            shape: const StadiumBorder(),
+          ),
+          child: Text(
+            'Continue',
+            style: AppTypography.subheadline.copyWith(
+              color: AppColors.darkIndigoBlue,
+              letterSpacing: 1.2,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
