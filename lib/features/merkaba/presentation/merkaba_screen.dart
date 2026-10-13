@@ -228,17 +228,6 @@ class _SessionBand extends StatelessWidget {
           children: [
             Row(
               children: [
-                Semantics(
-                  label: 'Mudra placeholder, ${frame.phaseLabel}',
-                  image: true,
-                  child: Image.asset(
-                    mudraPlaceholderAsset(frame.phase),
-                    width: 64,
-                    height: 64,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.s12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

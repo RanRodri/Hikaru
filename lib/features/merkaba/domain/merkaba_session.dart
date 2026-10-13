@@ -113,13 +113,6 @@ class MerkabaFrame {
   }
 }
 
-/// Placeholder mudra art, one file per breath phase. Swap the PNG in place.
-String mudraPlaceholderAsset(BreathPhase phase) => switch (phase) {
-  BreathPhase.inhale => 'assets/images/mudras/inhale.png',
-  BreathPhase.hold => 'assets/images/mudras/hold.png',
-  BreathPhase.exhale => 'assets/images/mudras/exhale.png',
-};
-
 MerkabaFrame merkabaFrameAt(Duration elapsed) {
   final bounded = elapsed < Duration.zero
       ? Duration.zero

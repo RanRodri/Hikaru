@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hikaru/features/merkaba/data/merkaba_progress_repository.dart';
-import 'package:hikaru/features/merkaba/domain/merkaba_session.dart';
-import 'package:hikaru/features/merkaba/presentation/merkaba_painter.dart';
-import 'package:hikaru/features/merkaba/presentation/merkaba_screen.dart';
+import 'package:hiraku/features/merkaba/data/merkaba_progress_repository.dart';
+import 'package:hiraku/features/merkaba/domain/merkaba_session.dart';
+import 'package:hiraku/features/merkaba/presentation/merkaba_painter.dart';
+import 'package:hiraku/features/merkaba/presentation/merkaba_screen.dart';
 
 void main() {
   test('breath phases follow the 4-4-6 cycle', () {
@@ -34,18 +34,6 @@ void main() {
     );
     expect(merkabaFrameAt(const Duration(seconds: 14)).completedCycles, 1);
     expect(merkabaFrameAt(const Duration(seconds: 28)).completedCycles, 2);
-    expect(
-      mudraPlaceholderAsset(BreathPhase.inhale),
-      'assets/images/mudras/inhale.png',
-    );
-    expect(
-      mudraPlaceholderAsset(BreathPhase.hold),
-      'assets/images/mudras/hold.png',
-    );
-    expect(
-      mudraPlaceholderAsset(BreathPhase.exhale),
-      'assets/images/mudras/exhale.png',
-    );
   });
 
   test('scenes change at the brief timestamps', () {
