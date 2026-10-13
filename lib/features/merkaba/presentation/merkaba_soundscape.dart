@@ -22,7 +22,6 @@ class MerkabaSoundscape {
 
   static const Map<BreathPhase, String> breathAssets = {
     BreathPhase.inhale: 'audio/merkaba_breath_inhale.m4a',
-    BreathPhase.hold: 'audio/merkaba_breath_hold.m4a',
     BreathPhase.exhale: 'audio/merkaba_breath_exhale.m4a',
   };
 
@@ -36,26 +35,36 @@ class MerkabaSoundscape {
   int _ambientGeneration = 0;
   bool _disposed = false;
 
-  /// Plays the chime and the breath sound of [phase], starting [into] the
-  /// breath sound when the session resumes mid-phase.
+  /// Plays the chime of [phase]. Inhale and exhale also play their breath
+  /// sound, starting [into] it when the session resumes mid-phase. Hold keeps
+  /// the chime and stays silent.
   Future<void> cue(BreathPhase phase, {Duration into = Duration.zero}) async {
     if (_disposed) return;
     try {
       final chime = _chime ??= _mixingPlayer();
-      final breath = _breath ??= _mixingPlayer();
-      await Future.wait([
+      final breathAsset = breathAssets[phase];
+      final tasks = <Future<void>>[
         _playOnce(
           player: chime,
           asset: chimeAssets[phase]!,
           volume: chimeVolume,
         ),
-        _playOnce(
-          player: breath,
-          asset: breathAssets[phase]!,
-          volume: breathVolume,
-          position: into,
-        ),
-      ]);
+      ];
+      if (breathAsset == null) {
+        final breath = _breath;
+        if (breath != null) tasks.add(_stop(breath));
+      } else {
+        final breath = _breath ??= _mixingPlayer();
+        tasks.add(
+          _playOnce(
+            player: breath,
+            asset: breathAsset,
+            volume: breathVolume,
+            position: into,
+          ),
+        );
+      }
+      await Future.wait(tasks);
     } catch (_) {
       // Widget tests have no audio backend. Missing audio stays silent.
     }
@@ -130,6 +139,15 @@ class MerkabaSoundscape {
           .catchError((Object _) {}),
     );
     return player;
+  }
+
+  Future<void> _stop(AudioPlayer player) async {
+    if (_disposed) return;
+    try {
+      await player.stop();
+    } catch (_) {
+      // Widget tests have no audio backend. Missing audio stays silent.
+    }
   }
 
   Future<void> _playOnce({
