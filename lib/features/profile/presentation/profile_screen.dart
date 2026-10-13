@@ -4,7 +4,6 @@ import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/widgets/hikaru_navigation_bar.dart';
 import '../../../core/design_system/widgets/hikaru_page_intro.dart';
 import '../../../core/design_system/widgets/hikaru_scroll_page.dart';
-import '../../../core/design_system/widgets/hikaru_shell.dart';
 import 'profile_cards.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -16,7 +15,6 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return const HikaruScrollPage(
       active: HikaruDestination.settings,
-      backgroundAsset: HikaruShell.journalLandscape,
       children: [
         HikaruPageIntro(
           title: 'SANCTUARY PROFILE',
