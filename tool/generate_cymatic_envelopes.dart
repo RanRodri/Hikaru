@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:hiraku/features/resonance_chamber/domain/cymatic_audio.dart';
+import 'package:hikaru/features/resonance_chamber/domain/cymatic_audio.dart';
 
 const _tracks = ['white_quartz', 'jade', 'obsidian', 'red_jasper'];
 

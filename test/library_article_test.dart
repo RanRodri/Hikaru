@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hiraku/features/crystals/domain/crystal.dart';
-import 'package:hiraku/features/library/domain/library_article.dart';
+import 'package:hikaru/features/crystals/domain/crystal.dart';
+import 'package:hikaru/features/library/domain/library_article.dart';
+import 'package:hikaru/features/library/domain/library_collection.dart';
 
 void main() {
   test('library topics reuse source copy and omit empty sections', () {
@@ -95,5 +96,14 @@ void main() {
       rituals.blocks.single.body,
       contains('528 Hz, Maestro Jorge Alfano'),
     );
+  });
+
+  test('next library collection skips an unknown id', () {
+    expect(nextLibraryCollection('amethyst'), isNull);
+    expect(
+      nextLibraryCollection(libraryCollections.last.id)?.id,
+      libraryCollections.first.id,
+    );
+    expect(nextLibraryCollection('jade')?.id, 'whiteQuartz');
   });
 }

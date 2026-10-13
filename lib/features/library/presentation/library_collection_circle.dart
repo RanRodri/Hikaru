@@ -83,34 +83,35 @@ class _CollectionCaption extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: AppSpacing.s14 * scale),
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        alignment: Alignment.topCenter,
-        child: Column(
-          children: [
-            Text(
-              collection.name,
-              textAlign: TextAlign.center,
-              style: AppTypography.subheadline.copyWith(
-                color: AppColors.white,
-                fontSize: AppFontSizes.s8_2 * scale,
-                height: 1.2,
-                letterSpacing: 1.2 * scale,
-              ),
+      padding: EdgeInsets.symmetric(horizontal: AppSpacing.s4 * scale),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            collection.name,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTypography.subheadline.copyWith(
+              color: AppColors.white,
+              fontSize: AppFontSizes.s12 * scale,
+              height: 1,
+              letterSpacing: 0.2 * scale,
             ),
-            Text(
-              collection.detail,
-              textAlign: TextAlign.center,
-              style: AppTypography.footnote.copyWith(
-                color: AppColors.fog,
-                fontSize: AppFontSizes.s6_6 * scale,
-                height: 1.3,
-                letterSpacing: 0.2 * scale,
-              ),
+          ),
+          Text(
+            collection.inlineDetail,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: AppTypography.footnote.copyWith(
+              color: AppColors.fog,
+              fontSize: AppFontSizes.s11 * scale,
+              height: 1.05,
+              letterSpacing: 0,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

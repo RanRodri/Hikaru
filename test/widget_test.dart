@@ -4,11 +4,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 
-import 'package:hiraku/app.dart';
-import 'package:hiraku/core/design_system/widgets/radial_glow_background.dart';
-import 'package:hiraku/features/sanctuary/presentation/sanctuary_screen.dart';
-import 'package:hiraku/features/splash/presentation/splash_controller.dart';
-import 'package:hiraku/features/splash/presentation/splash_screen.dart';
+import 'package:hikaru/app.dart';
+import 'package:hikaru/core/design_system/widgets/radial_glow_background.dart';
+import 'package:hikaru/features/sanctuary/presentation/sanctuary_screen.dart';
+import 'package:hikaru/features/splash/presentation/splash_controller.dart';
+import 'package:hikaru/features/splash/presentation/splash_screen.dart';
 
 import 'support/quiz_driver.dart';
 
@@ -22,6 +22,12 @@ void main() {
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(const ProviderScope(child: HikaruApp()));
+    // The animated WebP does not finish decoding inside the fake async zone.
+    // Open the gate the logo opens once its first frame is ready.
+    final ready = ProviderScope.containerOf(
+      tester.element(find.byType(SplashScreen)),
+    ).read(splashSymbolReadyProvider);
+    if (!ready.isCompleted) ready.complete();
 
     expect(find.byType(SplashScreen), findsOneWidget);
     expect(find.bySemanticsLabel('Hikaru Lift'), findsOneWidget);
@@ -157,7 +163,7 @@ void main() {
     await tester.tap(find.text('ENTER MY 30-DAY JOURNEY'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Harmony Garden'), findsOneWidget);
+    expect(find.text('THE HARMONY GARDEN'), findsOneWidget);
     expect(find.bySemanticsLabel('Red Jasper'), findsOneWidget);
     expect(find.text('Home'), findsOneWidget);
     expect(find.text('Settings'), findsOneWidget);

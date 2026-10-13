@@ -3,17 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:hiraku/core/design_system/theme/app_theme.dart';
-import 'package:hiraku/features/crystals/application/selected_crystal_controller.dart';
-import 'package:hiraku/features/crystals/domain/crystal.dart';
-import 'package:hiraku/core/router/app_routes.dart';
-import 'package:hiraku/features/harmony_garden/presentation/harmony_garden_screen.dart';
-import 'package:hiraku/features/library/domain/library_article.dart';
-import 'package:hiraku/features/library/presentation/library_detail_screen.dart';
-import 'package:hiraku/features/library/presentation/library_screen.dart';
-import 'package:hiraku/features/massage/domain/massage_ritual.dart';
-import 'package:hiraku/features/massage/presentation/massage_screen.dart';
-import 'package:hiraku/features/merkaba/presentation/merkaba_screen.dart';
+import 'package:hikaru/core/design_system/theme/app_theme.dart';
+import 'package:hikaru/features/crystals/application/selected_crystal_controller.dart';
+import 'package:hikaru/features/crystals/domain/crystal.dart';
+import 'package:hikaru/core/router/app_routes.dart';
+import 'package:hikaru/features/harmony_garden/presentation/harmony_garden_screen.dart';
+import 'package:hikaru/features/library/domain/library_article.dart';
+import 'package:hikaru/features/library/presentation/library_detail_screen.dart';
+import 'package:hikaru/features/library/presentation/library_screen.dart';
+import 'package:hikaru/features/massage/domain/massage_ritual.dart';
+import 'package:hikaru/features/massage/presentation/massage_screen.dart';
+import 'package:hikaru/features/merkaba/presentation/merkaba_screen.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 
@@ -130,7 +130,7 @@ void main() {
 
     await tester.tap(find.text('BACK'));
     await tester.pumpAndSettle();
-    expect(find.text('Harmony Garden'), findsOneWidget);
+    expect(find.text('THE HARMONY GARDEN'), findsOneWidget);
   });
 
   testWidgets('facial and body rituals open with timer, pressure, and zones', (
@@ -234,7 +234,7 @@ void main() {
 
     await tester.tap(find.text('BACK'));
     await tester.pumpAndSettle();
-    expect(find.text('Harmony Garden'), findsOneWidget);
+    expect(find.text('THE HARMONY GARDEN'), findsOneWidget);
   });
 
   testWidgets('library circles open a detail page and back returns', (
@@ -243,6 +243,11 @@ void main() {
     final router = await pumpGarden(tester);
     router.go(AppRoutes.library);
     await tester.pumpAndSettle();
+
+    final merkabaName = tester.widget<Text>(find.text('MERKABA'));
+    final merkabaDetail = tester.widget<Text>(find.text('Geometry & Energy'));
+    expect(merkabaName.style?.fontSize, greaterThanOrEqualTo(11));
+    expect(merkabaDetail.style?.fontSize, greaterThanOrEqualTo(10));
 
     Future<void> openTopic(String label, String heading) async {
       await tester.tap(find.bySemanticsLabel(label));
@@ -361,6 +366,10 @@ void main() {
     expect(crystal.dy, greaterThan(faceOrigin.dy));
     expect(find.text('Red Jasper'), findsOneWidget);
     expect(find.text('Listening Sanctuary'), findsNothing);
+    final label = tester.widget<Text>(find.text('Red Jasper'));
+    expect(label.style?.fontSize, greaterThanOrEqualTo(12));
+    expect(find.text('THE HARMONY GARDEN'), findsOneWidget);
+    expect(find.text('Your Journey Begins Within'), findsOneWidget);
   });
 
   testWidgets('red jasper stays when another crystal is assigned', (

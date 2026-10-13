@@ -1,7 +1,9 @@
 import 'dart:ui' as ui;
 
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hikaru/features/splash/presentation/splash_controller.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -20,5 +22,26 @@ void main() {
       frame.image.dispose();
     }
     expect(total.inMilliseconds, inInclusiveRange(9900, 10200));
+  });
+
+  testWidgets('splash destination waits until the symbol is decoded', (
+    tester,
+  ) async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    var arrived = false;
+    container.read(splashDestinationProvider.future).then((_) {
+      arrived = true;
+    });
+    await tester.pump();
+    expect(arrived, isFalse);
+
+    container.read(splashSymbolReadyProvider).complete();
+    await tester.pump(splashMinimumDuration - const Duration(milliseconds: 1));
+    expect(arrived, isFalse);
+
+    await tester.pump(const Duration(milliseconds: 1));
+    expect(arrived, isTrue);
   });
 }

@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:ui' as ui;
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
+import '../../../core/audio/audio_report.dart';
 
 /// The 10 s animation plus the time it takes to decode its first frame.
 const Duration splashLogoDuration = Duration(milliseconds: 10400);
@@ -15,7 +18,10 @@ const String _soundAsset = 'audio/splash.m4a';
 /// The official logo. Only its symbol moves: the S-wave unravels and
 /// settles into the gold figure-8, with the animation's sound.
 class SplashLogo extends StatefulWidget {
-  const SplashLogo({super.key});
+  const SplashLogo({super.key, required this.onDecoded});
+
+  /// Called once the first WebP frame is ready to paint.
+  final VoidCallback onDecoded;
 
   @override
   State<SplashLogo> createState() => _SplashLogoState();
@@ -32,6 +38,7 @@ class _SplashLogoState extends State<SplashLogo> {
   AudioPlayer? _player;
   Duration _nextFrameAt = Duration.zero;
   int _framesShown = 0;
+  bool _decodedReported = false;
 
   @override
   void initState() {
@@ -54,7 +61,27 @@ class _SplashLogoState extends State<SplashLogo> {
     return ui.instantiateImageCodec(data.buffer.asUint8List());
   }
 
+  void _reportDecoded() {
+    if (_decodedReported) return;
+    _decodedReported = true;
+    widget.onDecoded();
+  }
+
   Future<void> _start() async {
+    try {
+      await _decodeAndPlay();
+    } catch (error, stackTrace) {
+      log(
+        'Splash symbol failed to decode',
+        name: 'hikaru.splash',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      _reportDecoded();
+    }
+  }
+
+  Future<void> _decodeAndPlay() async {
     final [symbolCodec, logoCodec] = await Future.wait([
       _codecFor(_symbolAsset),
       _codecFor(_logoAsset),
@@ -66,6 +93,7 @@ class _SplashLogoState extends State<SplashLogo> {
       symbolCodec.dispose();
       firstFrame.image.dispose();
       wordmark.dispose();
+      _reportDecoded();
       return;
     }
 
@@ -73,6 +101,7 @@ class _SplashLogoState extends State<SplashLogo> {
       _symbolFrame = firstFrame.image;
       _wordmark = wordmark;
     });
+    _reportDecoded();
     unawaited(_playSound());
     if (MediaQuery.disableAnimationsOf(context)) {
       symbolCodec.dispose();
@@ -90,8 +119,8 @@ class _SplashLogoState extends State<SplashLogo> {
     try {
       final player = _player = AudioPlayer();
       await player.play(AssetSource(_soundAsset));
-    } catch (_) {
-      // Widget tests have no audio backend. The splash stays silent.
+    } catch (error, stackTrace) {
+      reportAudioFailure('Splash sound', error, stackTrace);
     }
   }
 

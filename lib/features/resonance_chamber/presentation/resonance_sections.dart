@@ -531,6 +531,7 @@ class _BenefitBadge extends StatelessWidget {
     BenefitIcon.mind: 'assets/images/resonance_icon_brain.svg',
     BenefitIcon.heart: 'assets/images/resonance_icon_heart.svg',
     BenefitIcon.flow: 'assets/images/resonance_icon_network.svg',
+    BenefitIcon.glow: 'assets/images/resonance_icon_glow.svg',
     BenefitIcon.rhythm: 'assets/images/resonance_icon_calendar.svg',
   };
 

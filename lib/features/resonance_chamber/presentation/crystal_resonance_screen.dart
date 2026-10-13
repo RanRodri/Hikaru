@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/audio/audio_report.dart';
 import '../../../core/design_system/tokens/app_colors.dart';
 import '../../../core/design_system/tokens/app_font_sizes.dart';
 import '../../../core/design_system/tokens/app_radii.dart';
@@ -130,7 +131,9 @@ class _CrystalResonanceScreenState
     await _restorePortraitChrome();
     try {
       await _player.stop();
-    } catch (_) {}
+    } catch (error, stackTrace) {
+      reportAudioFailure('Cymatic stop', error, stackTrace);
+    }
   }
 
   void _handleSurfaceTap() {
@@ -170,7 +173,8 @@ class _CrystalResonanceScreenState
       await _player.setReleaseMode(ReleaseMode.loop);
       if (!mounted || token != _playbackToken) return;
       await _player.play(AssetSource(_crystal.audioAsset));
-    } catch (_) {
+    } catch (error, stackTrace) {
+      reportAudioFailure('Cymatic play', error, stackTrace);
       if (!mounted || token != _playbackToken) return;
       // No player here: the projection keeps the simulated rhythm.
       setState(() {
@@ -190,7 +194,8 @@ class _CrystalResonanceScreenState
       setState(() => _isPlaying = false);
       try {
         await _player.pause();
-      } catch (_) {
+      } catch (error, stackTrace) {
+        reportAudioFailure('Cymatic pause', error, stackTrace);
         if (!mounted) return;
         setState(() => _isAudioUnavailable = true);
       }
@@ -200,7 +205,8 @@ class _CrystalResonanceScreenState
     setState(() => _isPlaying = true);
     try {
       await _player.resume();
-    } catch (_) {
+    } catch (error, stackTrace) {
+      reportAudioFailure('Cymatic resume', error, stackTrace);
       if (!mounted) return;
       setState(() {
         _isAudioUnavailable = true;

@@ -1,4 +1,4 @@
-package com.hiraku.hiraku
+package com.ingenieriacv.hikaru
 
 import io.flutter.embedding.android.FlutterActivity
 

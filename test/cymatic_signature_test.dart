@@ -2,9 +2,9 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hiraku/features/crystals/domain/crystal.dart';
-import 'package:hiraku/features/resonance_chamber/domain/cymatic_audio.dart';
-import 'package:hiraku/features/resonance_chamber/presentation/cymatic_signature.dart';
+import 'package:hikaru/features/crystals/domain/crystal.dart';
+import 'package:hikaru/features/resonance_chamber/domain/cymatic_audio.dart';
+import 'package:hikaru/features/resonance_chamber/presentation/cymatic_signature.dart';
 
 void main() {
   test('every crystal shares the 8-fold cymatic', () {

@@ -4,9 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
 import '../../../core/design_system/tokens/app_font_sizes.dart';
-import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/design_system/widgets/hikaru_navigation_bar.dart';
+import '../../../core/design_system/widgets/hikaru_page_intro.dart';
 import '../../../core/design_system/widgets/hikaru_shell.dart';
 import '../../../core/router/app_routes.dart';
 
@@ -25,7 +25,7 @@ class HarmonyGardenScreen extends StatelessWidget {
 /// Diameter of the Merkaba circle already on Home. Every access uses it.
 const double homeCircleDiameter = 110;
 
-const double _captionBand = 32;
+const double _labelBlock = 48;
 
 class _Access {
   const _Access({
@@ -129,7 +129,15 @@ class _Garden extends StatelessWidget {
             scale: scale,
             onPressed: () => context.push(access.route),
           ),
-        _Title(scale: scale),
+        Positioned(
+          left: 20 * scale,
+          right: 20 * scale,
+          top: 572 * scale,
+          child: const HikaruPageIntro(
+            title: 'THE HARMONY GARDEN',
+            subtitle: 'Your Journey Begins Within',
+          ),
+        ),
       ],
     );
   }
@@ -164,124 +172,64 @@ class _AccessCircle extends StatelessWidget {
       left: access.left * scale,
       top: access.top * scale,
       width: diameter,
-      height: diameter,
-      child: Semantics(
-        button: true,
-        label: access.semanticsLabel,
-        excludeSemantics: true,
-        child: GestureDetector(
-          onTap: onPressed,
-          behavior: HitTestBehavior.opaque,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.black,
-              border: Border.all(color: AppColors.champagneGold80),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.champagneGold.withValues(alpha: 0.7),
-                  blurRadius: 2 * scale,
+      child: Column(
+        children: [
+          Semantics(
+            button: true,
+            label: access.semanticsLabel,
+            excludeSemantics: true,
+            child: GestureDetector(
+              onTap: onPressed,
+              behavior: HitTestBehavior.opaque,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.black,
+                  border: Border.all(color: AppColors.champagneGold80),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.champagneGold.withValues(alpha: 0.7),
+                      blurRadius: 2 * scale,
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: ClipOval(
-              child: Column(
-                children: [
-                  Expanded(
+                child: ClipOval(
+                  child: SizedBox.square(
+                    dimension: diameter,
                     child: Image.asset(
                       access.imageAsset,
-                      width: double.infinity,
                       fit: BoxFit.cover,
                       excludeFromSemantics: true,
                     ),
                   ),
-                  SizedBox(
-                    height: _captionBand * scale,
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: AppSpacing.s8 * scale,
-                      ),
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          access.label,
-                          textAlign: TextAlign.center,
-                          style: AppTypography.subheadline.copyWith(
-                            color: AppColors.white,
-                            fontSize: AppFontSizes.s8_2 * scale,
-                            height: 1.15,
-                            letterSpacing: 0.4 * scale,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _Title extends StatelessWidget {
-  const _Title({required this.scale});
-
-  final double scale;
-
-  @override
-  Widget build(BuildContext context) {
-    final style = AppTypography.headline.copyWith(color: AppColors.white);
-
-    return Positioned(
-      left: 100 * scale,
-      top: 560 * scale,
-      width: 190 * scale,
-      child: Column(
-        children: [
-          Text(
-            'The',
-            style: style.copyWith(
-              fontSize: AppFontSizes.s10 * scale,
-              height: 1.1,
-              letterSpacing: 1.6 * scale,
+          ExcludeSemantics(
+            child: GestureDetector(
+              onTap: onPressed,
+              behavior: HitTestBehavior.opaque,
+              child: SizedBox(
+                height: _labelBlock * scale,
+                width: diameter,
+                child: Text(
+                  access.label,
+                  textAlign: TextAlign.center,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.subheadline.copyWith(
+                    color: AppColors.white,
+                    fontSize: AppFontSizes.s13 * scale,
+                    height: 1.15,
+                    letterSpacing: 0.2 * scale,
+                  ),
+                ),
+              ),
             ),
           ),
-          SizedBox(height: AppSpacing.s4 * scale),
-          Text(
-            'Harmony Garden',
-            style: style.copyWith(
-              fontSize: AppFontSizes.s20 * scale,
-              height: 1.1,
-              letterSpacing: 1.6 * scale,
-            ),
-          ),
-          SizedBox(height: AppSpacing.s4 * scale),
-          _rule(34),
-          SizedBox(height: AppSpacing.s4 * scale),
-          Text(
-            'Your Journey Begins Within',
-            textAlign: TextAlign.center,
-            style: style.copyWith(
-              fontSize: AppFontSizes.s10 * scale,
-              height: 1.2,
-              letterSpacing: 0.6 * scale,
-            ),
-          ),
-          SizedBox(height: AppSpacing.s4 * scale),
-          _rule(30),
         ],
       ),
-    );
-  }
-
-  Widget _rule(double width) {
-    return Container(
-      width: width * scale,
-      height: 0.8,
-      color: AppColors.champagneGold,
     );
   }
 }

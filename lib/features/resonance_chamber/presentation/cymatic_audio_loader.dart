@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 
+import '../../../core/audio/audio_report.dart';
 import '../domain/cymatic_audio.dart';
 
 final Map<String, Future<CymaticEnvelope?>> _envelopeCache = {};
@@ -13,7 +14,8 @@ Future<CymaticEnvelope?> loadCymaticEnvelope(String audioAsset) {
       return CymaticEnvelope.decode(
         data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
       );
-    } catch (_) {
+    } catch (error, stackTrace) {
+      reportAudioFailure('Cymatic envelope $audioAsset', error, stackTrace);
       return null;
     }
   });

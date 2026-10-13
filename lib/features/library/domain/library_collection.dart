@@ -36,7 +36,7 @@ const LibraryCollection merkabaCollection = LibraryCollection(
   category: 'SACRED GEOMETRY',
   imageAsset: 'assets/images/library_merkaba.png',
   diameter: 110,
-  photoHeight: 79,
+  photoHeight: 60,
   isHighlighted: true,
 );
 
@@ -47,7 +47,7 @@ const LibraryCollection ritualsCollection = LibraryCollection(
   category: 'RITUAL GUIDE',
   imageAsset: 'assets/images/library_rituals.png',
   diameter: 106,
-  photoHeight: 74,
+  photoHeight: 56,
 );
 
 const Map<Crystal, LibraryCollection> crystalCollections = {
@@ -57,7 +57,7 @@ const Map<Crystal, LibraryCollection> crystalCollections = {
     detail: 'Balance\n& Harmony',
     category: _crystalGuide,
     imageAsset: 'assets/images/library_jade.png',
-    photoHeight: 70,
+    photoHeight: 54,
   ),
   Crystal.whiteQuartz: LibraryCollection(
     id: 'whiteQuartz',
@@ -65,7 +65,7 @@ const Map<Crystal, LibraryCollection> crystalCollections = {
     detail: 'Clarity\n& Renewal',
     category: _crystalGuide,
     imageAsset: 'assets/images/library_white_quartz.png',
-    photoHeight: 70,
+    photoHeight: 54,
   ),
   Crystal.redJasper: LibraryCollection(
     id: 'redJasper',
@@ -73,7 +73,7 @@ const Map<Crystal, LibraryCollection> crystalCollections = {
     detail: 'Vitality\n& Grounding',
     category: _crystalGuide,
     imageAsset: 'assets/images/library_red_jasper.png',
-    photoHeight: 66,
+    photoHeight: 54,
   ),
   Crystal.obsidian: LibraryCollection(
     id: 'obsidian',
@@ -81,7 +81,7 @@ const Map<Crystal, LibraryCollection> crystalCollections = {
     detail: 'Protection\n& Transformation',
     category: _crystalGuide,
     imageAsset: 'assets/images/library_obsidian.png',
-    photoHeight: 66,
+    photoHeight: 54,
   ),
 };
 
@@ -101,9 +101,10 @@ LibraryCollection? libraryCollectionFor(String id) {
   return null;
 }
 
-LibraryCollection nextLibraryCollection(String id) {
+LibraryCollection? nextLibraryCollection(String id) {
   final index = libraryCollections.indexWhere(
     (collection) => collection.id == id,
   );
+  if (index < 0) return null;
   return libraryCollections[(index + 1) % libraryCollections.length];
 }

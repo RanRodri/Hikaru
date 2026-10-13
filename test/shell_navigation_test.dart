@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hiraku/core/design_system/theme/app_theme.dart';
-import 'package:hiraku/core/design_system/widgets/hikaru_navigation_bar.dart';
-import 'package:hiraku/core/router/app_router.dart';
-import 'package:hiraku/core/router/app_routes.dart';
-import 'package:hiraku/features/splash/presentation/splash_controller.dart';
+import 'package:hikaru/core/design_system/theme/app_theme.dart';
+import 'package:hikaru/core/design_system/widgets/hikaru_navigation_bar.dart';
+import 'package:hikaru/core/router/app_router.dart';
+import 'package:hikaru/core/router/app_routes.dart';
+import 'package:hikaru/features/splash/presentation/splash_controller.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 
@@ -41,13 +41,13 @@ void main() {
       await tester.tap(find.text('ENTER MY 30-DAY JOURNEY'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Harmony Garden'), findsOneWidget);
+      expect(find.text('THE HARMONY GARDEN'), findsOneWidget);
       expect(find.text('THE RESONANCE CHAMBER'), findsNothing);
       expect(router.canPop(), isFalse);
 
       await tester.tap(find.bySemanticsLabel('Sanctuary'));
       await tester.pumpAndSettle();
-      expect(find.text('Harmony Garden'), findsOneWidget);
+      expect(find.text('THE HARMONY GARDEN'), findsOneWidget);
       expect(router.routeInformationProvider.value.uri.path, AppRoutes.home);
 
       await tester.tap(find.bySemanticsLabel('Merkaba'));
@@ -55,7 +55,7 @@ void main() {
       expect(find.text('Human Blueprint'), findsOneWidget);
       await tester.tap(find.text('BACK'));
       await tester.pumpAndSettle();
-      expect(find.text('Harmony Garden'), findsOneWidget);
+      expect(find.text('THE HARMONY GARDEN'), findsOneWidget);
       expect(router.canPop(), isFalse);
 
       await tester.tap(find.bySemanticsLabel('Hikaru Ritual Face'));
@@ -63,7 +63,7 @@ void main() {
       expect(find.text('THE FACE TEMPLE'), findsOneWidget);
       await tester.tap(find.text('BACK'));
       await tester.pumpAndSettle();
-      expect(find.text('Harmony Garden'), findsOneWidget);
+      expect(find.text('THE HARMONY GARDEN'), findsOneWidget);
 
       await tester.tap(
         find.descendant(
@@ -98,7 +98,7 @@ void main() {
 
       router.pop();
       await tester.pumpAndSettle();
-      expect(find.text('Harmony Garden'), findsOneWidget);
+      expect(find.text('THE HARMONY GARDEN'), findsOneWidget);
       expect(find.text('THE RESONANCE CHAMBER'), findsNothing);
       expect(router.canPop(), isFalse);
     },

@@ -168,8 +168,13 @@ class _LibraryDetailScreenState extends State<LibraryDetailScreen> {
             onSelected: _handleFilterSelected,
           ),
         ],
-        const SizedBox(height: AppSpacing.s12),
-        _NextCard(collection: next, onPressed: () => _handleNextPressed(next)),
+        if (next != null) ...[
+          const SizedBox(height: AppSpacing.s12),
+          _NextCard(
+            collection: next,
+            onPressed: () => _handleNextPressed(next),
+          ),
+        ],
       ],
     );
   }
@@ -321,7 +326,10 @@ class _FilterChip extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: selected
                 ? const LinearGradient(
-                    colors: [AppColors.splashHighlight, AppColors.champagneGold],
+                    colors: [
+                      AppColors.splashHighlight,
+                      AppColors.champagneGold,
+                    ],
                   )
                 : null,
             color: selected
@@ -331,9 +339,7 @@ class _FilterChip extends StatelessWidget {
           child: InkWell(
             onTap: onPressed,
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.s16,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
               child: Center(
                 child: Text(
                   label,

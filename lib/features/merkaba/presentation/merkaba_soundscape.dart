@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:audioplayers/audioplayers.dart';
 
+import '../../../core/audio/audio_report.dart';
 import '../domain/merkaba_session.dart';
 
 /// Breath sounds, phase chimes and an ambient drone for the Merkaba session.
@@ -65,8 +66,8 @@ class MerkabaSoundscape {
         );
       }
       await Future.wait(tasks);
-    } catch (_) {
-      // Widget tests have no audio backend. Missing audio stays silent.
+    } catch (error, stackTrace) {
+      reportAudioFailure('Merkaba phase cue', error, stackTrace);
     }
   }
 
@@ -83,8 +84,8 @@ class MerkabaSoundscape {
       await player.setReleaseMode(ReleaseMode.loop);
       await player.play(AssetSource(ambientAsset));
       _ambientStarted = true;
-    } catch (_) {
-      // Widget tests have no audio backend. Missing audio stays silent.
+    } catch (error, stackTrace) {
+      reportAudioFailure('Merkaba ambient', error, stackTrace);
     }
   }
 
@@ -94,8 +95,8 @@ class MerkabaSoundscape {
         if (_breath != null) _breath!.pause(),
         if (_ambient != null) _ambient!.pause(),
       ]);
-    } catch (_) {
-      // Widget tests have no audio backend.
+    } catch (error, stackTrace) {
+      reportAudioFailure('Merkaba pause', error, stackTrace);
     }
   }
 
@@ -112,8 +113,8 @@ class MerkabaSoundscape {
         await player.setVolume(ambientVolume * step / _fadeSteps);
       }
       await player.stop();
-    } catch (_) {
-      // Widget tests have no audio backend.
+    } catch (error, stackTrace) {
+      reportAudioFailure('Merkaba ambient fade', error, stackTrace);
     }
   }
 
@@ -122,8 +123,8 @@ class MerkabaSoundscape {
     final players = [_chime, _breath, _ambient].whereType<AudioPlayer>();
     try {
       await Future.wait(players.map((player) => player.dispose()));
-    } catch (_) {
-      // Widget tests have no audio backend.
+    } catch (error, stackTrace) {
+      reportAudioFailure('Merkaba dispose', error, stackTrace);
     }
   }
 
@@ -136,7 +137,9 @@ class MerkabaSoundscape {
               focus: AudioContextConfigFocus.mixWithOthers,
             ).build(),
           )
-          .catchError((Object _) {}),
+          .catchError((Object error, StackTrace stackTrace) {
+            reportAudioFailure('Merkaba mix context', error, stackTrace);
+          }),
     );
     return player;
   }
@@ -145,8 +148,8 @@ class MerkabaSoundscape {
     if (_disposed) return;
     try {
       await player.stop();
-    } catch (_) {
-      // Widget tests have no audio backend. Missing audio stays silent.
+    } catch (error, stackTrace) {
+      reportAudioFailure('Merkaba breath stop', error, stackTrace);
     }
   }
 
@@ -165,8 +168,8 @@ class MerkabaSoundscape {
         volume: volume,
         position: position > Duration.zero ? position : null,
       );
-    } catch (_) {
-      // Widget tests have no audio backend. Missing audio stays silent.
+    } catch (error, stackTrace) {
+      reportAudioFailure('Merkaba cue $asset', error, stackTrace);
     }
   }
 }

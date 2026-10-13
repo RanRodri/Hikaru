@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -100,7 +101,14 @@ class _MerkabaMeditationScreenState
           completed: completed,
         ),
       );
-    } catch (_) {}
+    } catch (error, stackTrace) {
+      log(
+        'Merkaba session history was not saved',
+        name: 'hikaru.merkaba',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
   }
 
   void _cuePhase(BreathPhase phase, {Duration into = Duration.zero}) {

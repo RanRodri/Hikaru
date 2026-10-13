@@ -18,6 +18,15 @@ class SplashScreen extends ConsumerWidget {
       context.go(route);
     });
 
-    return const Scaffold(body: RadialGlowBackground(child: SplashLogo()));
+    return Scaffold(
+      body: RadialGlowBackground(
+        child: SplashLogo(
+          onDecoded: () {
+            final ready = ref.read(splashSymbolReadyProvider);
+            if (!ready.isCompleted) ready.complete();
+          },
+        ),
+      ),
+    );
   }
 }
