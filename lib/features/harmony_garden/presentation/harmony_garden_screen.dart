@@ -76,7 +76,7 @@ const double homeSideCircleHeight = 130;
 const List<_DestinationSpec> _destinations = [
   _DestinationSpec(
     semanticsLabel: 'Merkaba',
-    bounds: Rect.fromLTWH(134, 72, homeSideCircleWidth, homeSideCircleHeight),
+    bounds: Rect.fromLTWH(134, 36, homeSideCircleWidth, homeSideCircleHeight),
     collection: merkabaCollection,
     route: AppRoutes.merkaba,
   ),
@@ -175,7 +175,7 @@ class _Garden extends StatelessWidget {
     return Stack(
       children: [
         _scaled(
-          const Rect.fromLTWH(24, 120, 342, 390),
+          const Rect.fromLTWH(24, 88, 342, 400),
           SvgPicture.asset(
             'assets/images/harmony_orbit.svg',
             fit: BoxFit.fill,
