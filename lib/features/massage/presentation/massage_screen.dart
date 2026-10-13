@@ -22,7 +22,10 @@ const double _panelOverlap = 26;
 const Duration _inhale = Duration(seconds: 4);
 const Duration _breathCycle = Duration(seconds: 10);
 const double _sheetOpen = 0.62;
-const double _sheetCollapsed = 0.12;
+const double _sheetShown = 0.4;
+
+/// Top padding, handle, and the gap under it. Collapsed, this is all that shows.
+const double _handleBarHeight = 28;
 
 const List<Shadow> _textShadow = [
   Shadow(color: AppColors.scrim80, offset: Offset(0, 1), blurRadius: 6),
@@ -76,12 +79,10 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
     setState(() => _sheetExtent = next);
   }
 
-  double get _crystalOpacity {
-    const shown = 0.4;
-    return ((_sheetExtent - _sheetCollapsed) / (shown - _sheetCollapsed)).clamp(
-      0.0,
-      1.0,
-    );
+  double _crystalOpacity(double collapsed) {
+    final span = _sheetShown - collapsed;
+    if (span <= 0) return _sheetExtent >= _sheetShown ? 1 : 0;
+    return ((_sheetExtent - collapsed) / span).clamp(0.0, 1.0);
   }
 
   void _handleTick(Duration sinceStart) {
@@ -163,6 +164,9 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
       body: LayoutBuilder(
         builder: (context, constraints) {
           final scale = constraints.maxWidth / _designWidth;
+          final collapsed = (_handleBarHeight * scale / constraints.maxHeight)
+              .clamp(0.02, 0.12);
+          final crystalOpacity = _crystalOpacity(collapsed);
 
           return Stack(
             children: [
@@ -175,8 +179,6 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
                   child: _RitualHero(
                     scale: scale,
                     ritual: ritual,
-                    crystal: crystal,
-                    crystalOpacity: _crystalOpacity,
                     onBackPressed: _handleBackPressed,
                   ),
                 ),
@@ -184,10 +186,10 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
               DraggableScrollableSheet(
                 controller: _sheet,
                 initialChildSize: _sheetOpen,
-                minChildSize: _sheetCollapsed,
+                minChildSize: collapsed,
                 maxChildSize: 0.86,
                 snap: true,
-                snapSizes: const [_sheetCollapsed, _sheetOpen],
+                snapSizes: [collapsed, _sheetOpen],
                 builder: (context, scrollController) {
                   return DecoratedBox(
                     decoration: const BoxDecoration(
@@ -199,6 +201,8 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
                         scale: scale,
                         bottomInset: insets.bottom,
                         ritual: ritual,
+                        crystal: crystal,
+                        crystalOpacity: crystalOpacity,
                         zoneIndex: _zoneIndex,
                         zoneElapsed: _zoneElapsed,
                         sessionElapsed: _sessionElapsed,
@@ -234,15 +238,11 @@ class _RitualHero extends StatelessWidget {
   const _RitualHero({
     required this.scale,
     required this.ritual,
-    required this.crystal,
-    required this.crystalOpacity,
     required this.onBackPressed,
   });
 
   final double scale;
   final MassageRitual ritual;
-  final Crystal? crystal;
-  final double crystalOpacity;
   final VoidCallback onBackPressed;
 
   Widget _place({
@@ -263,8 +263,6 @@ class _RitualHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeCrystal = crystal;
-
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -307,16 +305,6 @@ class _RitualHero extends StatelessWidget {
             ],
           ),
         ),
-        if (activeCrystal != null)
-          _place(
-            left: 145,
-            top: 220,
-            width: 100,
-            child: Opacity(
-              opacity: crystalOpacity,
-              child: _CrystalBadge(crystal: activeCrystal, scale: scale),
-            ),
-          ),
       ],
     );
   }
@@ -418,69 +406,13 @@ class _HeaderActions extends StatelessWidget {
   }
 }
 
-class _CrystalBadge extends StatelessWidget {
-  const _CrystalBadge({required this.crystal, required this.scale});
-
-  final Crystal crystal;
-  final double scale;
-
-  @override
-  Widget build(BuildContext context) {
-    final size = 68 * scale;
-
-    return Column(
-      children: [
-        Container(
-          width: size,
-          height: size,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.champagneGold.withValues(alpha: 0.45),
-                blurRadius: 14 * scale,
-              ),
-            ],
-          ),
-          child: ClipOval(
-            child: Transform.scale(
-              scale: 1.04,
-              child: Image.asset(
-                crystal.imageAsset,
-                fit: BoxFit.cover,
-                excludeFromSemantics: true,
-              ),
-            ),
-          ),
-        ),
-        SizedBox(height: AppSpacing.s6 * scale),
-        Text(
-          crystal.displayName,
-          textAlign: TextAlign.center,
-          style: _spaced(
-            AppFontSizes.s9 * scale,
-          ).copyWith(shadows: _textShadow),
-        ),
-        Text(
-          crystal.temple,
-          textAlign: TextAlign.center,
-          style: AppTypography.footnote.copyWith(
-            color: AppColors.silver,
-            fontSize: AppFontSizes.s8_5 * scale,
-            fontStyle: FontStyle.italic,
-            shadows: _textShadow,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 class _ControlPanel extends StatelessWidget {
   const _ControlPanel({
     required this.scale,
     required this.bottomInset,
     required this.ritual,
+    required this.crystal,
+    required this.crystalOpacity,
     required this.zoneIndex,
     required this.zoneElapsed,
     required this.sessionElapsed,
@@ -495,6 +427,8 @@ class _ControlPanel extends StatelessWidget {
   final double scale;
   final double bottomInset;
   final MassageRitual ritual;
+  final Crystal? crystal;
+  final double crystalOpacity;
   final int zoneIndex;
   final Duration zoneElapsed;
   final Duration sessionElapsed;
@@ -518,7 +452,7 @@ class _ControlPanel extends StatelessWidget {
     return Container(
       padding: EdgeInsets.fromLTRB(
         AppSpacing.s20 * scale,
-        AppSpacing.s12 * scale,
+        0,
         AppSpacing.s20 * scale,
         bottomInset + AppSpacing.s24 * scale,
       ),
@@ -542,20 +476,27 @@ class _ControlPanel extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Center(
-            child: Container(
-              width: 36 * scale,
-              height: 4 * scale,
-              margin: EdgeInsets.only(bottom: AppSpacing.s8 * scale),
-              decoration: BoxDecoration(
-                color: AppColors.champagneGold80,
-                borderRadius: BorderRadius.circular(4),
+          Semantics(
+            label: 'Ritual sheet',
+            child: SizedBox(
+              height: _handleBarHeight * scale,
+              child: Center(
+                child: Container(
+                  width: 36 * scale,
+                  height: 4 * scale,
+                  decoration: BoxDecoration(
+                    color: AppColors.champagneGold80,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
               ),
             ),
           ),
           _StepSummary(
             scale: scale,
             zone: zone,
+            crystal: crystal,
+            crystalOpacity: crystalOpacity,
             number: zoneIndex + 1,
             total: ritual.zones.length,
           ),
@@ -658,12 +599,16 @@ class _StepSummary extends StatelessWidget {
   const _StepSummary({
     required this.scale,
     required this.zone,
+    required this.crystal,
+    required this.crystalOpacity,
     required this.number,
     required this.total,
   });
 
   final double scale;
   final MassageZone zone;
+  final Crystal? crystal;
+  final double crystalOpacity;
   final int number;
   final int total;
 
@@ -672,28 +617,45 @@ class _StepSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final frameSize = 71 * scale;
+    final assigned = crystal;
 
     return Row(
       children: [
-        Container(
-          width: frameSize,
-          height: frameSize,
-          padding: EdgeInsets.all(3 * scale),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: AppColors.champagneGold80, width: 0.8),
-          ),
-          child: DecoratedBox(
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.darkIndigoBlue,
-            ),
-            child: Center(
-              child: SvgPicture.asset(
-                'assets/images/ritual_lotus.svg',
-                width: 26 * scale,
-                height: 23 * scale,
-                excludeFromSemantics: true,
+        Opacity(
+          opacity: crystalOpacity,
+          child: ExcludeSemantics(
+            excluding: assigned == null || crystalOpacity <= 0.05,
+            child: Semantics(
+              label: assigned == null
+                  ? null
+                  : 'Assigned crystal ${assigned.displayName}',
+              excludeSemantics: true,
+              child: Container(
+                width: frameSize,
+                height: frameSize,
+                padding: EdgeInsets.all(3 * scale),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppColors.champagneGold80,
+                    width: 0.8,
+                  ),
+                ),
+                child: DecoratedBox(
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.darkIndigoBlue,
+                  ),
+                  child: assigned == null
+                      ? const SizedBox.expand()
+                      : ClipOval(
+                          child: Image.asset(
+                            assigned.imageAsset,
+                            fit: BoxFit.cover,
+                            excludeFromSemantics: true,
+                          ),
+                        ),
+                ),
               ),
             ),
           ),

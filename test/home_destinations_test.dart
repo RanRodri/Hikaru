@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hiraku/core/design_system/theme/app_theme.dart';
@@ -15,6 +16,28 @@ import 'package:hiraku/features/massage/presentation/massage_screen.dart';
 import 'package:hiraku/features/merkaba/presentation/merkaba_screen.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
+
+double _crystalOpacity(WidgetTester tester) {
+  final crystal = find.byWidgetPredicate(
+    (widget) =>
+        widget is Image &&
+        widget.image is AssetImage &&
+        (widget.image as AssetImage).assetName == Crystal.jade.imageAsset,
+  );
+  final opacity = tester.widget<Opacity>(
+    find.ancestor(of: crystal, matching: find.byType(Opacity)).first,
+  );
+  return opacity.opacity;
+}
+
+Finder _ritualLotus() {
+  return find.byWidgetPredicate((widget) {
+    if (widget is! SvgPicture) return false;
+    final loader = widget.bytesLoader;
+    return loader is SvgAssetLoader &&
+        loader.assetName == 'assets/images/ritual_lotus.svg';
+  });
+}
 
 void main() {
   setUp(() {
@@ -114,6 +137,11 @@ void main() {
     tester,
   ) async {
     await pumpGarden(tester);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(HarmonyGardenScreen)),
+    );
+    await container.read(selectedCrystalProvider.notifier).select(Crystal.jade);
+    await tester.pumpAndSettle();
 
     await tester.tap(find.bySemanticsLabel('Hikaru Ritual Face'));
     await tester.pumpAndSettle();
@@ -123,6 +151,17 @@ void main() {
     expect(find.text(faceRitual.zones.first.instruction), findsOneWidget);
     expect(find.text('00:00'), findsOneWidget);
     expect(find.text('MERIDIAN'), findsNothing);
+    expect(find.bySemanticsLabel('Assigned crystal JADE'), findsOneWidget);
+    expect(_ritualLotus(), findsNothing);
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Image &&
+            widget.image is AssetImage &&
+            (widget.image as AssetImage).assetName == Crystal.jade.imageAsset,
+      ),
+      findsOneWidget,
+    );
 
     await tester.tap(find.bySemanticsLabel('Play'));
     await tester.pump();
@@ -134,6 +173,7 @@ void main() {
     await tester.pump();
     expect(find.text('00:00'), findsOneWidget);
     expect(find.text('PRESSURE'), findsNothing);
+    expect(find.text('INHALE'), findsOneWidget);
     expect(find.byIcon(Icons.hourglass_bottom_outlined), findsOneWidget);
 
     await tester.tap(find.bySemanticsLabel('Next zone'));
@@ -144,6 +184,29 @@ void main() {
     await tester.pump();
     expect(find.text('05 / 05'), findsOneWidget);
 
+    await tester.tap(find.bySemanticsLabel('Play'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 1200));
+    await tester.drag(
+      find.bySemanticsLabel('Ritual sheet'),
+      const Offset(0, 700),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      tester.getTopLeft(find.bySemanticsLabel('Ritual sheet')).dy,
+      greaterThan(800),
+    );
+    expect(_crystalOpacity(tester), 0);
+    expect(find.bySemanticsLabel('Ritual video'), findsOneWidget);
+
+    await tester.drag(
+      find.bySemanticsLabel('Ritual sheet'),
+      const Offset(0, -500),
+    );
+    await tester.pumpAndSettle();
+    expect(_crystalOpacity(tester), 1);
+    expect(find.text('00:00'), findsNothing);
+
     await tester.tap(find.text('BACK'));
     await tester.pumpAndSettle();
 
@@ -152,6 +215,22 @@ void main() {
     expect(find.text('THE BODY TEMPLE'), findsOneWidget);
     expect(find.text('01 / 04'), findsOneWidget);
     expect(find.text('CHEST'), findsWidgets);
+    expect(find.bySemanticsLabel('Assigned crystal JADE'), findsOneWidget);
+    expect(find.text('INHALE'), findsOneWidget);
+    expect(find.byIcon(Icons.hourglass_bottom_outlined), findsOneWidget);
+    expect(find.text('PRESSURE'), findsNothing);
+
+    await tester.drag(
+      find.bySemanticsLabel('Ritual sheet'),
+      const Offset(0, 700),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      tester.getTopLeft(find.bySemanticsLabel('Ritual sheet')).dy,
+      greaterThan(800),
+    );
+    expect(_crystalOpacity(tester), 0);
+    expect(find.bySemanticsLabel('Ritual video'), findsOneWidget);
 
     await tester.tap(find.text('BACK'));
     await tester.pumpAndSettle();
