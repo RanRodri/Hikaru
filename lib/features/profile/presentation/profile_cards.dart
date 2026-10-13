@@ -324,9 +324,8 @@ class DataPrivacyCard extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              'Your facial photos and personal information are encrypted and '
-              'protected with the highest standards of security and '
-              'confidentiality.',
+              'Your facial photos and personal information stay with your '
+              'account. Open Privacy to review what is kept.',
               style: _cardText.copyWith(fontSize: AppFontSizes.s10_3),
             ),
           ),

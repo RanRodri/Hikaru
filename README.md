@@ -1,6 +1,6 @@
-# hiraku
+# hikaru
 
-Proyecto Hiraku
+Hikaru Lift
 
 ## Getting Started
 

@@ -1,0 +1,10 @@
+# Copy to android/key.properties (gitignored). Do not commit passwords or keystores.
+# storeFile is resolved from android/app/.
+#
+# Release also minifies with R8 (see android/app/build.gradle.kts).
+# Dart obfuscation is a Flutter build flag, not a Gradle property:
+#   flutter build appbundle --release --obfuscate --split-debug-info=build/symbols
+storePassword=REPLACE_ME
+keyPassword=REPLACE_ME
+keyAlias=upload
+storeFile=upload-keystore.jks
