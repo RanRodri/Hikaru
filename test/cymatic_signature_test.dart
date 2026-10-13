@@ -39,6 +39,14 @@ void main() {
     await tester.tap(find.text('PLAY'));
     await tester.pump();
     expect(key.currentState!.isAnimating, isTrue);
+    expect(
+      tester
+          .widget<Align>(
+            find.ancestor(of: find.byType(Image), matching: find.byType(Align)),
+          )
+          .alignment,
+      Alignment.center,
+    );
 
     await tester.pump(const Duration(milliseconds: 500));
     final phaseWhilePlaying = key.currentState!.phase;

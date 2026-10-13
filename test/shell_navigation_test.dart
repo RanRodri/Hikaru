@@ -130,16 +130,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
 
-    if (find.text('Continue').evaluate().isNotEmpty) {
-      await tester.tap(find.text('Continue'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 400));
-    }
-    if (find.text('NOT NOW').evaluate().isNotEmpty) {
-      await tester.tap(find.text('NOT NOW'));
-      await tester.pump();
-    }
-
+    expect(find.text('Continue'), findsNothing);
     expect(find.text('JADE'), findsWidgets);
     router.pop();
     await tester.pumpAndSettle();
