@@ -54,6 +54,7 @@ void main() {
     'app_spacing.dart': _buildSpacing(root),
     'app_font_sizes.dart': _buildFontSizes(root),
     'app_radii.dart': _buildRadii(root),
+    'app_journal.dart': _buildJournal(root),
   };
 
   files.forEach((name, content) {
@@ -165,7 +166,9 @@ String _buildColors(Map<String, dynamic> root, List<Token> tokens) {
     ..writeln('abstract final class AppColors {');
 
   for (final token in tokens.where(
-    (token) => token.data[r'$type'] == 'color',
+    (token) =>
+        token.data[r'$type'] == 'color' &&
+        (token.path.isEmpty || token.path.first != 'journal'),
   )) {
     final value = _resolve(root, token.data[r'$value']) as String;
     if (_isGradient(value)) continue;
@@ -419,6 +422,32 @@ String _buildScaleClass(
     buffer.writeln(
       '  static const double ${nameFor(entry.key)} = ${_number(value)};',
     );
+  }
+
+  buffer.writeln('}');
+  return buffer.toString();
+}
+
+String _buildJournal(Map<String, dynamic> root) {
+  final journal = root['journal'] as Map<String, dynamic>? ?? {};
+  final buffer = StringBuffer()
+    ..writeln(_header)
+    ..writeln("import 'package:flutter/painting.dart';")
+    ..writeln()
+    ..writeln('abstract final class AppJournal {');
+
+  for (final entry in journal.entries) {
+    final data = entry.value as Map<String, dynamic>;
+    final value = _resolve(root, data[r'$value']);
+    final name = _camelCase([entry.key]);
+    if (data[r'$type'] == 'color') {
+      buffer.writeln(
+        '  static const Color $name = ${_colorLiteral(value as String)};',
+      );
+      continue;
+    }
+    final number = num.parse(value.toString());
+    buffer.writeln('  static const double $name = ${_number(number)};');
   }
 
   buffer.writeln('}');

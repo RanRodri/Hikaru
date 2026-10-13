@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
 import '../../../core/design_system/tokens/app_font_sizes.dart';
+import '../../../core/design_system/tokens/app_journal.dart';
 import '../../../core/design_system/tokens/app_radii.dart';
 import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
@@ -57,21 +58,34 @@ class _JourneyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppRadii.r12),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          padding: padding,
-          decoration: BoxDecoration(
-            color: AppColors.darkIndigoBlue.withValues(alpha: 0.55),
-            borderRadius: BorderRadius.circular(AppRadii.r12),
-            border: Border.all(
-              color: AppColors.champagneGold.withValues(alpha: 0.45),
-              width: 0.9,
-            ),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppJournal.radius),
+        boxShadow: [
+          BoxShadow(
+            color: AppJournal.shadow,
+            blurRadius: AppJournal.shadowBlur,
+            spreadRadius: AppJournal.elevation / 4,
+            offset: const Offset(0, AppJournal.shadowOffset),
           ),
-          child: child,
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppJournal.radius),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(
+            sigmaX: AppJournal.blur,
+            sigmaY: AppJournal.blur,
+          ),
+          child: Container(
+            padding: padding,
+            decoration: BoxDecoration(
+              color: AppJournal.surface,
+              borderRadius: BorderRadius.circular(AppJournal.radius),
+              border: Border.all(color: AppJournal.border, width: 0.9),
+            ),
+            child: child,
+          ),
         ),
       ),
     );

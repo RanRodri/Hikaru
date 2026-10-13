@@ -6,13 +6,14 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
 import '../../../core/design_system/tokens/app_font_sizes.dart';
+import '../../../core/design_system/tokens/app_journal.dart';
 import '../../../core/design_system/tokens/app_radii.dart';
 import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/design_system/widgets/hikaru_dividers.dart';
 import '../../journey/domain/journey_progress.dart';
 
-const Color _ink = AppColors.darkIndigoBlue;
+const Color _ink = AppColors.white;
 const Color _accent = AppColors.matteChampagne80;
 
 final TextStyle _cardText = AppTypography.headline.copyWith(
@@ -41,42 +42,58 @@ class _ProfileCard extends StatelessWidget {
     final cardIcon = icon;
     final cardLabel = label;
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppRadii.r9),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.s14,
-            AppSpacing.s10,
-            AppSpacing.s14,
-            AppSpacing.s14,
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppJournal.radius),
+        boxShadow: const [
+          BoxShadow(
+            color: AppJournal.shadow,
+            blurRadius: AppJournal.shadowBlur,
+            spreadRadius: AppJournal.elevation / 4,
+            offset: Offset(0, AppJournal.shadowOffset),
           ),
-          decoration: BoxDecoration(
-            color: AppColors.fog.withValues(alpha: 0.82),
-            borderRadius: BorderRadius.circular(AppRadii.r9),
-            border: Border.all(color: AppColors.white, width: 0.6),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppJournal.radius),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(
+            sigmaX: AppJournal.blur,
+            sigmaY: AppJournal.blur,
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (cardIcon != null && cardLabel != null) ...[
-                Row(
-                  children: [
-                    SvgPicture.asset(
-                      cardIcon,
-                      width: 18,
-                      height: 18,
-                      excludeFromSemantics: true,
-                    ),
-                    const SizedBox(width: AppSpacing.s8),
-                    Expanded(child: Text(cardLabel, style: _sectionLabel)),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.s12),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.s14,
+              AppSpacing.s10,
+              AppSpacing.s14,
+              AppSpacing.s14,
+            ),
+            decoration: BoxDecoration(
+              color: AppJournal.surface,
+              borderRadius: BorderRadius.circular(AppJournal.radius),
+              border: Border.all(color: AppJournal.border, width: 0.9),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (cardIcon != null && cardLabel != null) ...[
+                  Row(
+                    children: [
+                      SvgPicture.asset(
+                        cardIcon,
+                        width: 18,
+                        height: 18,
+                        excludeFromSemantics: true,
+                      ),
+                      const SizedBox(width: AppSpacing.s8),
+                      Expanded(child: Text(cardLabel, style: _sectionLabel)),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.s12),
+                ],
+                child,
               ],
-              child,
-            ],
+            ),
           ),
         ),
       ),
@@ -279,7 +296,7 @@ class _ReminderRow extends StatelessWidget {
                 reminder.detail,
                 style: _cardText.copyWith(
                   fontSize: AppFontSizes.s10_5,
-                  color: AppColors.darkIndigoBlue80,
+                  color: AppColors.fog,
                 ),
               ),
             ],

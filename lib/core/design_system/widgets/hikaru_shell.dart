@@ -21,6 +21,9 @@ class HikaruShell extends StatelessWidget {
   static const double designWidth = 390;
   static const String gardenBackground =
       'assets/images/harmony_garden_background.png';
+
+  /// Neutral landscape with no figure. Journal and Profile share it.
+  static const String journalLandscape = 'assets/images/sanctuary_hero.png';
   static const Map<HikaruDestination, String> _destinationRoutes = {
     HikaruDestination.home: AppRoutes.home,
     HikaruDestination.journey: AppRoutes.journey,

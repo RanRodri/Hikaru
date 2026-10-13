@@ -4,6 +4,7 @@ import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/widgets/hikaru_navigation_bar.dart';
 import '../../../core/design_system/widgets/hikaru_page_intro.dart';
 import '../../../core/design_system/widgets/hikaru_scroll_page.dart';
+import '../../../core/design_system/widgets/hikaru_shell.dart';
 import 'journey_cards.dart';
 
 class JourneyScreen extends StatelessWidget {
@@ -15,7 +16,7 @@ class JourneyScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return const HikaruScrollPage(
       active: HikaruDestination.journey,
-      dimBackground: true,
+      backgroundAsset: HikaruShell.journalLandscape,
       children: [
         HikaruPageIntro(
           title: 'JOURNEY',
