@@ -69,99 +69,99 @@ const LibraryCollection _listeningCollection = LibraryCollection(
   photoHeight: 70,
 );
 
+/// Shared size for the garden circles on the left and the right.
+const double homeSideCircleWidth = 122;
+const double homeSideCircleHeight = 130;
+
 const List<_DestinationSpec> _destinations = [
   _DestinationSpec(
     semanticsLabel: 'Merkaba',
-    bounds: Rect.fromLTWH(134.5, 187, 122, 130),
+    bounds: Rect.fromLTWH(134, 72, homeSideCircleWidth, homeSideCircleHeight),
     collection: merkabaCollection,
     route: AppRoutes.merkaba,
   ),
   _DestinationSpec(
     semanticsLabel: 'Hikaru Ritual Face',
-    bounds: Rect.fromLTWH(12, 266, 122, 130),
+    bounds: Rect.fromLTWH(260, 228, homeSideCircleWidth, homeSideCircleHeight),
     layers: [
       _Layer(
         'assets/images/harmony_face_halo.svg',
-        Rect.fromLTWH(12, 266, 122, 130),
+        Rect.fromLTWH(260, 228, homeSideCircleWidth, homeSideCircleHeight),
       ),
       _Layer(
         'assets/images/harmony_face.png',
-        Rect.fromLTWH(24, 278, 98, 106),
+        Rect.fromLTWH(272, 240, 98, 106),
         isPhoto: true,
       ),
       _Layer(
         'assets/images/harmony_face_scrim.svg',
-        Rect.fromLTWH(24, 278, 98, 106),
+        Rect.fromLTWH(272, 240, 98, 106),
       ),
     ],
     label: 'Hikaru Ritual\nFace',
-    labelBounds: Rect.fromLTWH(34, 342, 78, 26),
+    labelBounds: Rect.fromLTWH(282, 304, 78, 26),
     route: AppRoutes.ritualFace,
   ),
   _DestinationSpec(
+    semanticsLabel: 'Hikaru Ritual Body',
+    bounds: Rect.fromLTWH(260, 392, homeSideCircleWidth, homeSideCircleHeight),
+    layers: [
+      _Layer(
+        'assets/images/harmony_body_halo.svg',
+        Rect.fromLTWH(260, 392, homeSideCircleWidth, homeSideCircleHeight),
+      ),
+      _Layer(
+        'assets/images/harmony_body.png',
+        Rect.fromLTWH(272, 404, 98, 106),
+        isPhoto: true,
+      ),
+      _Layer(
+        'assets/images/harmony_body_scrim.svg',
+        Rect.fromLTWH(272, 404, 98, 106),
+      ),
+    ],
+    label: 'Hikaru Ritual\nBody',
+    labelBounds: Rect.fromLTWH(281, 468, 80, 26),
+    route: AppRoutes.ritualBody,
+  ),
+  _DestinationSpec(
     semanticsLabel: 'Listening Sanctuary',
-    bounds: Rect.fromLTWH(256, 268, 122, 130),
+    bounds: Rect.fromLTWH(8, 392, homeSideCircleWidth, homeSideCircleHeight),
     collection: _listeningCollection,
     route: AppRoutes.fourTemples,
     showsSelectedCrystal: true,
   ),
   _DestinationSpec(
-    semanticsLabel: 'Hikaru Ritual Body',
-    bounds: Rect.fromLTWH(5, 383, 125, 131),
-    layers: [
-      _Layer(
-        'assets/images/harmony_body_halo.svg',
-        Rect.fromLTWH(5, 383, 125, 131),
-      ),
-      _Layer(
-        'assets/images/harmony_body.png',
-        Rect.fromLTWH(17, 395, 101, 107),
-        isPhoto: true,
-      ),
-      _Layer(
-        'assets/images/harmony_body_scrim.svg',
-        Rect.fromLTWH(17, 395, 101, 107),
-      ),
-    ],
-    label: 'Hikaru Ritual\nBody',
-    labelBounds: Rect.fromLTWH(27, 453, 80, 26),
-    route: AppRoutes.ritualBody,
-  ),
-  _DestinationSpec(
     semanticsLabel: 'Library',
-    bounds: Rect.fromLTWH(265, 383, 122, 131),
+    bounds: Rect.fromLTWH(8, 228, homeSideCircleWidth, homeSideCircleHeight),
     layers: [
       _Layer(
         'assets/images/harmony_library_halo.svg',
-        Rect.fromLTWH(265, 383, 122, 131),
+        Rect.fromLTWH(8, 228, homeSideCircleWidth, homeSideCircleHeight),
       ),
       _Layer(
         'assets/images/harmony_library.png',
-        Rect.fromLTWH(277, 395, 98, 107),
+        Rect.fromLTWH(20, 240, 98, 106),
         isPhoto: true,
       ),
       _Layer(
         'assets/images/harmony_library_scrim.svg',
-        Rect.fromLTWH(277, 395, 98, 107),
+        Rect.fromLTWH(20, 240, 98, 106),
       ),
     ],
     label: 'Library',
-    labelBounds: Rect.fromLTWH(292, 464, 65, 13),
+    labelBounds: Rect.fromLTWH(36.5, 304, 65, 13),
     route: AppRoutes.library,
   ),
 ];
 
 const List<Offset> _glowDots = [
-  Offset(231.26, 252.83),
-  Offset(152.71, 252.57),
-  Offset(94.31, 282.94),
-  Offset(43.01, 371.08),
-  Offset(340.23, 372.43),
-  Offset(289.77, 283.86),
-  Offset(40.5, 398.61),
-  Offset(75.88, 495.62),
-  Offset(308.44, 494.02),
-  Offset(342.5, 398.08),
+  Offset(195, 214),
+  Offset(186, 292),
+  Offset(204, 292),
+  Offset(195, 372),
+  Offset(150, 430),
+  Offset(240, 430),
 ];
 
 class _Garden extends StatelessWidget {
@@ -175,7 +175,7 @@ class _Garden extends StatelessWidget {
     return Stack(
       children: [
         _scaled(
-          const Rect.fromLTWH(44, 251, 302, 302),
+          const Rect.fromLTWH(24, 120, 342, 390),
           SvgPicture.asset(
             'assets/images/harmony_orbit.svg',
             fit: BoxFit.fill,
@@ -301,9 +301,7 @@ class _Destination extends StatelessWidget {
       height: bounds.height * scale,
       child: Semantics(
         button: true,
-        label: crystal == null
-            ? spec.semanticsLabel
-            : '${spec.semanticsLabel}, ${crystal!.displayName}',
+        label: crystal == null ? spec.semanticsLabel : crystal!.displayName,
         excludeSemantics: true,
         child: GestureDetector(
           onTap: onPressed,

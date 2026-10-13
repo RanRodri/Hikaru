@@ -18,11 +18,11 @@ import '../domain/massage_ritual.dart';
 import 'ritual_video_slot.dart';
 
 const double _designWidth = 390;
-const double _heroHeight = 482;
 const double _panelOverlap = 26;
 const Duration _inhale = Duration(seconds: 4);
 const Duration _breathCycle = Duration(seconds: 10);
-const double _pressureStopHeight = 30;
+const double _sheetOpen = 0.62;
+const double _sheetCollapsed = 0.12;
 
 const List<Shadow> _textShadow = [
   Shadow(color: AppColors.scrim80, offset: Offset(0, 1), blurRadius: 6),
@@ -44,7 +44,8 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
   Duration _lastTick = Duration.zero;
   bool _playing = false;
   int _zoneIndex = 0;
-  MassagePressure _pressure = MassagePressure.moderate;
+  final DraggableScrollableController _sheet = DraggableScrollableController();
+  double _sheetExtent = _sheetOpen;
 
   MassageRitual get _ritual => ritualFor(widget.surface);
 
@@ -57,12 +58,30 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
   void initState() {
     super.initState();
     _ticker = createTicker(_handleTick);
+    _sheet.addListener(_handleSheet);
   }
 
   @override
   void dispose() {
+    _sheet.removeListener(_handleSheet);
+    _sheet.dispose();
     _ticker.dispose();
     super.dispose();
+  }
+
+  void _handleSheet() {
+    if (!_sheet.isAttached) return;
+    final next = _sheet.size;
+    if ((next - _sheetExtent).abs() < 0.008) return;
+    setState(() => _sheetExtent = next);
+  }
+
+  double get _crystalOpacity {
+    const shown = 0.4;
+    return ((_sheetExtent - _sheetCollapsed) / (shown - _sheetCollapsed)).clamp(
+      0.0,
+      1.0,
+    );
   }
 
   void _handleTick(Duration sinceStart) {
@@ -133,10 +152,6 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
     });
   }
 
-  void _handlePressureSelected(MassagePressure pressure) {
-    setState(() => _pressure = pressure);
-  }
-
   @override
   Widget build(BuildContext context) {
     final crystal = ref.watch(selectedCrystalProvider).value;
@@ -148,66 +163,58 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
       body: LayoutBuilder(
         builder: (context, constraints) {
           final scale = constraints.maxWidth / _designWidth;
-          final heroHeight = insets.top + _heroHeight * scale;
 
-          return DecoratedBox(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  AppColors.darkIndigoBlue,
-                  AppColors.indigoBlue,
-                  AppColors.indigoBlue80,
-                ],
-                stops: [0, 0.45, 1],
+          return Stack(
+            children: [
+              Positioned.fill(
+                child: RitualVideoSlot(videoUrl: ritual.videoUrl),
               ),
-            ),
-            child: SingleChildScrollView(
-              child: Stack(
-                children: [
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: heroHeight + _panelOverlap * scale,
-                    child: RitualVideoSlot(videoUrl: ritual.videoUrl),
+              Positioned.fill(
+                child: Padding(
+                  padding: EdgeInsets.only(top: insets.top),
+                  child: _RitualHero(
+                    scale: scale,
+                    ritual: ritual,
+                    crystal: crystal,
+                    crystalOpacity: _crystalOpacity,
+                    onBackPressed: _handleBackPressed,
                   ),
-                  Column(
-                    children: [
-                      SizedBox(
-                        height: heroHeight,
-                        child: Padding(
-                          padding: EdgeInsets.only(top: insets.top),
-                          child: _RitualHero(
-                            scale: scale,
-                            ritual: ritual,
-                            crystal: crystal,
-                            onBackPressed: _handleBackPressed,
-                          ),
-                        ),
-                      ),
-                      _ControlPanel(
+                ),
+              ),
+              DraggableScrollableSheet(
+                controller: _sheet,
+                initialChildSize: _sheetOpen,
+                minChildSize: _sheetCollapsed,
+                maxChildSize: 0.86,
+                snap: true,
+                snapSizes: const [_sheetCollapsed, _sheetOpen],
+                builder: (context, scrollController) {
+                  return DecoratedBox(
+                    decoration: const BoxDecoration(
+                      color: AppColors.darkIndigoBlue,
+                    ),
+                    child: SingleChildScrollView(
+                      controller: scrollController,
+                      child: _ControlPanel(
                         scale: scale,
                         bottomInset: insets.bottom,
                         ritual: ritual,
+                        crystal: crystal,
                         zoneIndex: _zoneIndex,
                         zoneElapsed: _zoneElapsed,
                         sessionElapsed: _sessionElapsed,
                         playing: _playing,
-                        pressure: _pressure,
                         onZoneSelected: _handleZoneSelected,
-                        onPressureSelected: _handlePressureSelected,
                         onPrevious: () => _handleZoneSelected(_zoneIndex - 1),
                         onPlayPause: _handlePlayPause,
                         onNext: () => _handleZoneSelected(_zoneIndex + 1),
                         onRestart: _handleRestart,
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                  );
+                },
               ),
-            ),
+            ],
           );
         },
       ),
@@ -229,12 +236,14 @@ class _RitualHero extends StatelessWidget {
     required this.scale,
     required this.ritual,
     required this.crystal,
+    required this.crystalOpacity,
     required this.onBackPressed,
   });
 
   final double scale;
   final MassageRitual ritual;
   final Crystal? crystal;
+  final double crystalOpacity;
   final VoidCallback onBackPressed;
 
   Widget _place({
@@ -302,9 +311,12 @@ class _RitualHero extends StatelessWidget {
         if (activeCrystal != null)
           _place(
             left: 145,
-            top: 368,
+            top: 220,
             width: 100,
-            child: _CrystalBadge(crystal: activeCrystal, scale: scale),
+            child: Opacity(
+              opacity: crystalOpacity,
+              child: _CrystalBadge(crystal: activeCrystal, scale: scale),
+            ),
           ),
       ],
     );
@@ -474,9 +486,8 @@ class _ControlPanel extends StatelessWidget {
     required this.zoneElapsed,
     required this.sessionElapsed,
     required this.playing,
-    required this.pressure,
+    required this.crystal,
     required this.onZoneSelected,
-    required this.onPressureSelected,
     required this.onPrevious,
     required this.onPlayPause,
     required this.onNext,
@@ -490,9 +501,8 @@ class _ControlPanel extends StatelessWidget {
   final Duration zoneElapsed;
   final Duration sessionElapsed;
   final bool playing;
-  final MassagePressure pressure;
+  final Crystal? crystal;
   final ValueChanged<int> onZoneSelected;
-  final ValueChanged<MassagePressure> onPressureSelected;
   final VoidCallback onPrevious;
   final VoidCallback onPlayPause;
   final VoidCallback onNext;
@@ -535,11 +545,23 @@ class _ControlPanel extends StatelessWidget {
       ),
       child: Column(
         children: [
+          Center(
+            child: Container(
+              width: 36 * scale,
+              height: 4 * scale,
+              margin: EdgeInsets.only(bottom: AppSpacing.s8 * scale),
+              decoration: BoxDecoration(
+                color: AppColors.champagneGold80,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ),
           _StepSummary(
             scale: scale,
             zone: zone,
             number: zoneIndex + 1,
             total: ritual.zones.length,
+            crystal: crystal,
           ),
           SizedBox(height: AppSpacing.s10 * scale),
           SizedBox(
@@ -566,29 +588,14 @@ class _ControlPanel extends StatelessWidget {
                 ),
                 SizedBox(width: cardGap),
                 Expanded(
-                  flex: 121,
-                  child: _ControlCard(
-                    scale: scale,
-                    label: 'PRESSURE',
-                    icon: const _FlowEmblem(),
-                    child: _PressureSelector(
-                      scale: scale,
-                      selected: pressure,
-                      onSelected: onPressureSelected,
-                    ),
-                  ),
-                ),
-                SizedBox(width: cardGap),
-                Expanded(
                   flex: 101,
                   child: _ControlCard(
                     scale: scale,
                     label: 'DURATION',
-                    icon: SvgPicture.asset(
-                      'assets/images/ritual_lotus.svg',
-                      width: 20 * scale,
-                      height: 18 * scale,
-                      excludeFromSemantics: true,
+                    icon: Icon(
+                      Icons.hourglass_bottom_outlined,
+                      color: AppColors.champagneGold80,
+                      size: 18 * scale,
                     ),
                     child: _DurationGauge(
                       scale: scale,
@@ -657,12 +664,14 @@ class _StepSummary extends StatelessWidget {
     required this.zone,
     required this.number,
     required this.total,
+    required this.crystal,
   });
 
   final double scale;
   final MassageZone zone;
   final int number;
   final int total;
+  final Crystal? crystal;
 
   String _pad(int value) => value.toString().padLeft(2, '0');
 
@@ -686,12 +695,7 @@ class _StepSummary extends StatelessWidget {
               color: AppColors.darkIndigoBlue,
             ),
             child: Center(
-              child: SvgPicture.asset(
-                'assets/images/ritual_lotus.svg',
-                width: 26 * scale,
-                height: 23 * scale,
-                excludeFromSemantics: true,
-              ),
+              child: _ChestCrystal(crystal: crystal, scale: scale),
             ),
           ),
         ),
@@ -729,6 +733,37 @@ class _StepSummary extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _ChestCrystal extends StatelessWidget {
+  const _ChestCrystal({required this.crystal, required this.scale});
+
+  final Crystal? crystal;
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = crystal;
+    if (selected == null) {
+      return Semantics(
+        label: 'Crystal at the chest',
+        child: SizedBox(width: 26 * scale, height: 26 * scale),
+      );
+    }
+
+    return Semantics(
+      label: '${selected.displayName} at the chest',
+      image: true,
+      child: ClipOval(
+        child: Image.asset(
+          selected.imageAsset,
+          width: 40 * scale,
+          height: 40 * scale,
+          fit: BoxFit.cover,
+        ),
+      ),
     );
   }
 }
@@ -834,125 +869,6 @@ class _BreathingGauge extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _PressureSelector extends StatelessWidget {
-  const _PressureSelector({
-    required this.scale,
-    required this.selected,
-    required this.onSelected,
-  });
-
-  final double scale;
-  final MassagePressure selected;
-  final ValueChanged<MassagePressure> onSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    final trackInset = AppSpacing.s16 * scale;
-
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: AppSpacing.s6 * scale),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Positioned(
-            left: trackInset,
-            right: trackInset,
-            top: _pressureStopHeight / 2 * scale,
-            child: Container(
-              height: AppSpacing.s0_5,
-              color: AppColors.champagneGold80,
-            ),
-          ),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              for (final pressure in MassagePressure.values)
-                Expanded(
-                  child: _PressureStop(
-                    scale: scale,
-                    pressure: pressure,
-                    selected: pressure == selected,
-                    onPressed: () => onSelected(pressure),
-                  ),
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PressureStop extends StatelessWidget {
-  const _PressureStop({
-    required this.scale,
-    required this.pressure,
-    required this.selected,
-    required this.onPressed,
-  });
-
-  final double scale;
-  final MassagePressure pressure;
-  final bool selected;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final dot = selected ? 7.4 * scale : 3 * scale;
-
-    return Semantics(
-      button: true,
-      selected: selected,
-      label: '${pressure.label} pressure',
-      excludeSemantics: true,
-      child: GestureDetector(
-        onTap: onPressed,
-        behavior: HitTestBehavior.opaque,
-        child: Column(
-          children: [
-            SizedBox(
-              height: _pressureStopHeight * scale,
-              child: Center(
-                child: Container(
-                  width: dot,
-                  height: dot,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.champagneGold80,
-                    border: selected
-                        ? Border.all(
-                            color: AppColors.goldGlow,
-                            width: 1.2 * scale,
-                          )
-                        : null,
-                    boxShadow: selected
-                        ? [
-                            BoxShadow(
-                              color: AppColors.champagneGold,
-                              blurRadius: 6 * scale,
-                              spreadRadius: 1.5 * scale,
-                            ),
-                          ]
-                        : null,
-                  ),
-                ),
-              ),
-            ),
-            Text(
-              pressure.label.toUpperCase(),
-              style: AppTypography.footnote.copyWith(
-                color: selected ? AppColors.champagneGold80 : AppColors.silver,
-                fontSize: AppFontSizes.s6_6 * scale,
-                letterSpacing: 0.3 * scale,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

@@ -135,9 +135,9 @@ void main() {
     await tester.tap(find.text('RESTART'));
     await tester.pump();
     expect(find.text('00:00'), findsOneWidget);
+    expect(find.text('PRESSURE'), findsNothing);
+    expect(find.byIcon(Icons.hourglass_bottom_outlined), findsOneWidget);
 
-    await tester.tap(find.bySemanticsLabel('Firm pressure'));
-    await tester.pump();
     await tester.tap(find.bySemanticsLabel('Next zone'));
     await tester.pump();
     expect(find.text('02 / 05'), findsOneWidget);
@@ -235,6 +235,33 @@ void main() {
     final face = tester.getSize(find.bySemanticsLabel('Hikaru Ritual Face'));
     expect(tester.getSize(find.bySemanticsLabel('Merkaba')), face);
     expect(tester.getSize(find.bySemanticsLabel('Listening Sanctuary')), face);
+    expect(tester.getSize(find.bySemanticsLabel('Hikaru Ritual Body')), face);
+    expect(face, const Size(homeSideCircleWidth, homeSideCircleHeight));
+    final librarySizes = [
+      for (final element in tester.elementList(
+        find.bySemanticsLabel('Library'),
+      ))
+        tester.getSize(
+          find.byElementPredicate((candidate) => identical(candidate, element)),
+        ),
+    ];
+    expect(librarySizes, contains(face));
+
+    final merkaba = tester.getTopLeft(find.bySemanticsLabel('Merkaba'));
+    final faceOrigin = tester.getTopLeft(
+      find.bySemanticsLabel('Hikaru Ritual Face'),
+    );
+    final bodyOrigin = tester.getTopLeft(
+      find.bySemanticsLabel('Hikaru Ritual Body'),
+    );
+    final crystal = tester.getTopLeft(
+      find.bySemanticsLabel('Listening Sanctuary'),
+    );
+    expect(merkaba.dy, lessThan(faceOrigin.dy));
+    expect(faceOrigin.dx, greaterThan(merkaba.dx));
+    expect(bodyOrigin.dy, greaterThan(faceOrigin.dy));
+    expect(bodyOrigin.dx, greaterThan(crystal.dx));
+    expect(crystal.dy, greaterThan(faceOrigin.dy));
     expect(find.byType(LibraryCollectionCircle), findsNWidgets(2));
   });
 
@@ -270,10 +297,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final face = tester.getSize(find.bySemanticsLabel('Hikaru Ritual Face'));
-    expect(
-      tester.getSize(find.bySemanticsLabel('Listening Sanctuary, JADE')),
-      face,
-    );
+    expect(tester.getSize(find.bySemanticsLabel('JADE')), face);
     expect(
       find.byWidgetPredicate(
         (widget) =>
