@@ -100,7 +100,25 @@ class MerkabaFrame {
     BreathPhase.hold => 'Hold',
     BreathPhase.exhale => 'Exhale',
   };
+
+  /// Completed 4-4-6 cycles. The in-progress cycle is the progress bar.
+  int get completedCycles =>
+      elapsed.inMilliseconds ~/ breathCycle.inMilliseconds;
+
+  /// Progress through the current breath cycle, from 0 to 1.
+  double get cycleProgress {
+    final cycleMs = breathCycle.inMilliseconds;
+    if (cycleMs == 0) return 0;
+    return (elapsed.inMilliseconds % cycleMs) / cycleMs;
+  }
 }
+
+/// Placeholder mudra art, one file per breath phase. Swap the PNG in place.
+String mudraPlaceholderAsset(BreathPhase phase) => switch (phase) {
+  BreathPhase.inhale => 'assets/images/mudras/inhale.png',
+  BreathPhase.hold => 'assets/images/mudras/hold.png',
+  BreathPhase.exhale => 'assets/images/mudras/exhale.png',
+};
 
 MerkabaFrame merkabaFrameAt(Duration elapsed) {
   final bounded = elapsed < Duration.zero

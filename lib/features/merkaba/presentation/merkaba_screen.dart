@@ -16,6 +16,8 @@ import '../domain/merkaba_session.dart';
 import 'merkaba_painter.dart';
 import 'merkaba_soundscape.dart';
 
+const String merkabaStarryNightAsset = 'assets/images/merkaba_starry_night.jpg';
+
 /// Called when the breath phase changes while the session is playing.
 ///
 /// Optional listener. The screen also plays the breath sound and chime.
@@ -149,77 +151,159 @@ class _MerkabaMeditationScreenState
     final visual = widget.replacementVisual?.call(frame);
 
     return Scaffold(
-      backgroundColor: AppColors.indigoBlue,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.s24,
-            AppSpacing.s8,
-            AppSpacing.s24,
-            AppSpacing.s16,
+      backgroundColor: AppColors.darkIndigoBlue,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          const Image(
+            image: AssetImage(merkabaStarryNightAsset),
+            fit: BoxFit.cover,
+            excludeFromSemantics: true,
           ),
-          child: frame.isFinished
-              ? _Finished(onBack: _handleBack, onRepeat: _handleRepeat)
-              : Column(
-                  children: [
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: _TextControl(
-                        label: 'BACK',
-                        onPressed: _handleBack,
+          SafeArea(
+            child: frame.isFinished
+                ? _Finished(onBack: _handleBack, onRepeat: _handleRepeat)
+                : Column(
+                    children: [
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: _TextControl(
+                          label: 'BACK',
+                          onPressed: _handleBack,
+                        ),
                       ),
-                    ),
-                    Text(
-                      frame.scene.title,
-                      textAlign: TextAlign.center,
-                      style: AppTypography.headline.copyWith(
-                        color: AppColors.white,
-                        fontSize: AppFontSizes.s22,
-                        height: 1.2,
+                      Expanded(
+                        child: MerkabaStage(frame: frame, replacement: visual),
                       ),
-                    ),
-                    const SizedBox(height: AppSpacing.s12),
-                    Expanded(
-                      child: MerkabaStage(frame: frame, replacement: visual),
-                    ),
-                    const SizedBox(height: AppSpacing.s12),
-                    Text(
-                      frame.scene.mudra,
-                      textAlign: TextAlign.center,
-                      style: AppTypography.subheadline.copyWith(
-                        color: AppColors.champagneGold,
-                        fontSize: AppFontSizes.s12,
-                        letterSpacing: 1.4,
+                      _SessionBand(
+                        frame: frame,
+                        playing: _playing,
+                        onPlayPause: _handlePlayPause,
                       ),
-                    ),
-                    const SizedBox(height: AppSpacing.s4),
-                    Text(
-                      frame.scene.mudraPurpose,
-                      textAlign: TextAlign.center,
-                      style: AppTypography.body.copyWith(
-                        color: AppColors.fog,
-                        fontSize: AppFontSizes.s12,
-                        letterSpacing: 0.2,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.s16),
-                    _BreathGuide(frame: frame),
-                    const SizedBox(height: AppSpacing.s12),
-                    Text(
-                      '${formatMerkabaClock(frame.elapsed)} / ${formatMerkabaClock(merkabaDuration)}',
-                      style: AppTypography.subheadline.copyWith(
-                        color: AppColors.white,
-                        fontSize: AppFontSizes.s12,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.s8),
-                    _TextControl(
-                      label: _playing ? 'PAUSE' : 'PLAY',
-                      onPressed: _handlePlayPause,
-                    ),
-                  ],
+                    ],
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SessionBand extends StatelessWidget {
+  const _SessionBand({
+    required this.frame,
+    required this.playing,
+    required this.onPlayPause,
+  });
+
+  final MerkabaFrame frame;
+  final bool playing;
+  final VoidCallback onPlayPause;
+
+  @override
+  Widget build(BuildContext context) {
+    final clock =
+        '${formatMerkabaClock(frame.elapsed)} / ${formatMerkabaClock(merkabaDuration)}';
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            AppColors.darkIndigoBlue.withValues(alpha: 0),
+            AppColors.darkIndigoBlue.withValues(alpha: 0.82),
+          ],
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.s20,
+          AppSpacing.s8,
+          AppSpacing.s20,
+          AppSpacing.s8,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Semantics(
+                  label: 'Mudra placeholder, ${frame.phaseLabel}',
+                  image: true,
+                  child: Image.asset(
+                    mudraPlaceholderAsset(frame.phase),
+                    width: 64,
+                    height: 64,
+                    fit: BoxFit.cover,
+                  ),
                 ),
+                const SizedBox(width: AppSpacing.s12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        frame.scene.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.headline.copyWith(
+                          color: AppColors.white,
+                          fontSize: AppFontSizes.s16,
+                          height: 1.2,
+                        ),
+                      ),
+                      Text(
+                        frame.scene.mudra,
+                        style: AppTypography.subheadline.copyWith(
+                          color: AppColors.champagneGold,
+                          fontSize: AppFontSizes.s12,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                      Text(
+                        'Cycles ${frame.completedCycles}',
+                        style: AppTypography.subheadline.copyWith(
+                          color: AppColors.white,
+                          fontSize: AppFontSizes.s12,
+                          letterSpacing: 1.1,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                _BreathGuide(frame: frame),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.s8),
+            Semantics(
+              label: 'Breath cycle progress',
+              value: '${(frame.cycleProgress * 100).round()} percent',
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(2),
+                child: LinearProgressIndicator(
+                  value: frame.cycleProgress,
+                  minHeight: 4,
+                  backgroundColor: AppColors.champagneGold.withValues(
+                    alpha: 0.25,
+                  ),
+                  color: AppColors.champagneGold,
+                ),
+              ),
+            ),
+            Text(
+              clock,
+              style: AppTypography.subheadline.copyWith(
+                color: AppColors.white,
+                fontSize: AppFontSizes.s12,
+                letterSpacing: 1.2,
+              ),
+            ),
+            _TextControl(
+              label: playing ? 'PAUSE' : 'PLAY',
+              onPressed: onPlayPause,
+            ),
+          ],
         ),
       ),
     );

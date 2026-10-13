@@ -25,6 +25,27 @@ void main() {
       BreathPhase.inhale,
     );
     expect(formatMerkabaClock(const Duration(seconds: 65)), '01:05');
+    expect(merkabaFrameAt(Duration.zero).completedCycles, 0);
+    expect(merkabaFrameAt(Duration.zero).cycleProgress, 0);
+    expect(merkabaFrameAt(const Duration(seconds: 7)).completedCycles, 0);
+    expect(
+      merkabaFrameAt(const Duration(seconds: 7)).cycleProgress,
+      closeTo(0.5, 0.001),
+    );
+    expect(merkabaFrameAt(const Duration(seconds: 14)).completedCycles, 1);
+    expect(merkabaFrameAt(const Duration(seconds: 28)).completedCycles, 2);
+    expect(
+      mudraPlaceholderAsset(BreathPhase.inhale),
+      'assets/images/mudras/inhale.png',
+    );
+    expect(
+      mudraPlaceholderAsset(BreathPhase.hold),
+      'assets/images/mudras/hold.png',
+    );
+    expect(
+      mudraPlaceholderAsset(BreathPhase.exhale),
+      'assets/images/mudras/exhale.png',
+    );
   });
 
   test('scenes change at the brief timestamps', () {
@@ -92,7 +113,14 @@ void main() {
     await tester.runAsync(() async {
       await precacheImage(
         const AssetImage(merkabaWomanAsset),
-        tester.element(find.byType(Image)),
+        tester.element(
+          find.byWidgetPredicate(
+            (widget) =>
+                widget is Image &&
+                widget.image is AssetImage &&
+                (widget.image as AssetImage).assetName == merkabaWomanAsset,
+          ),
+        ),
       );
     });
     await tester.pump();
