@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.hiraku" "\0"
-            VALUE "FileDescription", "hiraku" "\0"
+            VALUE "CompanyName", "com.ingenieriacv" "\0"
+            VALUE "FileDescription", "hikaru" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "hiraku" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.hiraku. All rights reserved." "\0"
-            VALUE "OriginalFilename", "hiraku.exe" "\0"
-            VALUE "ProductName", "hiraku" "\0"
+            VALUE "InternalName", "hikaru" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 com.ingenieriacv. All rights reserved." "\0"
+            VALUE "OriginalFilename", "hikaru.exe" "\0"
+            VALUE "ProductName", "hikaru" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

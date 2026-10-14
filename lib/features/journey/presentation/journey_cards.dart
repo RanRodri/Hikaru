@@ -6,6 +6,10 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
+import '../../../core/design_system/tokens/app_font_sizes.dart';
+import '../../../core/design_system/tokens/app_journal.dart';
+import '../../../core/design_system/tokens/app_radii.dart';
+import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/router/app_routes.dart';
 import '../../crystals/application/selected_crystal_controller.dart';
@@ -21,13 +25,13 @@ final TextStyle _cardText = AppTypography.headline.copyWith(
 );
 
 final TextStyle _sectionLabel = _cardText.copyWith(
-  fontSize: 10,
+  fontSize: AppFontSizes.s10,
   letterSpacing: 1.4,
 );
 
 final TextStyle _mutedText = _cardText.copyWith(
   color: AppColors.champagneGold40,
-  fontSize: 10,
+  fontSize: AppFontSizes.s10,
 );
 
 void _openCrystal(BuildContext context, Crystal? crystal) {
@@ -41,7 +45,12 @@ void _openCrystal(BuildContext context, Crystal? crystal) {
 class _JourneyCard extends StatelessWidget {
   const _JourneyCard({
     required this.child,
-    this.padding = const EdgeInsets.fromLTRB(15, 12, 15, 14),
+    this.padding = const EdgeInsets.fromLTRB(
+      AppSpacing.s15,
+      AppSpacing.s12,
+      AppSpacing.s15,
+      AppSpacing.s14,
+    ),
   });
 
   final Widget child;
@@ -49,21 +58,34 @@ class _JourneyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          padding: padding,
-          decoration: BoxDecoration(
-            color: AppColors.darkIndigoBlue.withValues(alpha: 0.55),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: AppColors.champagneGold.withValues(alpha: 0.45),
-              width: 0.9,
-            ),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppJournal.radius),
+        boxShadow: [
+          BoxShadow(
+            color: AppJournal.shadow,
+            blurRadius: AppJournal.shadowBlur,
+            spreadRadius: AppJournal.elevation / 4,
+            offset: const Offset(0, AppJournal.shadowOffset),
           ),
-          child: child,
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppJournal.radius),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(
+            sigmaX: AppJournal.blur,
+            sigmaY: AppJournal.blur,
+          ),
+          child: Container(
+            padding: padding,
+            decoration: BoxDecoration(
+              color: AppJournal.surface,
+              borderRadius: BorderRadius.circular(AppJournal.radius),
+              border: Border.all(color: AppJournal.border, width: 0.9),
+            ),
+            child: child,
+          ),
         ),
       ),
     );
@@ -89,7 +111,7 @@ class _CardHeading extends StatelessWidget {
           height: 16,
           excludeFromSemantics: true,
         ),
-        const SizedBox(width: 9),
+        const SizedBox(width: AppSpacing.s9),
         Expanded(child: Text(label, style: _sectionLabel)),
         if (headingTrailing != null)
           Flexible(
@@ -131,17 +153,60 @@ class ActiveCrystalCard extends ConsumerWidget {
                   width: _imageWidth,
                   child: crystal == null
                       ? const _EmptyCrystal()
-                      : Image.asset(crystal.imageAsset, fit: BoxFit.cover),
+                      : _CrystalMedallion(asset: crystal.imageAsset),
                 ),
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(14, 14, 14, 16),
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.s14,
+                      AppSpacing.s14,
+                      AppSpacing.s14,
+                      AppSpacing.s16,
+                    ),
                     child: crystal == null
                         ? const _ChooseCrystalPrompt()
                         : _CrystalSummary(crystal: crystal),
                   ),
                 ),
               ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CrystalMedallion extends StatelessWidget {
+  const _CrystalMedallion({required this.asset});
+
+  static const double _size = 100;
+  static const double _edgeTrim = 1.04;
+
+  final String asset;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        width: _size,
+        height: _size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.champagneGold.withValues(alpha: 0.35),
+              blurRadius: 14,
+            ),
+          ],
+        ),
+        child: ClipOval(
+          child: Transform.scale(
+            scale: _edgeTrim,
+            child: Image.asset(
+              asset,
+              fit: BoxFit.cover,
+              excludeFromSemantics: true,
             ),
           ),
         ),
@@ -175,13 +240,19 @@ class _ChooseCrystalPrompt extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text('YOUR ACTIVE CRYSTAL', style: _mutedText.copyWith(fontSize: 9)),
-        const SizedBox(height: 6),
-        Text('Choose your temple', style: _cardText.copyWith(fontSize: 18)),
-        const SizedBox(height: 6),
+        Text(
+          'YOUR ACTIVE CRYSTAL',
+          style: _mutedText.copyWith(fontSize: AppFontSizes.s9),
+        ),
+        const SizedBox(height: AppSpacing.s6),
+        Text(
+          'Choose your temple',
+          style: _cardText.copyWith(fontSize: AppFontSizes.s18),
+        ),
+        const SizedBox(height: AppSpacing.s6),
         Text(
           'Select a crystal to begin your 30-day resonance.',
-          style: _cardText.copyWith(fontSize: 11),
+          style: _cardText.copyWith(fontSize: AppFontSizes.s11),
         ),
       ],
     );
@@ -198,22 +269,37 @@ class _CrystalSummary extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('YOUR ACTIVE CRYSTAL', style: _mutedText.copyWith(fontSize: 9)),
-        const SizedBox(height: 4),
+        Text(
+          'YOUR ACTIVE CRYSTAL',
+          style: _mutedText.copyWith(fontSize: AppFontSizes.s9),
+        ),
+        const SizedBox(height: AppSpacing.s4),
         Text(
           crystal.displayName,
-          style: _cardText.copyWith(fontSize: 22, letterSpacing: 1.6),
+          style: _cardText.copyWith(
+            fontSize: AppFontSizes.s22,
+            letterSpacing: 1.6,
+          ),
         ),
         Text(
           crystal.temple.toUpperCase(),
-          style: _mutedText.copyWith(fontSize: 9, letterSpacing: 0.9),
+          style: _mutedText.copyWith(
+            fontSize: AppFontSizes.s9,
+            letterSpacing: 0.9,
+          ),
         ),
-        const SizedBox(height: 4),
-        Text(crystal.frequency, style: _cardText.copyWith(fontSize: 13)),
-        const SizedBox(height: 6),
+        const SizedBox(height: AppSpacing.s4),
+        Text(
+          crystal.frequency,
+          style: _cardText.copyWith(fontSize: AppFontSizes.s13),
+        ),
+        const SizedBox(height: AppSpacing.s6),
         Container(width: 42, height: 0.5, color: AppColors.champagneGold),
-        const SizedBox(height: 6),
-        Text(crystal.purpose, style: _cardText.copyWith(fontSize: 11)),
+        const SizedBox(height: AppSpacing.s6),
+        Text(
+          crystal.purpose,
+          style: _cardText.copyWith(fontSize: AppFontSizes.s11),
+        ),
       ],
     );
   }
@@ -223,7 +309,7 @@ class DailyStreakCard extends StatelessWidget {
   const DailyStreakCard({super.key});
 
   static const int _daysPerRow = 15;
-  static const double _dayGap = 4;
+  static const double _dayGap = AppSpacing.s4;
 
   @override
   Widget build(BuildContext context) {
@@ -241,22 +327,25 @@ class DailyStreakCard extends StatelessWidget {
                   height: 16,
                   excludeFromSemantics: true,
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: AppSpacing.s6),
                 Text(
                   '${_progress.currentDay} / ${_progress.cycleLength}',
-                  style: _cardText.copyWith(fontSize: 18, height: 1),
+                  style: _cardText.copyWith(
+                    fontSize: AppFontSizes.s18,
+                    height: 1,
+                  ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.s8),
                 Text('Days in a row', style: _mutedText),
               ],
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: AppSpacing.s10),
           Container(
             height: 0.4,
             color: AppColors.champagneGold60.withValues(alpha: 0.7),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: AppSpacing.s10),
           LayoutBuilder(
             builder: (context, constraints) {
               final daySize =
@@ -309,16 +398,16 @@ class _DayDot extends StatelessWidget {
           width: isToday ? 1 : 0.4,
         ),
         boxShadow: isToday
-            ? const [BoxShadow(color: Color(0xFFFFE7A4), blurRadius: 4)]
+            ? const [BoxShadow(color: AppColors.goldGlow, blurRadius: 4)]
             : null,
       ),
       child: FittedBox(
         child: Padding(
-          padding: const EdgeInsets.all(2),
+          padding: const EdgeInsets.all(AppSpacing.s2),
           child: Text(
             '$day',
             style: _cardText.copyWith(
-              fontSize: 10,
+              fontSize: AppFontSizes.s10,
               height: 1,
               color: isCompleted ? AppColors.darkIndigoBlue : AppColors.white,
             ),
@@ -347,16 +436,16 @@ class ProgressPhotosCard extends StatelessWidget {
               excludeSemantics: true,
               child: InkWell(
                 onTap: () {},
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(AppRadii.r6),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 4,
-                    vertical: 2,
+                    horizontal: AppSpacing.s4,
+                    vertical: AppSpacing.s2,
                   ),
                   child: Text(
                     'View all',
                     style: _cardText.copyWith(
-                      fontSize: 10.5,
+                      fontSize: AppFontSizes.s10_5,
                       color: AppColors.champagneGold60,
                     ),
                   ),
@@ -364,12 +453,12 @@ class ProgressPhotosCard extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.s4),
           Text(
             'See your evolution over time',
-            style: _cardText.copyWith(fontSize: 11),
+            style: _cardText.copyWith(fontSize: AppFontSizes.s11),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: AppSpacing.s10),
           Row(
             children: [
               const Expanded(
@@ -384,7 +473,7 @@ class ProgressPhotosCard extends StatelessWidget {
                 height: 0.6,
                 color: AppColors.champagneGold80,
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.s12),
               Expanded(
                 child: _ProgressPortrait(
                   asset: 'assets/images/journey_current.png',
@@ -432,13 +521,16 @@ class _ProgressPortrait extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(width: 9),
+        const SizedBox(width: AppSpacing.s9),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(day, style: _mutedText.copyWith(fontSize: 9)),
-              Text(label, style: _cardText.copyWith(fontSize: 12)),
+              Text(day, style: _mutedText.copyWith(fontSize: AppFontSizes.s9)),
+              Text(
+                label,
+                style: _cardText.copyWith(fontSize: AppFontSizes.s12),
+              ),
             ],
           ),
         ),
@@ -472,7 +564,7 @@ class JourneyContinuesCard extends ConsumerWidget {
                 icon: 'assets/images/journey_lock.svg',
                 label: 'YOUR JOURNEY CONTINUES',
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: AppSpacing.s10),
               Row(
                 children: [
                   SizedBox.square(
@@ -493,16 +585,23 @@ class JourneyContinuesCard extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 13),
+                  const SizedBox(width: AppSpacing.s13),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(title, style: _cardText.copyWith(fontSize: 12.5)),
-                        const SizedBox(height: 2),
+                        Text(
+                          title,
+                          style: _cardText.copyWith(
+                            fontSize: AppFontSizes.s12_5,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.s2),
                         Text(
                           'Frequency · Cymatic Signature · Daily Ritual',
-                          style: _mutedText.copyWith(fontSize: 9.5),
+                          style: _mutedText.copyWith(
+                            fontSize: AppFontSizes.s9_5,
+                          ),
                         ),
                       ],
                     ),

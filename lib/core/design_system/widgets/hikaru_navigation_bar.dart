@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../tokens/app_colors.dart';
+import '../tokens/app_font_sizes.dart';
+import '../tokens/app_radii.dart';
+import '../tokens/app_spacing.dart';
 import '../tokens/app_typography.dart';
 
 enum HikaruDestination { home, journey, sanctuary, library, settings }
@@ -16,7 +19,7 @@ class HikaruNavigationBar extends StatelessWidget {
   });
 
   static const double height = 70;
-  static const Color _activeColor = Color(0xFFFFE6AC);
+  static const Color _activeColor = AppColors.navActive;
 
   final HikaruDestination active;
   final ValueChanged<HikaruDestination> onSelected;
@@ -33,10 +36,7 @@ class HikaruNavigationBar extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
-                Color.fromRGBO(58, 42, 16, 0.25),
-                Color.fromRGBO(10, 11, 23, 0.5),
-              ],
+              colors: [AppColors.navShadow, AppColors.navScrim],
             ),
             border: Border(
               top: BorderSide(color: AppColors.champagneGold, width: 0.35),
@@ -48,8 +48,8 @@ class HikaruNavigationBar extends StatelessWidget {
               height: height,
               child: Padding(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 9,
-                  vertical: 12,
+                  horizontal: AppSpacing.s9,
+                  vertical: AppSpacing.s12,
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -111,9 +111,9 @@ class _NavItem extends StatelessWidget {
       excludeSemantics: true,
       child: InkWell(
         onTap: onPressed,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadii.r12),
         child: SizedBox(
-          width: 66,
+          width: AppSpacing.s66,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -123,13 +123,13 @@ class _NavItem extends StatelessWidget {
                 height: 21,
                 colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: AppSpacing.s4),
               Text(
                 _labels[destination]!,
                 maxLines: 1,
                 style: AppTypography.headline.copyWith(
                   color: color,
-                  fontSize: 8.5,
+                  fontSize: AppFontSizes.s8_5,
                   height: 1.2,
                 ),
               ),

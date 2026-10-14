@@ -14,12 +14,17 @@ class HikaruShell extends StatelessWidget {
     super.key,
     required this.active,
     required this.builder,
+    this.backgroundAsset = gardenBackground,
     this.dimBackground = false,
   });
 
   static const double designWidth = 390;
-  static const String _backgroundAsset =
+  static const String gardenBackground =
       'assets/images/harmony_garden_background.png';
+
+  /// Garden sunset with no figure. Journey and Settings use it.
+  static const String sunsetGarden =
+      'assets/images/garden_sunset_reflections.png';
   static const Map<HikaruDestination, String> _destinationRoutes = {
     HikaruDestination.home: AppRoutes.home,
     HikaruDestination.journey: AppRoutes.journey,
@@ -27,8 +32,16 @@ class HikaruShell extends StatelessWidget {
     HikaruDestination.settings: AppRoutes.profile,
   };
 
+  static const Map<HikaruDestination, int> _branchIndex = {
+    HikaruDestination.home: 0,
+    HikaruDestination.journey: 1,
+    HikaruDestination.library: 2,
+    HikaruDestination.settings: 3,
+  };
+
   final HikaruDestination active;
   final HikaruScaledBuilder builder;
+  final String backgroundAsset;
   final bool dimBackground;
 
   void _handleDestinationSelected(
@@ -37,12 +50,21 @@ class HikaruShell extends StatelessWidget {
   ) {
     final route = _destinationRoutes[destination];
     if (route == null) return;
-    if (GoRouterState.of(context).matchedLocation == route) return;
-    context.go(route);
-  }
 
-  void _handleProfilePressed(BuildContext context) =>
-      _handleDestinationSelected(context, HikaruDestination.settings);
+    final location = GoRouterState.of(context).uri.path;
+    final shell = StatefulNavigationShell.maybeOf(context);
+    if (shell == null) {
+      if (location == route) return;
+      context.go(route);
+      return;
+    }
+
+    final index = _branchIndex[destination];
+    if (index == null) return;
+    final onThisBranch = shell.currentIndex == index;
+    if (onThisBranch && location == route) return;
+    shell.goBranch(index, initialLocation: onThisBranch);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,8 +79,8 @@ class HikaruShell extends StatelessWidget {
           return Stack(
             fit: StackFit.expand,
             children: [
-              const Image(
-                image: AssetImage(_backgroundAsset),
+              Image(
+                image: AssetImage(backgroundAsset),
                 fit: BoxFit.cover,
                 excludeFromSemantics: true,
               ),
@@ -75,10 +97,7 @@ class HikaruShell extends StatelessWidget {
                 top: insets.top,
                 left: 0,
                 right: 0,
-                child: HikaruHeader(
-                  onMenuPressed: () {},
-                  onProfilePressed: () => _handleProfilePressed(context),
-                ),
+                child: const HikaruHeader(),
               ),
               Positioned(
                 left: 0,

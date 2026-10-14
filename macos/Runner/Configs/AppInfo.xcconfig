@@ -5,10 +5,10 @@
 // 'flutter create' template.
 
 // The application's name. By default this is also the title of the Flutter window.
-PRODUCT_NAME = hiraku
+PRODUCT_NAME = hikaru
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.hiraku.hiraku
+PRODUCT_BUNDLE_IDENTIFIER = com.ingenieriacv.hikaru
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2026 com.hiraku. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2026 com.ingenieriacv. All rights reserved.

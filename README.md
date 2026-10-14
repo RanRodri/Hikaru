@@ -1,6 +1,6 @@
-# hiraku
+# hikaru
 
-Proyecto Hiraku
+Proyecto Hikaru
 
 ## Getting Started
 

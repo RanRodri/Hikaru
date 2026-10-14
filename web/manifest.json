@@ -1,11 +1,11 @@
 {
-    "name": "Hiraku",
-    "short_name": "Hiraku",
+    "name": "Hikaru",
+    "short_name": "Hikaru",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#000000",
     "theme_color": "#000000",
-    "description": "Proyecto Hiraku",
+    "description": "Proyecto Hikaru",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

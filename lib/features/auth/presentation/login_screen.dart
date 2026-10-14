@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
+import '../../../core/design_system/tokens/app_font_sizes.dart';
+import '../../../core/design_system/tokens/app_radii.dart';
+import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
+import '../../../core/design_system/widgets/hikaru_face_id_button.dart';
 import '../../../core/router/app_routes.dart';
 import 'auth_background.dart';
 import 'auth_field.dart';
@@ -79,10 +82,12 @@ class _LoginScreenState extends State<LoginScreen> {
             builder: (context, constraints) {
               return SingleChildScrollView(
                 padding: EdgeInsets.fromLTRB(
-                  40,
-                  0,
-                  40,
-                  bottomPadding > 16 ? bottomPadding : 16,
+                  AppSpacing.s40,
+                  AppSpacing.s0,
+                  AppSpacing.s40,
+                  bottomPadding > AppSpacing.s16
+                      ? bottomPadding
+                      : AppSpacing.s16,
                 ),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(minHeight: constraints.maxHeight),
@@ -94,12 +99,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         textAlign: TextAlign.center,
                         style: AppTypography.title.copyWith(
                           color: AppColors.white,
-                          fontSize: 34,
+                          fontSize: AppFontSizes.s34,
                           height: 1.2,
                           shadows: authTextShadow,
                         ),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: AppSpacing.s10),
                       Text(
                         'YOUR JOURNEY TO RADIANT SKIN',
                         textAlign: TextAlign.center,
@@ -109,7 +114,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           shadows: authTextShadow,
                         ),
                       ),
-                      const SizedBox(height: 40),
+                      const SizedBox(height: AppSpacing.s40),
                       AuthField(
                         controller: _emailController,
                         label: 'Email',
@@ -121,7 +126,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         errorText: _emailError,
                         onChanged: _handleEmailChanged,
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppSpacing.s12),
                       AuthField(
                         controller: _passwordController,
                         label: 'Password',
@@ -134,7 +139,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         onChanged: _handlePasswordChanged,
                         onSubmitted: (_) => _handleSignIn(),
                       ),
-                      const SizedBox(height: 14),
+                      const SizedBox(height: AppSpacing.s14),
                       Row(
                         children: [
                           _RememberMe(
@@ -149,7 +154,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               foregroundColor: AppColors.champagneGold,
                               minimumSize: const Size(44, 44),
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 4,
+                                horizontal: AppSpacing.s4,
                               ),
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
@@ -157,7 +162,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               'Forgot password?',
                               style: AppTypography.bodyAccent.copyWith(
                                 color: AppColors.champagneGold,
-                                fontSize: 13,
+                                fontSize: AppFontSizes.s13,
                                 letterSpacing: 0,
                                 shadows: authTextShadow,
                               ),
@@ -165,7 +170,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: AppSpacing.s16),
                       AuthPillButton(
                         label: 'SIGN IN',
                         backgroundColor: AppColors.champagneGold,
@@ -173,18 +178,18 @@ class _LoginScreenState extends State<LoginScreen> {
                         glow: true,
                         onPressed: _handleSignIn,
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: AppSpacing.s16),
                       Text(
                         'or',
                         style: AppTypography.body.copyWith(
                           color: AppColors.fog.withValues(alpha: 0.5),
-                          fontSize: 14,
+                          fontSize: AppFontSizes.s14,
                           letterSpacing: 0,
                         ),
                       ),
-                      const SizedBox(height: 24),
-                      _FaceIdButton(onPressed: () {}),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: AppSpacing.s24),
+                      HikaruFaceIdButton(onPressed: () {}),
+                      const SizedBox(height: AppSpacing.s8),
                       Wrap(
                         alignment: WrapAlignment.center,
                         crossAxisAlignment: WrapCrossAlignment.center,
@@ -193,7 +198,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             "Don't have a sanctuary? ",
                             style: AppTypography.body.copyWith(
                               color: AppColors.fog.withValues(alpha: 0.55),
-                              fontSize: 12,
+                              fontSize: AppFontSizes.s12,
                               letterSpacing: 0,
                             ),
                           ),
@@ -203,7 +208,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               foregroundColor: AppColors.champagneGold,
                               minimumSize: const Size(44, 36),
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 4,
+                                horizontal: AppSpacing.s4,
                               ),
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
@@ -211,7 +216,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               'Create one',
                               style: AppTypography.bodyAccent.copyWith(
                                 color: AppColors.champagneGold,
-                                fontSize: 12,
+                                fontSize: AppFontSizes.s12,
                                 letterSpacing: 0,
                               ),
                             ),
@@ -223,69 +228,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               );
             },
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _FaceIdButton extends StatelessWidget {
-  const _FaceIdButton({required this.onPressed});
-
-  static const String _iconAsset = 'assets/images/face_id.svg';
-  static const double _circleSize = 52;
-  static const double _iconSize = 26;
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      label: 'Sign in with Face ID',
-      excludeSemantics: true,
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: _circleSize,
-                height: _circleSize,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.darkIndigoBlue.withValues(alpha: 0.4),
-                  border: Border.all(
-                    color: AppColors.champagneGold.withValues(alpha: 0.7),
-                    width: 0.75,
-                  ),
-                ),
-                child: SvgPicture.asset(
-                  _iconAsset,
-                  width: _iconSize,
-                  height: _iconSize,
-                  colorFilter: const ColorFilter.mode(
-                    AppColors.champagneGold,
-                    BlendMode.srcIn,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Face ID',
-                style: AppTypography.bodyAccent.copyWith(
-                  color: AppColors.champagneGold,
-                  fontSize: 11,
-                  letterSpacing: 1.1,
-                  shadows: authTextShadow,
-                ),
-              ),
-            ],
           ),
         ),
       ),
@@ -306,7 +248,7 @@ class _RememberMe extends StatelessWidget {
       label: 'Remember me',
       child: InkWell(
         onTap: onPressed,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppRadii.r8),
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 44),
           child: Row(
@@ -318,7 +260,7 @@ class _RememberMe extends StatelessWidget {
                 height: 20,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(5),
+                  borderRadius: BorderRadius.circular(AppRadii.r5),
                   color: checked
                       ? AppColors.champagneGold
                       : AppColors.darkIndigoBlue.withValues(alpha: 0.5),
@@ -335,12 +277,12 @@ class _RememberMe extends StatelessWidget {
                       )
                     : null,
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: AppSpacing.s10),
               Text(
                 'Remember me',
                 style: AppTypography.bodyAccent.copyWith(
                   color: AppColors.white,
-                  fontSize: 13,
+                  fontSize: AppFontSizes.s13,
                   letterSpacing: 0,
                   shadows: authTextShadow,
                 ),

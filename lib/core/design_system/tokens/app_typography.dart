@@ -74,4 +74,44 @@ abstract final class AppTypography {
     height: 1.2,
     letterSpacing: 0.4,
   );
+
+  static const TextStyle pillLabel = TextStyle(
+    fontFamily: AppFontFamilies.inter,
+    fontWeight: FontWeight.w700,
+    fontSize: 11.0,
+    height: 1.2,
+    letterSpacing: 1.65,
+  );
+
+  static const TextStyle journeyLabel = TextStyle(
+    fontFamily: AppFontFamilies.inter,
+    fontWeight: FontWeight.w700,
+    fontSize: 10.0,
+    height: 1.2,
+    letterSpacing: 1.2,
+  );
+
+  static const TextStyle pathLabel = TextStyle(
+    fontFamily: AppFontFamilies.inter,
+    fontWeight: FontWeight.w400,
+    fontSize: 9.0,
+    height: 1.2,
+    letterSpacing: 1.6,
+  );
+
+  static const TextStyle faceIdLabel = TextStyle(
+    fontFamily: AppFontFamilies.inter,
+    fontWeight: FontWeight.w700,
+    fontSize: 11.0,
+    height: 1.2,
+    letterSpacing: 1.1,
+  );
+
+  static const TextStyle glyphStar = TextStyle(
+    fontFamily: AppFontFamilies.inter,
+    fontWeight: FontWeight.w300,
+    fontSize: 8.0,
+    height: 1.0,
+    letterSpacing: 0.0,
+  );
 }

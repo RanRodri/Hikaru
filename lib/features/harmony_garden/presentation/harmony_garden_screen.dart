@@ -1,315 +1,369 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
+import '../../../core/design_system/tokens/app_font_sizes.dart';
+import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
+import '../../../core/design_system/widgets/hikaru_header.dart';
 import '../../../core/design_system/widgets/hikaru_navigation_bar.dart';
+import '../../../core/design_system/widgets/hikaru_page_intro.dart';
 import '../../../core/design_system/widgets/hikaru_shell.dart';
 import '../../../core/router/app_routes.dart';
 import '../../crystals/application/selected_crystal_controller.dart';
 import '../../crystals/domain/crystal.dart';
+import '../../library/domain/library_collection.dart';
 
 class HarmonyGardenScreen extends ConsumerWidget {
   const HarmonyGardenScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selectedCrystal = ref.watch(selectedCrystalProvider).value;
+    final crystal = ref.watch(selectedCrystalProvider).value;
+    final accesses = [
+      for (final access in _accesses)
+        access.isCrystalSlot ? _crystalAccess(crystal) : access,
+    ];
 
     return HikaruShell(
       active: HikaruDestination.home,
-      builder: (context, scale) =>
-          _Garden(scale: scale, selectedCrystal: selectedCrystal),
+      builder: (context, scale) => _Garden(scale: scale, accesses: accesses),
     );
   }
 }
 
-class _Layer {
-  const _Layer(this.asset, this.rect, {this.isPhoto = false});
+/// Diameter of the access circles on Home, in design pixels.
+const double homeCircleDiameter = 96;
 
-  final String asset;
-  final Rect rect;
-  final bool isPhoto;
-}
+/// Merkaba crowns the orbit with a slightly smaller circle.
+const double merkabaCircleDiameter = 78;
 
-class _DestinationSpec {
-  const _DestinationSpec({
-    required this.bounds,
-    required this.layers,
-    required this.label,
-    required this.labelBounds,
+/// Radius of the golden orbit that passes through every circle center.
+const double _orbitRadius = 138;
+
+/// Size of [HikaruShell.gardenBackground], drawn with [BoxFit.cover].
+const Size _backgroundSize = Size(1024, 1536);
+
+/// Top of her hair and the top of the garden title, as shares of the
+/// background height. Merkaba sits just above her head; the title sits just
+/// under the light on her chest.
+const double _headTopShare = 0.31;
+const double _titleTopShare = 0.59;
+
+/// Gap between the Merkaba circle and the top of her head.
+const double _crownGap = AppSpacing.s8;
+
+class _Access {
+  const _Access({
     required this.semanticsLabel,
-    this.route,
-    this.showsSelectedCrystal = false,
+    required this.angle,
+    required this.imageAsset,
+    required this.title,
+    required this.route,
+    this.diameter = homeCircleDiameter,
+    this.isHighlighted = false,
+    this.isCrystalSlot = false,
   });
 
-  final Rect bounds;
-  final String? route;
-  final bool showsSelectedCrystal;
-  final List<_Layer> layers;
-  final String label;
-  final Rect labelBounds;
   final String semanticsLabel;
+
+  /// Position on the orbit in degrees, clockwise from three o'clock.
+  final double angle;
+  final String imageAsset;
+  final String title;
+  final String route;
+
+  /// Circle diameter in design pixels.
+  final double diameter;
+  final bool isHighlighted;
+
+  /// Replaced by the selected crystal, see [_crystalAccess].
+  final bool isCrystalSlot;
 }
 
-const List<_DestinationSpec> _destinations = [
-  _DestinationSpec(
+/// Clockwise from the top. Each side mirrors the other across the vertical axis.
+const List<_Access> _accesses = [
+  _Access(
     semanticsLabel: 'Merkaba',
-    bounds: Rect.fromLTWH(144, 200, 103, 104),
-    layers: [
-      _Layer(
-        'assets/images/harmony_merkaba_halo.svg',
-        Rect.fromLTWH(144, 200, 103, 104),
-      ),
-      _Layer(
-        'assets/images/harmony_merkaba.png',
-        Rect.fromLTWH(156, 212, 79, 80),
-        isPhoto: true,
-      ),
-      _Layer(
-        'assets/images/harmony_face_scrim.svg',
-        Rect.fromLTWH(156, 212, 79, 80),
-      ),
-    ],
-    label: 'Merkaba',
-    labelBounds: Rect.fromLTWH(165, 263, 61, 13),
+    angle: -90,
+    imageAsset: 'assets/images/library_merkaba.png',
+    title: 'MERKABA',
+    route: AppRoutes.merkaba,
+    diameter: merkabaCircleDiameter,
+    isHighlighted: true,
   ),
-  _DestinationSpec(
-    semanticsLabel: 'Hikaru Ritual Face',
-    bounds: Rect.fromLTWH(12, 266, 122, 130),
-    layers: [
-      _Layer(
-        'assets/images/harmony_face_halo.svg',
-        Rect.fromLTWH(12, 266, 122, 130),
-      ),
-      _Layer(
-        'assets/images/harmony_face.png',
-        Rect.fromLTWH(24, 278, 98, 106),
-        isPhoto: true,
-      ),
-      _Layer(
-        'assets/images/harmony_face_scrim.svg',
-        Rect.fromLTWH(24, 278, 98, 106),
-      ),
-    ],
-    label: 'Hikaru Ritual\nFace',
-    labelBounds: Rect.fromLTWH(34, 342, 78, 26),
-  ),
-  _DestinationSpec(
-    semanticsLabel: 'Listening Sanctuary',
+  _Access(
+    semanticsLabel: 'Your crystal',
+    angle: -25,
+    imageAsset: 'assets/images/library_white_quartz.png',
+    title: 'YOUR CRYSTAL',
     route: AppRoutes.fourTemples,
-    showsSelectedCrystal: true,
-    bounds: Rect.fromLTWH(256, 268, 122, 129),
-    layers: [
-      _Layer(
-        'assets/images/harmony_listening_halo.svg',
-        Rect.fromLTWH(256, 268, 122, 129),
-      ),
-      _Layer(
-        'assets/images/harmony_listening.png',
-        Rect.fromLTWH(268, 280, 98, 105),
-        isPhoto: true,
-      ),
-      _Layer(
-        'assets/images/harmony_listening_scrim.svg',
-        Rect.fromLTWH(268, 280, 98, 105),
-      ),
-    ],
-    label: 'Listening\nSanctuary',
-    labelBounds: Rect.fromLTWH(279, 343, 76, 26),
+    isCrystalSlot: true,
   ),
-  _DestinationSpec(
-    semanticsLabel: 'Hikaru Ritual Body',
-    bounds: Rect.fromLTWH(5, 383, 125, 131),
-    layers: [
-      _Layer(
-        'assets/images/harmony_body_halo.svg',
-        Rect.fromLTWH(5, 383, 125, 131),
-      ),
-      _Layer(
-        'assets/images/harmony_body.png',
-        Rect.fromLTWH(17, 395, 101, 107),
-        isPhoto: true,
-      ),
-      _Layer(
-        'assets/images/harmony_body_scrim.svg',
-        Rect.fromLTWH(17, 395, 101, 107),
-      ),
-    ],
-    label: 'Hikaru Ritual\nBody',
-    labelBounds: Rect.fromLTWH(27, 453, 80, 26),
-  ),
-  _DestinationSpec(
+  _Access(
     semanticsLabel: 'Library',
-    bounds: Rect.fromLTWH(265, 383, 122, 131),
-    layers: [
-      _Layer(
-        'assets/images/harmony_library_halo.svg',
-        Rect.fromLTWH(265, 383, 122, 131),
-      ),
-      _Layer(
-        'assets/images/harmony_library.png',
-        Rect.fromLTWH(277, 395, 98, 107),
-        isPhoto: true,
-      ),
-      _Layer(
-        'assets/images/harmony_library_scrim.svg',
-        Rect.fromLTWH(277, 395, 98, 107),
-      ),
-    ],
-    label: 'Library',
-    labelBounds: Rect.fromLTWH(292, 464, 65, 13),
+    angle: 25,
+    imageAsset: 'assets/images/harmony_library.png',
+    title: 'LIBRARY',
+    route: AppRoutes.library,
+  ),
+  _Access(
+    semanticsLabel: 'Hikaru Ritual Body',
+    angle: 155,
+    imageAsset: 'assets/images/harmony_body.png',
+    title: 'HIKARU RITUAL\nBODY',
+    route: AppRoutes.ritualBody,
+  ),
+  _Access(
+    semanticsLabel: 'Hikaru Ritual Face',
+    angle: 205,
+    imageAsset: 'assets/images/harmony_face.png',
+    title: 'HIKARU RITUAL\nFACE',
+    route: AppRoutes.ritualFace,
   ),
 ];
 
-const List<Offset> _glowDots = [
-  Offset(231.26, 252.83),
-  Offset(152.71, 252.57),
-  Offset(94.31, 282.94),
-  Offset(43.01, 371.08),
-  Offset(340.23, 372.43),
-  Offset(289.77, 283.86),
-  Offset(40.5, 398.61),
-  Offset(75.88, 495.62),
-  Offset(308.44, 494.02),
-  Offset(342.5, 398.08),
+/// The selected crystal opens its frequency and cymatics. With no crystal
+/// yet, the slot invites the user to choose one in the Four Temples.
+_Access _crystalAccess(Crystal? crystal) {
+  final slot = _accesses.firstWhere((access) => access.isCrystalSlot);
+  final collection = crystalCollections[crystal];
+  if (crystal == null || collection == null) return slot;
+  return _Access(
+    semanticsLabel: 'Your crystal ${crystal.displayName}',
+    angle: slot.angle,
+    imageAsset: collection.imageAsset,
+    title: collection.name,
+    diameter: slot.diameter,
+    route: AppRoutes.crystalResonanceFor(crystal.name),
+    isCrystalSlot: true,
+  );
+}
+
+/// Light points on the orbit, halfway between neighboring circles.
+List<double> get _orbitDotAngles => [
+  for (final (index, access) in _accesses.indexed)
+    (access.angle +
+            (index + 1 < _accesses.length
+                ? _accesses[index + 1].angle
+                : _accesses.first.angle + 360)) /
+        2,
 ];
+
+Offset _pointOnOrbit(Offset center, double radius, double degrees) {
+  final radians = degrees * math.pi / 180;
+  return center + Offset(math.cos(radians), math.sin(radians)) * radius;
+}
+
+/// Where the shell draws the garden background on a screen of [size].
+Rect _backgroundRect(Size size) {
+  final fit = math.max(
+    size.width / _backgroundSize.width,
+    size.height / _backgroundSize.height,
+  );
+  final width = _backgroundSize.width * fit;
+  final height = _backgroundSize.height * fit;
+  return Rect.fromLTWH(
+    (size.width - width) / 2,
+    (size.height - height) / 2,
+    width,
+    height,
+  );
+}
 
 class _Garden extends StatelessWidget {
-  const _Garden({required this.scale, required this.selectedCrystal});
+  const _Garden({required this.scale, required this.accesses});
 
   final double scale;
-  final Crystal? selectedCrystal;
+  final List<_Access> accesses;
 
   @override
   Widget build(BuildContext context) {
+    final media = MediaQuery.of(context);
+    final width = HikaruShell.designWidth * scale;
+    final radius = _orbitRadius * scale;
+    final background = _backgroundRect(media.size);
+    final contentTop = media.padding.top + HikaruHeader.height * scale;
+    final merkabaRadius = merkabaCircleDiameter * scale / 2;
+    final headTop = background.top + background.height * _headTopShare;
+    final merkabaY = math.max(
+      contentTop + merkabaRadius,
+      headTop - _crownGap * scale - merkabaRadius,
+    );
+    final center = Offset(width / 2, merkabaY + radius);
+    final lowestCircleBottom = accesses
+        .map(
+          (access) =>
+              _pointOnOrbit(center, radius, access.angle).dy +
+              access.diameter * scale / 2,
+        )
+        .reduce(math.max);
+    final titleTop = math.max(
+      background.top + background.height * _titleTopShare,
+      lowestCircleBottom,
+    );
+
     return Stack(
       children: [
-        _scaled(
-          const Rect.fromLTWH(44, 251, 302, 302),
-          SvgPicture.asset(
-            'assets/images/harmony_orbit.svg',
-            fit: BoxFit.fill,
-            excludeFromSemantics: true,
-          ),
-        ),
-        for (final dot in _glowDots)
-          _scaled(
-            Rect.fromLTWH(dot.dx, dot.dy, 7, 7),
-            SvgPicture.asset(
-              'assets/images/harmony_orbit_glow.svg',
-              fit: BoxFit.fill,
-              excludeFromSemantics: true,
+        Positioned.fill(
+          child: IgnorePointer(
+            child: CustomPaint(
+              painter: _OrbitPainter(
+                center: center,
+                radius: radius,
+                dotAngles: _orbitDotAngles,
+                scale: scale,
+              ),
             ),
           ),
-        for (final destination in _destinations)
-          _Destination(
-            spec: destination,
-            scale: scale,
-            crystal: destination.showsSelectedCrystal ? selectedCrystal : null,
-            onPressed: () => _handleDestinationPressed(context, destination),
+        ),
+        for (final access in accesses)
+          Positioned.fromRect(
+            rect: Rect.fromCircle(
+              center: _pointOnOrbit(center, radius, access.angle),
+              radius: access.diameter * scale / 2,
+            ),
+            child: _AccessCircle(
+              access: access,
+              scale: scale,
+              onPressed: () => context.push(access.route),
+            ),
           ),
-        _Title(scale: scale),
+        Positioned(
+          left: 20 * scale,
+          right: 20 * scale,
+          top: titleTop,
+          child: const _GardenTitle(),
+        ),
       ],
     );
   }
-
-  void _handleDestinationPressed(
-    BuildContext context,
-    _DestinationSpec destination,
-  ) {
-    final route = destination.route;
-    if (route == null) return;
-    context.push(route);
-  }
-
-  Widget _scaled(Rect rect, Widget child) {
-    return Positioned(
-      left: rect.left * scale,
-      top: rect.top * scale,
-      width: rect.width * scale,
-      height: rect.height * scale,
-      child: child,
-    );
-  }
 }
 
-class _Destination extends StatelessWidget {
-  const _Destination({
-    required this.spec,
+class _OrbitPainter extends CustomPainter {
+  const _OrbitPainter({
+    required this.center,
+    required this.radius,
+    required this.dotAngles,
     required this.scale,
-    required this.onPressed,
-    this.crystal,
   });
 
-  static const double _crystalRingRatio = 280 / 236;
-
-  final _DestinationSpec spec;
+  final Offset center;
+  final double radius;
+  final List<double> dotAngles;
   final double scale;
-  final VoidCallback onPressed;
-  final Crystal? crystal;
 
-  Widget _buildPhoto(String asset) {
-    final selectedCrystal = crystal;
-    if (selectedCrystal == null) {
-      return Image.asset(asset, fit: BoxFit.cover);
-    }
-    return ClipOval(
-      child: Transform.scale(
-        scale: _crystalRingRatio,
-        child: Image.asset(selectedCrystal.imageAsset, fit: BoxFit.cover),
-      ),
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.1 * scale
+        ..color = AppColors.champagneGold.withValues(alpha: 0.85),
     );
+    final glow = Paint()
+      ..color = AppColors.splashHighlight.withValues(alpha: 0.8)
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, 3 * scale);
+    final core = Paint()..color = AppColors.white;
+    for (final angle in dotAngles) {
+      final point = _pointOnOrbit(center, radius, angle);
+      canvas.drawCircle(point, 3.2 * scale, glow);
+      canvas.drawCircle(point, 1.3 * scale, core);
+    }
   }
 
   @override
-  Widget build(BuildContext context) {
-    final bounds = spec.bounds;
+  bool shouldRepaint(covariant _OrbitPainter oldDelegate) =>
+      oldDelegate.center != center ||
+      oldDelegate.radius != radius ||
+      oldDelegate.scale != scale;
+}
 
-    return Positioned(
-      left: bounds.left * scale,
-      top: bounds.top * scale,
-      width: bounds.width * scale,
-      height: bounds.height * scale,
-      child: Semantics(
-        button: true,
-        label: crystal == null
-            ? spec.semanticsLabel
-            : '${spec.semanticsLabel}, ${crystal!.displayName}',
-        excludeSemantics: true,
-        child: GestureDetector(
-          onTap: onPressed,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              for (final layer in spec.layers)
-                Positioned(
-                  left: (layer.rect.left - bounds.left) * scale,
-                  top: (layer.rect.top - bounds.top) * scale,
-                  width: layer.rect.width * scale,
-                  height: layer.rect.height * scale,
-                  child: layer.isPhoto
-                      ? _buildPhoto(layer.asset)
-                      : SvgPicture.asset(layer.asset, fit: BoxFit.fill),
-                ),
-              Positioned(
-                left: (spec.labelBounds.left - bounds.left) * scale,
-                top: (spec.labelBounds.top - bounds.top) * scale,
-                width: spec.labelBounds.width * scale,
-                child: Text(
-                  spec.label,
-                  textAlign: TextAlign.center,
-                  style: AppTypography.headline.copyWith(
-                    color: AppColors.white,
-                    fontSize: 10.5 * scale,
-                    height: 1.14,
-                    letterSpacing: 0.42 * scale,
-                  ),
-                ),
+class _AccessCircle extends StatelessWidget {
+  const _AccessCircle({
+    required this.access,
+    required this.scale,
+    required this.onPressed,
+  });
+
+  /// Share of the circle height covered by the photo before it fades to black.
+  static const double _photoShare = 0.62;
+
+  final _Access access;
+  final double scale;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final diameter = access.diameter * scale;
+    final glowAlpha = access.isHighlighted ? 0.75 : 0.45;
+    final glowBlur = (access.isHighlighted ? 10 : 6) * scale;
+
+    return Semantics(
+      button: true,
+      label: access.semanticsLabel,
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: onPressed,
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.black,
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.champagneGold.withValues(alpha: glowAlpha),
+                blurRadius: glowBlur,
               ),
             ],
+          ),
+          foregroundDecoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: AppColors.champagneGold80,
+              width: 0.9 * scale,
+            ),
+          ),
+          child: ClipOval(
+            child: Stack(
+              children: [
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                  height: diameter * _photoShare,
+                  child: Image.asset(
+                    access.imageAsset,
+                    fit: BoxFit.cover,
+                    excludeFromSemantics: true,
+                  ),
+                ),
+                const Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [AppColors.transparent, AppColors.black],
+                        stops: [0.34, 0.6],
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: AppSpacing.s8 * scale,
+                  right: AppSpacing.s8 * scale,
+                  top: diameter * 0.5,
+                  bottom: diameter * 0.08,
+                  child: _AccessCaption(access: access, scale: scale),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -317,62 +371,53 @@ class _Destination extends StatelessWidget {
   }
 }
 
-class _Title extends StatelessWidget {
-  const _Title({required this.scale});
+class _AccessCaption extends StatelessWidget {
+  const _AccessCaption({required this.access, required this.scale});
 
+  final _Access access;
   final double scale;
 
   @override
   Widget build(BuildContext context) {
-    final style = AppTypography.headline.copyWith(color: AppColors.white);
-
-    return Positioned(
-      left: 100 * scale,
-      top: 560 * scale,
-      width: 190 * scale,
-      child: Column(
-        children: [
-          Text(
-            'The',
-            style: style.copyWith(
-              fontSize: 10 * scale,
-              height: 1.1,
-              letterSpacing: 1.6 * scale,
-            ),
-          ),
-          SizedBox(height: 4 * scale),
-          Text(
-            'Harmony Garden',
-            style: style.copyWith(
-              fontSize: 20 * scale,
-              height: 1.1,
-              letterSpacing: 1.6 * scale,
-            ),
-          ),
-          SizedBox(height: 4 * scale),
-          _rule(34),
-          SizedBox(height: 4 * scale),
-          Text(
-            'Your Journey Begins Within',
-            textAlign: TextAlign.center,
-            style: style.copyWith(
-              fontSize: 10 * scale,
-              height: 1.2,
-              letterSpacing: 0.6 * scale,
-            ),
-          ),
-          SizedBox(height: 4 * scale),
-          _rule(30),
-        ],
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Text(
+        access.title,
+        textAlign: TextAlign.center,
+        softWrap: false,
+        style: AppTypography.headline.copyWith(
+          color: AppColors.white,
+          fontSize: AppFontSizes.s9 * scale,
+          height: 1.2,
+          letterSpacing: 1.3 * scale,
+        ),
       ),
     );
   }
+}
 
-  Widget _rule(double width) {
-    return Container(
-      width: width * scale,
-      height: 0.8,
-      color: AppColors.champagneGold,
+class _GardenTitle extends StatelessWidget {
+  const _GardenTitle();
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: RadialGradient(
+          radius: 0.9,
+          colors: [
+            AppColors.black.withValues(alpha: 0.38),
+            AppColors.black.withValues(alpha: 0),
+          ],
+        ),
+      ),
+      child: const Padding(
+        padding: EdgeInsets.symmetric(vertical: 14),
+        child: HikaruPageIntro(
+          title: 'THE HARMONY GARDEN',
+          subtitle: 'Your Journey Begins Within',
+        ),
+      ),
     );
   }
 }

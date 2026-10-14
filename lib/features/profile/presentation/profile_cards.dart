@@ -5,10 +5,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
+import '../../../core/design_system/tokens/app_font_sizes.dart';
+import '../../../core/design_system/tokens/app_journal.dart';
+import '../../../core/design_system/tokens/app_radii.dart';
+import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
+import '../../../core/design_system/widgets/hikaru_dividers.dart';
 import '../../journey/domain/journey_progress.dart';
 
-const Color _ink = AppColors.darkIndigoBlue;
+const Color _ink = AppColors.white;
 const Color _accent = AppColors.matteChampagne80;
 
 final TextStyle _cardText = AppTypography.headline.copyWith(
@@ -18,7 +23,7 @@ final TextStyle _cardText = AppTypography.headline.copyWith(
 );
 
 final TextStyle _sectionLabel = _cardText.copyWith(
-  fontSize: 9.5,
+  fontSize: AppFontSizes.s9_5,
   letterSpacing: 1.4,
 );
 
@@ -37,37 +42,58 @@ class _ProfileCard extends StatelessWidget {
     final cardIcon = icon;
     final cardLabel = label;
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(9),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
-          decoration: BoxDecoration(
-            color: AppColors.fog.withValues(alpha: 0.82),
-            borderRadius: BorderRadius.circular(9),
-            border: Border.all(color: AppColors.white, width: 0.6),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppJournal.radius),
+        boxShadow: const [
+          BoxShadow(
+            color: AppJournal.shadow,
+            blurRadius: AppJournal.shadowBlur,
+            spreadRadius: AppJournal.elevation / 4,
+            offset: Offset(0, AppJournal.shadowOffset),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (cardIcon != null && cardLabel != null) ...[
-                Row(
-                  children: [
-                    SvgPicture.asset(
-                      cardIcon,
-                      width: 18,
-                      height: 18,
-                      excludeFromSemantics: true,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(child: Text(cardLabel, style: _sectionLabel)),
-                  ],
-                ),
-                const SizedBox(height: 12),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppJournal.radius),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(
+            sigmaX: AppJournal.blur,
+            sigmaY: AppJournal.blur,
+          ),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.s14,
+              AppSpacing.s10,
+              AppSpacing.s14,
+              AppSpacing.s14,
+            ),
+            decoration: BoxDecoration(
+              color: AppJournal.surface,
+              borderRadius: BorderRadius.circular(AppJournal.radius),
+              border: Border.all(color: AppJournal.border, width: 0.9),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (cardIcon != null && cardLabel != null) ...[
+                  Row(
+                    children: [
+                      SvgPicture.asset(
+                        cardIcon,
+                        width: 18,
+                        height: 18,
+                        excludeFromSemantics: true,
+                      ),
+                      const SizedBox(width: AppSpacing.s8),
+                      Expanded(child: Text(cardLabel, style: _sectionLabel)),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.s12),
+                ],
+                child,
               ],
-              child,
-            ],
+            ),
           ),
         ),
       ),
@@ -89,26 +115,6 @@ class _Chevron extends StatelessWidget {
   }
 }
 
-class _GoldRule extends StatelessWidget {
-  const _GoldRule.vertical({required double length})
-    : width = 0.5,
-      height = length;
-
-  const _GoldRule.horizontal() : width = double.infinity, height = 0.4;
-
-  final double width;
-  final double height;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: width,
-      height: height,
-      color: AppColors.champagneGold.withValues(alpha: 0.7),
-    );
-  }
-}
-
 class MemberCard extends StatelessWidget {
   const MemberCard({super.key});
 
@@ -125,7 +131,7 @@ class MemberCard extends StatelessWidget {
         excludeSemantics: true,
         child: InkWell(
           onTap: () {},
-          borderRadius: BorderRadius.circular(9),
+          borderRadius: BorderRadius.circular(AppRadii.r9),
           child: Row(
             children: [
               SizedBox.square(
@@ -146,20 +152,20 @@ class MemberCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: AppSpacing.s14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       'María González',
-                      style: _cardText.copyWith(fontSize: 18),
+                      style: _cardText.copyWith(fontSize: AppFontSizes.s18),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: AppSpacing.s8),
                     Text(
                       'SANCTUARY MEMBER — DAY $_sampleCycleDay OF $_cycleLength',
                       style: _cardText.copyWith(
-                        fontSize: 8.5,
+                        fontSize: AppFontSizes.s8_5,
                         letterSpacing: 1.3,
                       ),
                     ),
@@ -216,8 +222,16 @@ class _RitualRemindersCardState extends State<RitualRemindersCard> {
           for (var index = 0; index < _reminders.length; index++) ...[
             if (index > 0)
               const Padding(
-                padding: EdgeInsets.only(left: 40, top: 6, bottom: 6),
-                child: _GoldRule.horizontal(),
+                padding: EdgeInsets.only(
+                  left: AppSpacing.s40,
+                  top: AppSpacing.s6,
+                  bottom: AppSpacing.s6,
+                ),
+                child: HikaruGoldRule(
+                  width: double.infinity,
+                  height: AppSpacing.s0_4,
+                  opacity: 0.7,
+                ),
               ),
             _ReminderRow(
               reminder: _reminders[index],
@@ -268,25 +282,31 @@ class _ReminderRow extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(width: 11),
+        const SizedBox(width: AppSpacing.s11),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(reminder.title, style: _cardText.copyWith(fontSize: 12)),
-              const SizedBox(height: 2),
+              Text(
+                reminder.title,
+                style: _cardText.copyWith(fontSize: AppFontSizes.s12),
+              ),
+              const SizedBox(height: AppSpacing.s2),
               Text(
                 reminder.detail,
                 style: _cardText.copyWith(
-                  fontSize: 10.5,
-                  color: AppColors.darkIndigoBlue80,
+                  fontSize: AppFontSizes.s10_5,
+                  color: AppColors.fog,
                 ),
               ),
             ],
           ),
         ),
-        Text(reminder.time, style: _cardText.copyWith(fontSize: 9.5)),
-        const SizedBox(width: 4),
+        Text(
+          reminder.time,
+          style: _cardText.copyWith(fontSize: AppFontSizes.s9_5),
+        ),
+        const SizedBox(width: AppSpacing.s4),
         Semantics(
           label: '${reminder.title} reminder',
           child: Transform.scale(
@@ -299,7 +319,7 @@ class _ReminderRow extends StatelessWidget {
               inactiveThumbColor: AppColors.white,
               inactiveTrackColor: AppColors.darkIndigoBlue20,
               trackOutlineColor: const WidgetStatePropertyAll(
-                Colors.transparent,
+                AppColors.transparent,
               ),
             ),
           ),
@@ -321,24 +341,23 @@ class DataPrivacyCard extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              'Your facial photos and personal information are encrypted and '
-              'protected with the highest standards of security and '
-              'confidentiality.',
-              style: _cardText.copyWith(fontSize: 10.3),
+              'Your facial photos and personal information stay with your '
+              'account. Open Privacy to review what is kept.',
+              style: _cardText.copyWith(fontSize: AppFontSizes.s10_3),
             ),
           ),
-          const SizedBox(width: 10),
-          const _GoldRule.vertical(length: 33),
-          const SizedBox(width: 10),
+          const SizedBox(width: AppSpacing.s10),
+          HikaruGoldRule(width: AppSpacing.s0_5, height: 33, opacity: 0.7),
+          const SizedBox(width: AppSpacing.s10),
           Semantics(
             button: true,
             label: 'Open privacy settings',
             excludeSemantics: true,
             child: InkWell(
               onTap: () {},
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(AppRadii.r6),
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.s4),
                 child: Row(
                   children: [
                     Column(
@@ -348,14 +367,16 @@ class DataPrivacyCard extends StatelessWidget {
                           width: 18,
                           height: 18,
                         ),
-                        const SizedBox(height: 5),
+                        const SizedBox(height: AppSpacing.s5),
                         Text(
                           'Privacy',
-                          style: _cardText.copyWith(fontSize: 8.4),
+                          style: _cardText.copyWith(
+                            fontSize: AppFontSizes.s8_4,
+                          ),
                         ),
                       ],
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: AppSpacing.s12),
                     const _Chevron(),
                   ],
                 ),
@@ -379,25 +400,25 @@ class CycleCard extends StatelessWidget {
       child: Row(
         children: [
           _CycleRing(day: _sampleCycleDay, length: _cycleLength),
-          const SizedBox(width: 11),
+          const SizedBox(width: AppSpacing.s11),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Your journey is in progress',
-                  style: _cardText.copyWith(fontSize: 9.7),
+                  style: _cardText.copyWith(fontSize: AppFontSizes.s9_7),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.s4),
                 Text(
                   'Day $_sampleCycleDay of $_cycleLength',
-                  style: _cardText.copyWith(fontSize: 10.7),
+                  style: _cardText.copyWith(fontSize: AppFontSizes.s10_7),
                 ),
               ],
             ),
           ),
-          const _GoldRule.vertical(length: 57),
-          const SizedBox(width: 12),
+          HikaruGoldRule(width: AppSpacing.s0_5, height: 57, opacity: 0.7),
+          const SizedBox(width: AppSpacing.s12),
           const Expanded(child: _CompleteCycle()),
         ],
       ),
@@ -421,35 +442,35 @@ class _CompleteCycle extends StatelessWidget {
               height: 22,
               excludeFromSemantics: true,
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: AppSpacing.s6),
             Expanded(
               child: Text(
                 'Complete your cycle',
-                style: _cardText.copyWith(fontSize: 9.7),
+                style: _cardText.copyWith(fontSize: AppFontSizes.s9_7),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: AppSpacing.s4),
         Text(
           'At day $_cycleLength, you’ll unlock your new diagnosis and '
           'recalibrate your crystal, frequency and cymatic signature.',
-          style: _cardText.copyWith(fontSize: 7.7),
+          style: _cardText.copyWith(fontSize: AppFontSizes.s7_7),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.s8),
         SizedBox(
-          height: 22,
+          height: AppSpacing.s22,
           child: OutlinedButton(
             onPressed: () {},
             style: OutlinedButton.styleFrom(
-              backgroundColor: const Color(0xFFFBF7E9),
+              backgroundColor: AppColors.ivorySwitch,
               foregroundColor: _accent,
               side: const BorderSide(
                 color: AppColors.champagneGold,
                 width: 0.5,
               ),
               shape: const StadiumBorder(),
-              padding: const EdgeInsets.symmetric(horizontal: 14),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s14),
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
@@ -485,8 +506,17 @@ class _CycleRing extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('$day', style: _cardText.copyWith(fontSize: 19, height: 1)),
-              Text('/ $length', style: _cardText.copyWith(fontSize: 10)),
+              Text(
+                '$day',
+                style: _cardText.copyWith(
+                  fontSize: AppFontSizes.s19,
+                  height: 1,
+                ),
+              ),
+              Text(
+                '/ $length',
+                style: _cardText.copyWith(fontSize: AppFontSizes.s10),
+              ),
             ],
           ),
         ),

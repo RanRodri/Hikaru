@@ -5,23 +5,18 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
+import '../../../core/design_system/tokens/app_font_sizes.dart';
+import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
+import '../../../core/design_system/widgets/hikaru_pill_button.dart';
 import '../../../core/router/app_routes.dart';
 
 const List<Shadow> _titleShadow = [
-  Shadow(
-    color: Color.fromRGBO(0, 0, 0, 0.8),
-    offset: Offset(0, 1),
-    blurRadius: 8,
-  ),
+  Shadow(color: AppColors.scrim80, offset: Offset(0, 1), blurRadius: 8),
 ];
 
 const List<Shadow> _bodyShadow = [
-  Shadow(
-    color: Color.fromRGBO(0, 0, 0, 0.5),
-    offset: Offset(0, 2),
-    blurRadius: 10,
-  ),
+  Shadow(color: AppColors.scrim50, offset: Offset(0, 2), blurRadius: 10),
 ];
 
 class ListeningRoomScreen extends StatelessWidget {
@@ -29,9 +24,9 @@ class ListeningRoomScreen extends StatelessWidget {
 
   static const String _backgroundAsset = 'assets/images/listening_room.png';
   static const String _glowAsset = 'assets/images/listening_room_glow.svg';
-  static const double _titleTop = 110;
+  static const double _titleTop = AppSpacing.s110;
   static const double _footerBottom = 50;
-  static const double _minInsetGap = 16;
+  static const double _minInsetGap = AppSpacing.s16;
 
   @override
   Widget build(BuildContext context) {
@@ -75,7 +70,12 @@ class ListeningRoomScreen extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: EdgeInsets.fromLTRB(40, topSpace, 40, bottomSpace),
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.s40,
+              topSpace,
+              AppSpacing.s40,
+              bottomSpace,
+            ),
             child: Column(
               children: [
                 Text(
@@ -83,11 +83,11 @@ class ListeningRoomScreen extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: AppTypography.title.copyWith(
                     color: AppColors.white,
-                    fontSize: 38,
+                    fontSize: AppFontSizes.s38,
                     height: 1.05,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.s8),
                 Text(
                   'A  SPACE  TO  BE  HEARD',
                   textAlign: TextAlign.center,
@@ -95,9 +95,9 @@ class ListeningRoomScreen extends StatelessWidget {
                     color: AppColors.white,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.s8),
                 Container(width: 50, height: 1, color: AppColors.champagneGold),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.s12),
                 Text(
                   "Share what's on your mind\n"
                   'so we can guide you with a\n'
@@ -106,7 +106,7 @@ class ListeningRoomScreen extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: AppTypography.body.copyWith(
                     color: AppColors.white,
-                    fontSize: 13,
+                    fontSize: AppFontSizes.s13,
                     fontWeight: FontWeight.w500,
                     height: 1.7,
                     letterSpacing: 0.65,
@@ -114,16 +114,17 @@ class ListeningRoomScreen extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
-                _BeginButton(
+                HikaruPillButton(
+                  label: 'BEGIN',
                   onPressed: () => context.push(AppRoutes.listeningRoomQuiz),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: AppSpacing.s20),
                 Text(
                   'LISTEN   ·   ALIGN   ·   RECEIVE',
                   textAlign: TextAlign.center,
                   style: AppTypography.footnote.copyWith(
                     color: AppColors.white,
-                    fontSize: 9,
+                    fontSize: AppFontSizes.s9,
                     letterSpacing: 1.8,
                     shadows: _titleShadow,
                   ),
@@ -132,49 +133,6 @@ class ListeningRoomScreen extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _BeginButton extends StatelessWidget {
-  const _BeginButton({required this.onPressed});
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(26),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.champagneGold.withValues(alpha: 0.35),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: SizedBox(
-        width: double.infinity,
-        height: 52,
-        child: FilledButton(
-          onPressed: onPressed,
-          style: FilledButton.styleFrom(
-            backgroundColor: AppColors.champagneGold,
-            foregroundColor: AppColors.darkIndigoBlue,
-            shape: const StadiumBorder(),
-            elevation: 0,
-          ),
-          child: Text(
-            'BEGIN',
-            style: AppTypography.subheadline.copyWith(
-              color: AppColors.darkIndigoBlue,
-              fontSize: 11,
-              letterSpacing: 1.65,
-            ),
-          ),
-        ),
       ),
     );
   }

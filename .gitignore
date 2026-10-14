@@ -56,3 +56,8 @@ node_modules/
 # Environment variables
 .env
 .env.*
+
+# Android release signing. Copy android/key.properties.example.
+android/key.properties
+**/*.jks
+**/*.keystore

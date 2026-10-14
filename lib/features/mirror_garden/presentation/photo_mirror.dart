@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
+import '../../../core/design_system/tokens/app_radii.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
 
-const Color _frameShadowColor = Color(0xFF3E2C19);
-const Color _accentGold = Color(0xFFD9AB59);
-const Color _cameraFill = Color(0xFF08121F);
+const Color _frameShadowColor = AppColors.frameBrown;
+const Color _accentGold = AppColors.accentGold;
+const Color _cameraFill = AppColors.cameraNavy;
 
 class PhotoMirror extends StatelessWidget {
   const PhotoMirror({super.key, required this.onPressed});
@@ -47,10 +48,7 @@ class PhotoMirror extends StatelessWidget {
               stops: [0, 0.14, 0.29, 0.5, 0.73, 0.91, 1],
             ),
             boxShadow: const [
-              BoxShadow(
-                color: Color.fromRGBO(216, 171, 92, 0.31),
-                blurRadius: 4,
-              ),
+              BoxShadow(color: AppColors.mirrorGold, blurRadius: 4),
             ],
           ),
           child: Stack(
@@ -59,21 +57,21 @@ class PhotoMirror extends StatelessWidget {
                 inset: 2,
                 decoration: BoxDecoration(
                   color: _frameShadowColor,
-                  borderRadius: BorderRadius.circular(52.5),
+                  borderRadius: BorderRadius.circular(AppRadii.r52_5),
                 ),
               ),
               _layer(
                 inset: 3.1,
                 decoration: BoxDecoration(
                   color: AppColors.matteChampagne,
-                  borderRadius: BorderRadius.circular(51.4),
+                  borderRadius: BorderRadius.circular(AppRadii.r51_4),
                   border: Border.all(color: AppColors.fog, width: 0.7),
                 ),
               ),
               _layer(
                 inset: 6.2,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(48.3),
+                  borderRadius: BorderRadius.circular(AppRadii.r48_3),
                   border: Border.all(
                     color: AppColors.champagneGold60,
                     width: 0.65,
@@ -82,10 +80,10 @@ class PhotoMirror extends StatelessWidget {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Color(0xFF081726),
-                      Color(0xFF203448),
-                      Color(0xFF08121F),
-                      Color(0xFF111D29),
+                      AppColors.mirrorNavy,
+                      AppColors.mirrorSlate,
+                      AppColors.cameraNavy,
+                      AppColors.mirrorDeep,
                     ],
                     stops: [0, 0.46, 0.72, 1],
                   ),
