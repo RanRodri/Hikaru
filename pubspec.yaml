@@ -81,6 +81,9 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  shaders:
+    - shaders/cymatic_kaleidoscope.frag
+
   assets:
     - assets/images/
     - assets/images/mudras/

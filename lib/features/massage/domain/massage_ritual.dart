@@ -86,17 +86,6 @@ const MassageRitual bodyRitual = MassageRitual(
   subtitle: 'HIKARU LIFT RITUAL · BODY',
   zones: [
     MassageZone(
-      name: 'Chest',
-      focus: 'Open · Drain · Breathe',
-      instruction:
-          'Glide Hikaru from the sternum outward toward the underarms.',
-    ),
-    MassageZone(
-      name: 'Abdomen',
-      focus: 'Release · Flow · Warm',
-      instruction: 'Trace slow clockwise circles around the navel.',
-    ),
-    MassageZone(
       name: 'Glutes',
       focus: 'Lift · Sculpt · Firm',
       instruction:
@@ -107,6 +96,17 @@ const MassageRitual bodyRitual = MassageRitual(
       focus: 'Drain · Lift · Renew',
       instruction:
           'Glide Hikaru upward from the ankles toward the knees and thighs.',
+    ),
+    MassageZone(
+      name: 'Abdomen',
+      focus: 'Release · Flow · Warm',
+      instruction: 'Trace slow clockwise circles around the navel.',
+    ),
+    MassageZone(
+      name: 'Chest',
+      focus: 'Open · Drain · Breathe',
+      instruction:
+          'Glide Hikaru from the sternum outward toward the underarms.',
     ),
   ],
 );

@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:flutter/scheduler.dart';
 import '../../../core/design_system/tokens/app_colors.dart';
 import '../../crystals/domain/crystal.dart';
 import '../domain/cymatic_audio.dart';
+import 'cymatic_kaleidoscope.dart';
 
 /// Eight-fold cymatic shared by every crystal.
 class CymaticMotif {
@@ -66,12 +68,22 @@ const List<Color> _cymaticStops = [
   AppColors.cymaticIndigoLight,
 ];
 
+enum CymaticStyle {
+  /// Vector mandala drawn inside a circle.
+  mandala,
+
+  /// GPU kaleidoscope that fills its whole box. Falls back to [mandala]
+  /// when the shader cannot load.
+  kaleidoscope,
+}
+
 /// Eight-fold cymatic. Motion follows [playing] and rests when it is false.
 class CymaticSignature extends StatefulWidget {
   const CymaticSignature({
     super.key,
     required this.crystal,
     required this.playing,
+    this.style = CymaticStyle.mandala,
     this.showSeal = false,
     this.fillBackground = true,
     this.semanticLabel,
@@ -81,6 +93,7 @@ class CymaticSignature extends StatefulWidget {
 
   final Crystal crystal;
   final bool playing;
+  final CymaticStyle style;
   final bool showSeal;
   final bool fillBackground;
   final String? semanticLabel;
@@ -110,8 +123,11 @@ class CymaticSignatureState extends State<CymaticSignature>
   Duration? _lastTick;
   Duration _anchor = Duration.zero;
   Duration _anchorClock = Duration.zero;
+  Duration _lastPublish = Duration.zero;
   int _sparkCursor = 0;
   int _emitSerial = 0;
+  ui.FragmentProgram? _kaleidoscope;
+  bool _kaleidoscopeFailed = false;
 
   double get phase => _phase.value;
 
@@ -150,6 +166,16 @@ class CymaticSignatureState extends State<CymaticSignature>
     }
     widget.playbackPosition?.addListener(_onPosition);
     _onPosition();
+    if (widget.style == CymaticStyle.kaleidoscope) _loadKaleidoscope();
+  }
+
+  Future<void> _loadKaleidoscope() async {
+    final program = await loadCymaticKaleidoscope();
+    if (!mounted) return;
+    setState(() {
+      _kaleidoscope = program;
+      _kaleidoscopeFailed = program == null;
+    });
   }
 
   @override
@@ -198,6 +224,10 @@ class CymaticSignatureState extends State<CymaticSignature>
   }
 
   void _publish() {
+    final now = _clock.elapsed;
+    final dt = (now - _lastPublish).inMicroseconds / 1000000;
+    _lastPublish = now;
+    _visual.time += dt.clamp(0.0, 0.1) * motion;
     _visual.phase = _phase.value;
     _visual.motion = motion;
     _visual.colorProgress = _color.value;
@@ -312,6 +342,12 @@ class CymaticSignatureState extends State<CymaticSignature>
     final CymaticDrive drive;
     if (widget.playing) {
       final window = envelope.sampleAt(_estimatedPosition());
+      _visual.followBands(
+        low: window.low,
+        mid: window.mid,
+        high: window.high,
+        dt: dt,
+      );
       drive = _follower.step(
         rms: window.rms,
         low: window.low,
@@ -376,7 +412,25 @@ class CymaticSignatureState extends State<CymaticSignature>
 
   @override
   Widget build(BuildContext context) {
-    // Playback opens the landscape projection. The seal stays centered.
+    final repaint = Listenable.merge([_phase, _energy, _color]);
+    if (widget.style == CymaticStyle.kaleidoscope && !_kaleidoscopeFailed) {
+      final program = _kaleidoscope;
+      return Semantics(
+        label: widget.semanticLabel,
+        child: program == null
+            ? const SizedBox.expand()
+            : CustomPaint(
+                painter: CymaticKaleidoscopePainter(
+                  repaint: repaint,
+                  program: program,
+                  visual: _visual,
+                  motif: CymaticMotif.of(widget.crystal),
+                ),
+                child: const SizedBox.expand(),
+              ),
+      );
+    }
+
     final seal = widget.showSeal
         ? Align(
             alignment: Alignment.center,
@@ -396,7 +450,7 @@ class CymaticSignatureState extends State<CymaticSignature>
       label: widget.semanticLabel,
       child: CustomPaint(
         painter: CymaticSignaturePainter(
-          repaint: Listenable.merge([_phase, _energy, _color]),
+          repaint: repaint,
           visual: _visual,
           motif: CymaticMotif.of(widget.crystal),
           fillBackground: widget.fillBackground,
@@ -416,10 +470,50 @@ class CymaticVisual {
   double? glow;
   bool reactive = false;
   int sparkRevision = 0;
+
+  /// Seconds of motion, weighted by [motion] so the drift eases to a stop.
+  double time = 0;
+
+  /// Smoothed band shares of the playing track.
+  double low = _restingBand;
+  double mid = _restingBand;
+  double high = _restingBand;
+
   final List<CymaticSpark> sparks = List<CymaticSpark>.generate(
     48,
     (_) => CymaticSpark(),
   );
+
+  static const double _restingBand = 1 / 3;
+  static const double _bandRate = 8;
+
+  void followBands({
+    required double low,
+    required double mid,
+    required double high,
+    required double dt,
+  }) {
+    final alpha = 1 - math.exp(-_bandRate * dt.clamp(0.0, 0.1));
+    this.low += (low - this.low) * alpha;
+    this.mid += (mid - this.mid) * alpha;
+    this.high += (high - this.high) * alpha;
+  }
+
+  /// Current scale: the audio spring when reactive, else the simulated pulse.
+  double get pulse => audioScale == null
+      ? _pulseScale(phase, motion)
+      : 1 + (audioScale! - 1) * motion;
+
+  /// 0 at rest, 1 on the strongest pulse.
+  double get attack => ((pulse - 1) / 0.15).clamp(0.0, 1.0);
+
+  double get glowScale {
+    final glow = this.glow;
+    if (glow == null || motion <= 0) return 1;
+    return 1 + ((0.55 + 0.9 * glow.clamp(0.0, 1.0)) - 1) * motion;
+  }
+
+  Color get tint => _cymaticTint(colorProgress);
 }
 
 class CymaticSpark {
@@ -454,10 +548,8 @@ class CymaticSignaturePainter extends CustomPainter {
 
     final center = Offset(size.width / 2, size.height / 2);
     final radius = shortest / 2;
-    final tint = _cymaticTint(colorProgress);
-    final pulse = visual.audioScale == null
-        ? _pulseScale(phase, motion)
-        : 1 + (visual.audioScale! - 1) * motion;
+    final tint = visual.tint;
+    final pulse = visual.pulse;
 
     if (fillBackground) {
       canvas.drawCircle(center, radius, Paint()..color = AppColors.indigoBlue);
@@ -512,11 +604,7 @@ class CymaticSignaturePainter extends CustomPainter {
     );
   }
 
-  double get _glowScale {
-    final glow = visual.glow;
-    if (glow == null || motion <= 0) return 1;
-    return 1 + ((0.55 + 0.9 * glow.clamp(0.0, 1.0)) - 1) * motion;
-  }
+  double get _glowScale => visual.glowScale;
 
   void _drawRipples(Canvas canvas, double radius, Color tint) {
     if (motion <= 0) return;

@@ -3,10 +3,12 @@
 
 abstract final class AppRadii {
   static const double r2 = 2.0;
+  static const double r4 = 4.0;
   static const double r5 = 5.0;
   static const double r6 = 6.0;
   static const double r8 = 8.0;
   static const double r9 = 9.0;
+  static const double r11 = 11.0;
   static const double r12 = 12.0;
   static const double r16 = 16.0;
   static const double r20 = 20.0;

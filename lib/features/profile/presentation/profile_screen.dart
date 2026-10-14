@@ -16,7 +16,7 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return const HikaruScrollPage(
       active: HikaruDestination.settings,
-      backgroundAsset: HikaruShell.profileLandscape,
+      backgroundAsset: HikaruShell.sunsetGarden,
       children: [
         HikaruPageIntro(
           title: 'SANCTUARY PROFILE',

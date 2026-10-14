@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -16,6 +18,9 @@ import 'package:hikaru/features/massage/presentation/massage_screen.dart';
 import 'package:hikaru/features/merkaba/presentation/merkaba_screen.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
+
+double _sheetTop(WidgetTester tester) =>
+    tester.getTopLeft(find.bySemanticsLabel('Ritual sheet')).dy;
 
 double _crystalOpacity(WidgetTester tester) {
   final crystal = find.byWidgetPredicate(
@@ -108,7 +113,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Human Blueprint'), findsOneWidget);
-    expect(find.text('Gyan Mudra'), findsNWidgets(2));
+    expect(find.text('Gyan Mudra'), findsOneWidget);
     expect(find.text('Inhale'), findsOneWidget);
     expect(find.text('00:00 / 05:00'), findsOneWidget);
 
@@ -146,7 +151,7 @@ void main() {
     await tester.tap(find.bySemanticsLabel('Hikaru Ritual Face'));
     await tester.pumpAndSettle();
     expect(find.text('THE FACE TEMPLE'), findsOneWidget);
-    expect(find.bySemanticsLabel('Ritual video'), findsOneWidget);
+    expect(find.bySemanticsLabel(RegExp('Ritual video')), findsOneWidget);
     expect(find.text('01 / 05'), findsOneWidget);
     expect(find.text(faceRitual.zones.first.instruction), findsOneWidget);
     expect(find.text('00:00'), findsOneWidget);
@@ -167,8 +172,33 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 1200));
     expect(find.text('00:00'), findsNothing);
-    await tester.tap(find.bySemanticsLabel('Pause'));
+    expect(_sheetTop(tester), greaterThan(800));
+    expect(_crystalOpacity(tester), 0);
+
+    await tester.tap(find.bySemanticsLabel(RegExp('Pause ritual video')));
     await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(_sheetTop(tester), inInclusiveRange(400, 520));
+    expect(tester.getBottomLeft(find.text('RESTART')).dy, lessThan(844));
+    expect(_crystalOpacity(tester), 1);
+    final pausedClock = find.textContaining(RegExp(r'^00:0[1-9]$'));
+    expect(pausedClock, findsOneWidget);
+    expect(find.bySemanticsLabel(RegExp('^Play ritual video')), findsOneWidget);
+
+    await tester.tapAt(const Offset(195, 300));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(_sheetTop(tester), greaterThan(800));
+    expect(
+      find.bySemanticsLabel(RegExp('^Pause ritual video')),
+      findsOneWidget,
+    );
+
+    await tester.tapAt(const Offset(195, 300));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(_sheetTop(tester), inInclusiveRange(400, 520));
+    expect(find.bySemanticsLabel(RegExp('^Play ritual video')), findsOneWidget);
     await tester.tap(find.text('RESTART'));
     await tester.pump();
     expect(find.text('00:00'), findsOneWidget);
@@ -187,25 +217,29 @@ void main() {
     await tester.tap(find.bySemanticsLabel('Play'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 1200));
-    await tester.drag(
-      find.bySemanticsLabel('Ritual sheet'),
-      const Offset(0, 700),
-    );
-    await tester.pumpAndSettle();
-    expect(
-      tester.getTopLeft(find.bySemanticsLabel('Ritual sheet')).dy,
-      greaterThan(800),
-    );
+    expect(_sheetTop(tester), greaterThan(800));
     expect(_crystalOpacity(tester), 0);
-    expect(find.bySemanticsLabel('Ritual video'), findsOneWidget);
+    expect(find.bySemanticsLabel(RegExp('Ritual video')), findsOneWidget);
 
     await tester.drag(
       find.bySemanticsLabel('Ritual sheet'),
       const Offset(0, -500),
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
     expect(_crystalOpacity(tester), 1);
     expect(find.text('00:00'), findsNothing);
+    expect(find.bySemanticsLabel('Pause'), findsOneWidget);
+
+    await tester.tap(find.bySemanticsLabel('Pause'));
+    await tester.pumpAndSettle();
+    await tester.drag(
+      find.bySemanticsLabel('Ritual sheet'),
+      const Offset(0, 700),
+    );
+    await tester.pumpAndSettle();
+    expect(_sheetTop(tester), greaterThan(800));
+    expect(_crystalOpacity(tester), 0);
 
     await tester.tap(find.text('BACK'));
     await tester.pumpAndSettle();
@@ -214,23 +248,27 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('THE BODY TEMPLE'), findsOneWidget);
     expect(find.text('01 / 04'), findsOneWidget);
-    expect(find.text('CHEST'), findsWidgets);
+    expect(find.text('GLUTES'), findsWidgets);
+    expect(bodyRitual.zones.map((zone) => zone.name), [
+      'Glutes',
+      'Legs',
+      'Abdomen',
+      'Chest',
+    ]);
     expect(find.bySemanticsLabel('Assigned crystal JADE'), findsOneWidget);
     expect(find.text('INHALE'), findsOneWidget);
     expect(find.byIcon(Icons.hourglass_bottom_outlined), findsOneWidget);
     expect(find.text('PRESSURE'), findsNothing);
 
-    await tester.drag(
+    await tester.fling(
       find.bySemanticsLabel('Ritual sheet'),
-      const Offset(0, 700),
+      const Offset(0, 160),
+      800,
     );
     await tester.pumpAndSettle();
-    expect(
-      tester.getTopLeft(find.bySemanticsLabel('Ritual sheet')).dy,
-      greaterThan(800),
-    );
-    expect(_crystalOpacity(tester), 0);
-    expect(find.bySemanticsLabel('Ritual video'), findsOneWidget);
+    expect(_sheetTop(tester), greaterThan(800));
+    expect(_crystalOpacity(tester), closeTo(0, 0.001));
+    expect(find.bySemanticsLabel(RegExp('Ritual video')), findsOneWidget);
 
     await tester.tap(find.text('BACK'));
     await tester.pumpAndSettle();
@@ -245,9 +283,8 @@ void main() {
     await tester.pumpAndSettle();
 
     final merkabaName = tester.widget<Text>(find.text('MERKABA'));
-    final merkabaDetail = tester.widget<Text>(find.text('Geometry & Energy'));
-    expect(merkabaName.style?.fontSize, greaterThanOrEqualTo(11));
-    expect(merkabaDetail.style?.fontSize, greaterThanOrEqualTo(10));
+    expect(merkabaName.style?.fontSize, greaterThanOrEqualTo(8));
+    expect(find.text('Geometry & Energy'), findsNothing);
 
     Future<void> openTopic(String label, String heading) async {
       await tester.tap(find.bySemanticsLabel(label));
@@ -309,14 +346,17 @@ void main() {
     expect(find.text('LIBRARY'), findsOneWidget);
   });
 
-  testWidgets('home accesses are equal circles in clockwise order', (
+  testWidgets('home accesses follow the reference layout around her head', (
     tester,
   ) async {
     await pumpGarden(tester);
 
     final face = tester.getSize(find.bySemanticsLabel('Hikaru Ritual Face'));
-    expect(tester.getSize(find.bySemanticsLabel('Merkaba')), face);
-    expect(tester.getSize(find.bySemanticsLabel('Red Jasper')), face);
+    expect(
+      tester.getSize(find.bySemanticsLabel('Merkaba')),
+      const Size(merkabaCircleDiameter, merkabaCircleDiameter),
+    );
+    expect(tester.getSize(find.bySemanticsLabel('Your crystal')), face);
     expect(tester.getSize(find.bySemanticsLabel('Hikaru Ritual Body')), face);
     expect(face, const Size(homeCircleDiameter, homeCircleDiameter));
     expect(face.width, face.height);
@@ -330,20 +370,20 @@ void main() {
     ];
     expect(librarySizes, contains(face));
 
-    final merkaba = tester.getTopLeft(find.bySemanticsLabel('Merkaba'));
-    expect(merkaba.dx + face.width / 2, closeTo(390 / 2, 0.5));
-    final faceOrigin = tester.getTopLeft(
+    final merkaba = tester.getCenter(find.bySemanticsLabel('Merkaba'));
+    expect(merkaba.dx, closeTo(390 / 2, 0.5));
+    final faceCenter = tester.getCenter(
       find.bySemanticsLabel('Hikaru Ritual Face'),
     );
-    final bodyOrigin = tester.getTopLeft(
+    final bodyCenter = tester.getCenter(
       find.bySemanticsLabel('Hikaru Ritual Body'),
     );
-    final crystal = tester.getTopLeft(find.bySemanticsLabel('Red Jasper'));
-    expect(merkaba.dy, lessThan(faceOrigin.dy));
-    expect(faceOrigin.dx, greaterThan(merkaba.dx));
-    expect(bodyOrigin.dy, greaterThan(faceOrigin.dy));
-    expect(bodyOrigin.dx, greaterThan(crystal.dx));
-    expect(bodyOrigin.dx, faceOrigin.dx);
+    final crystal = tester.getCenter(find.bySemanticsLabel('Your crystal'));
+    expect(merkaba.dy, lessThan(faceCenter.dy));
+    expect(faceCenter.dx, lessThan(merkaba.dx));
+    expect(crystal.dx, greaterThan(merkaba.dx));
+    expect(bodyCenter.dy, greaterThan(faceCenter.dy));
+    expect(bodyCenter.dx, lessThan(merkaba.dx));
     final libraryElement = tester
         .elementList(find.bySemanticsLabel('Library'))
         .firstWhere(
@@ -355,26 +395,37 @@ void main() {
               ) ==
               face,
         );
-    final library = tester.getTopLeft(
+    final library = tester.getCenter(
       find.byElementPredicate(
         (candidate) => identical(candidate, libraryElement),
       ),
     );
-    expect(library.dx, crystal.dx);
-    expect(library.dy, faceOrigin.dy);
-    expect(crystal.dy, bodyOrigin.dy);
-    expect(crystal.dy, greaterThan(faceOrigin.dy));
-    expect(find.text('Red Jasper'), findsOneWidget);
+    expect(library.dy, closeTo(bodyCenter.dy, 0.5));
+    expect(library.dx + bodyCenter.dx, closeTo(390, 0.5));
+    expect(crystal.dy, closeTo(faceCenter.dy, 0.5));
+    expect(crystal.dx + faceCenter.dx, closeTo(390, 0.5));
+
+    final orbitCenter = Offset(merkaba.dx, merkaba.dy + 138);
+    for (final point in [faceCenter, bodyCenter, crystal, library]) {
+      expect((point - orbitCenter).distance, closeTo(138, 0.5));
+    }
+
+    final screen = tester.view.physicalSize / tester.view.devicePixelRatio;
+    final backgroundScale = math.max(screen.width / 1024, screen.height / 1536);
+    final backgroundTop = (screen.height - 1536 * backgroundScale) / 2;
+    final headTop = backgroundTop + 1536 * backgroundScale * 0.31;
+    expect(
+      tester.getBottomLeft(find.bySemanticsLabel('Merkaba')).dy,
+      lessThan(headTop),
+    );
+
+    expect(find.text('YOUR CRYSTAL'), findsOneWidget);
     expect(find.text('Listening Sanctuary'), findsNothing);
-    final label = tester.widget<Text>(find.text('Red Jasper'));
-    expect(label.style?.fontSize, greaterThanOrEqualTo(12));
     expect(find.text('THE HARMONY GARDEN'), findsOneWidget);
     expect(find.text('Your Journey Begins Within'), findsOneWidget);
   });
 
-  testWidgets('red jasper stays when another crystal is assigned', (
-    tester,
-  ) async {
+  testWidgets('the crystal circle shows the selected crystal', (tester) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -404,18 +455,19 @@ void main() {
     await tester.pumpAndSettle();
 
     final face = tester.getSize(find.bySemanticsLabel('Hikaru Ritual Face'));
-    expect(tester.getSize(find.bySemanticsLabel('Red Jasper')), face);
+    expect(tester.getSize(find.bySemanticsLabel('Your crystal JADE')), face);
     expect(
       find.byWidgetPredicate(
         (widget) =>
             widget is Image &&
             widget.image is AssetImage &&
             (widget.image as AssetImage).assetName ==
-                'assets/images/library_red_jasper.png',
+                'assets/images/library_jade.png',
       ),
       findsOneWidget,
     );
-    expect(find.text('JADE'), findsNothing);
-    expect(find.text('Red Jasper'), findsOneWidget);
+    expect(find.text('JADE'), findsOneWidget);
+    expect(find.text('Balance · Harmony'), findsNothing);
+    expect(find.text('RED JASPER'), findsNothing);
   });
 }

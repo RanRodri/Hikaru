@@ -16,7 +16,7 @@ class JourneyScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return const HikaruScrollPage(
       active: HikaruDestination.journey,
-      backgroundAsset: HikaruShell.journalLandscape,
+      backgroundAsset: HikaruShell.sunsetGarden,
       children: [
         HikaruPageIntro(
           title: 'JOURNEY',

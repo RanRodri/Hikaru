@@ -49,6 +49,8 @@ class MerkabaMeditationScreen extends ConsumerStatefulWidget {
 class _MerkabaMeditationScreenState
     extends ConsumerState<MerkabaMeditationScreen>
     with SingleTickerProviderStateMixin {
+  static const Duration _sceneFade = Duration(milliseconds: 700);
+
   late Duration _elapsed = widget.initialElapsed >= merkabaDuration
       ? merkabaDuration
       : (widget.initialElapsed.isNegative
@@ -179,6 +181,9 @@ class _MerkabaMeditationScreenState
   Widget build(BuildContext context) {
     final frame = _frame;
     final visual = widget.replacementVisual?.call(frame);
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    final breath = reduceMotion ? merkabaRestingBreath : frame.breathLevel;
+    final sceneFade = reduceMotion ? Duration.zero : _sceneFade;
 
     return Scaffold(
       backgroundColor: AppColors.darkIndigoBlue,
@@ -202,20 +207,14 @@ class _MerkabaMeditationScreenState
                           onPressed: _handleBack,
                         ),
                       ),
+                      _SceneTitle(scene: frame.scene, fade: sceneFade),
                       Expanded(
-                        child: Stack(
-                          children: [
-                            MerkabaStage(frame: frame, replacement: visual),
-                            Positioned(
-                              top: AppSpacing.s8,
-                              right: AppSpacing.s16,
-                              child: _MudraMark(scene: frame.scene),
-                            ),
-                          ],
-                        ),
+                        child: MerkabaStage(frame: frame, replacement: visual),
                       ),
-                      _SessionBand(
+                      _BreathPanel(
                         frame: frame,
+                        breath: breath,
+                        sceneFade: sceneFade,
                         playing: _playing,
                         onPlayPause: _handlePlayPause,
                       ),
@@ -228,14 +227,68 @@ class _MerkabaMeditationScreenState
   }
 }
 
-class _SessionBand extends StatelessWidget {
-  const _SessionBand({
+/// Title of the current scene, at the top of the screen.
+class _SceneTitle extends StatelessWidget {
+  const _SceneTitle({required this.scene, required this.fade});
+
+  final MerkabaScene scene;
+  final Duration fade;
+
+  @override
+  Widget build(BuildContext context) {
+    final number = merkabaScenes.indexOf(scene) + 1;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s24),
+      child: AnimatedSwitcher(
+        duration: fade,
+        child: Semantics(
+          key: ValueKey(scene.title),
+          header: true,
+          child: Column(
+            children: [
+              Text(
+                'SCENE $number OF ${merkabaScenes.length}',
+                style: AppTypography.subheadline.copyWith(
+                  color: AppColors.champagneGold,
+                  fontSize: AppFontSizes.s10,
+                  letterSpacing: 2,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.s4),
+              Text(
+                scene.title,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                style: AppTypography.headline.copyWith(
+                  color: AppColors.white,
+                  fontSize: AppFontSizes.s20,
+                  height: 1.2,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Bottom card: breathing mudra, breath count, cycle progress, phase ring,
+/// session bar and the play control.
+class _BreathPanel extends StatelessWidget {
+  const _BreathPanel({
     required this.frame,
+    required this.breath,
+    required this.sceneFade,
     required this.playing,
     required this.onPlayPause,
   });
 
   final MerkabaFrame frame;
+  final double breath;
+  final Duration sceneFade;
   final bool playing;
   final VoidCallback onPlayPause;
 
@@ -244,129 +297,190 @@ class _SessionBand extends StatelessWidget {
     final clock =
         '${formatMerkabaClock(frame.elapsed)} / ${formatMerkabaClock(merkabaDuration)}';
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            AppColors.darkIndigoBlue.withValues(alpha: 0),
-            AppColors.darkIndigoBlue.withValues(alpha: 0.82),
-          ],
-        ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.s16,
+        AppSpacing.s8,
+        AppSpacing.s16,
+        AppSpacing.s8,
       ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.s20,
-          AppSpacing.s8,
-          AppSpacing.s20,
-          AppSpacing.s8,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppRadii.r20),
+          border: Border.all(
+            color: AppColors.champagneGold.withValues(alpha: 0.45),
+            width: 0.75,
+          ),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        frame.scene.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTypography.headline.copyWith(
-                          color: AppColors.white,
-                          fontSize: AppFontSizes.s16,
-                          height: 1.2,
-                        ),
-                      ),
-                      Text(
-                        frame.scene.mudra,
-                        style: AppTypography.subheadline.copyWith(
-                          color: AppColors.champagneGold,
-                          fontSize: AppFontSizes.s12,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-                      Text(
-                        'Cycles ${frame.completedCycles}',
-                        style: AppTypography.subheadline.copyWith(
-                          color: AppColors.white,
-                          fontSize: AppFontSizes.s12,
-                          letterSpacing: 1.1,
-                        ),
-                      ),
-                    ],
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.s16,
+            AppSpacing.s14,
+            AppSpacing.s16,
+            AppSpacing.s4,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  _BreathingMudra(
+                    scene: frame.scene,
+                    breath: breath,
+                    fade: sceneFade,
                   ),
-                ),
-                _BreathGuide(frame: frame),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.s8),
-            _SessionProgressBar(progress: frame.sessionProgress),
-            Text(
-              clock,
-              style: AppTypography.subheadline.copyWith(
-                color: AppColors.white,
-                fontSize: AppFontSizes.s12,
-                letterSpacing: 1.2,
+                  const SizedBox(width: AppSpacing.s14),
+                  Expanded(child: _BreathCount(frame: frame)),
+                  _BreathGuide(frame: frame),
+                ],
               ),
-            ),
-            _TextControl(
-              label: playing ? 'PAUSE' : 'PLAY',
-              onPressed: onPlayPause,
-            ),
-          ],
+              const SizedBox(height: AppSpacing.s12),
+              _SessionProgressBar(progress: frame.sessionProgress),
+              Row(
+                children: [
+                  Text(
+                    clock,
+                    style: AppTypography.subheadline.copyWith(
+                      color: AppColors.white,
+                      fontSize: AppFontSizes.s12,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                  const Spacer(),
+                  _TextControl(
+                    label: playing ? 'PAUSE' : 'PLAY',
+                    onPressed: onPlayPause,
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _MudraMark extends StatelessWidget {
-  const _MudraMark({required this.scene});
+/// Mudra of the scene. It swells and glows with each inhale, stays full on
+/// the hold and settles on the exhale; a new scene fades in its mudra.
+class _BreathingMudra extends StatelessWidget {
+  const _BreathingMudra({
+    required this.scene,
+    required this.breath,
+    required this.fade,
+  });
+
+  static const double _haloSize = 72;
+  static const double _iconSize = 44;
 
   final MerkabaScene scene;
+  final double breath;
+  final Duration fade;
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: AppColors.darkIndigoBlue.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(AppRadii.r12),
-        border: Border.all(
-          color: AppColors.champagneGold.withValues(alpha: 0.45),
-          width: 0.6,
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.s8,
-          AppSpacing.s6,
-          AppSpacing.s8,
-          AppSpacing.s6,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SvgPicture.asset(
-              scene.mudraAsset,
-              width: 36,
-              height: 36,
-              excludeFromSemantics: true,
+    final eased = Curves.easeInOut.transform(breath.clamp(0.0, 1.0));
+
+    return Semantics(
+      label: '${scene.mudra}. ${scene.mudraPurpose}',
+      excludeSemantics: true,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox.square(
+            dimension: _haloSize,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    AppColors.champagneGold.withValues(
+                      alpha: 0.08 + 0.3 * eased,
+                    ),
+                    AppColors.champagneGold.withValues(alpha: 0),
+                  ],
+                ),
+              ),
+              child: Center(
+                child: Transform.scale(
+                  scale: 0.88 + 0.16 * eased,
+                  child: AnimatedSwitcher(
+                    duration: fade,
+                    child: SvgPicture.asset(
+                      scene.mudraAsset,
+                      key: ValueKey(scene.mudraAsset),
+                      width: _iconSize,
+                      height: _iconSize,
+                      excludeFromSemantics: true,
+                    ),
+                  ),
+                ),
+              ),
             ),
-            const SizedBox(height: AppSpacing.s4),
-            Text(
+          ),
+          const SizedBox(height: AppSpacing.s2),
+          AnimatedSwitcher(
+            duration: fade,
+            child: Text(
               scene.mudra,
+              key: ValueKey(scene.mudra),
               style: AppTypography.subheadline.copyWith(
                 color: AppColors.champagneGold,
                 fontSize: AppFontSizes.s10,
                 letterSpacing: 0.6,
               ),
             ),
-          ],
-        ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Breaths done so far out of the session total, and how far into the
+/// current 4-4-6 cycle the user is.
+class _BreathCount extends StatelessWidget {
+  const _BreathCount({required this.frame});
+
+  final MerkabaFrame frame;
+
+  @override
+  Widget build(BuildContext context) {
+    final cyclePercent = (frame.cycleProgress * 100).floor();
+
+    return Semantics(
+      label:
+          '${frame.completedCycles} of $merkabaTotalBreaths breaths. '
+          'Cycle $cyclePercent percent',
+      excludeSemantics: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'BREATHS',
+            style: AppTypography.subheadline.copyWith(
+              color: AppColors.champagneGold,
+              fontSize: AppFontSizes.s10,
+              letterSpacing: 2,
+            ),
+          ),
+          Text(
+            '${frame.completedCycles} / $merkabaTotalBreaths',
+            style: AppTypography.title.copyWith(
+              color: AppColors.white,
+              fontSize: AppFontSizes.s26,
+              height: 1.2,
+            ),
+          ),
+          Text(
+            'Cycle $cyclePercent%',
+            style: AppTypography.subheadline.copyWith(
+              color: AppColors.fog,
+              fontSize: AppFontSizes.s11,
+              letterSpacing: 1.1,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -481,13 +595,14 @@ class _Finished extends StatelessWidget {
 class _BreathGuide extends StatelessWidget {
   const _BreathGuide({required this.frame});
 
+  static const double _size = 84;
+
   final MerkabaFrame frame;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: AppSpacing.s96,
-      height: 96,
+    return SizedBox.square(
+      dimension: _size,
       child: CustomPaint(
         painter: _RingPainter(progress: 1 - frame.phaseProgress),
         child: Center(

@@ -25,10 +25,12 @@ class MirrorGardenScreen extends StatelessWidget {
 
   static const String _backgroundAsset = 'assets/images/mirror_garden.png';
   static const double _headerTop = 72;
-  static const double _bottomGap = AppSpacing.s36;
+
+  /// With the skip action under it, CONTINUE sits as high as the main
+  /// button on the Listening Room and Ritual Ready screens.
+  static const double _bottomGap = AppSpacing.s30;
   static const double _minInsetGap = AppSpacing.s16;
   static const double _horizontalPadding = AppSpacing.s32;
-  static const double _hintWidth = 270;
 
   void _openResonanceChamber(BuildContext context) =>
       context.push(AppRoutes.resonanceChamber);
@@ -56,101 +58,56 @@ class MirrorGardenScreen extends StatelessWidget {
             ),
           ),
           const _Vignettes(),
-          LayoutBuilder(
-            builder: (context, constraints) => SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(
-                _horizontalPadding,
-                topSpace,
-                _horizontalPadding,
-                bottomSpace,
-              ),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: math.max(
-                    0.0,
-                    constraints.maxHeight - topSpace - bottomSpace,
+          Padding(
+            padding: EdgeInsets.fromLTRB(
+              _horizontalPadding,
+              topSpace,
+              _horizontalPadding,
+              bottomSpace,
+            ),
+            child: Column(
+              children: [
+                Opacity(
+                  opacity: 0.85,
+                  child: Text(
+                    'THE MIRROR GARDEN',
+                    textAlign: TextAlign.center,
+                    style: AppTypography.headline.copyWith(
+                      color: AppColors.champagneGold,
+                      fontSize: AppFontSizes.s10,
+                      letterSpacing: 3,
+                    ),
                   ),
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      children: [
-                        Opacity(
-                          opacity: 0.85,
-                          child: Text(
-                            'THE MIRROR GARDEN',
-                            textAlign: TextAlign.center,
-                            style: AppTypography.headline.copyWith(
-                              color: AppColors.champagneGold,
-                              fontSize: AppFontSizes.s10,
-                              letterSpacing: 3,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.s28),
-                        Text(
-                          'Add A Photo Of Your Face For Personal Tracking',
-                          textAlign: TextAlign.center,
-                          style: AppTypography.title.copyWith(
-                            color: AppColors.white,
-                            fontSize: AppFontSizes.s30,
-                            height: 1.15,
-                            shadows: _titleShadow,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Column(
-                      children: [
-                        const SizedBox(height: AppSpacing.s24),
-                        PhotoMirror(onPressed: () {}),
-                        _TextAction(label: 'UPLOAD A PHOTO', onPressed: () {}),
-                        const SizedBox(height: AppSpacing.s4),
-                        Text(
-                          '(Optional)',
-                          textAlign: TextAlign.center,
-                          style: AppTypography.subheadline.copyWith(
-                            color: AppColors.champagneGold,
-                            fontSize: AppFontSizes.s16,
-                            height: 1.25,
-                            letterSpacing: 0,
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.s4),
-                        SizedBox(
-                          width: _hintWidth,
-                          child: Text(
-                            'This helps you track your progress and personalize '
-                            'your ritual even more.',
-                            textAlign: TextAlign.center,
-                            style: AppTypography.body.copyWith(
-                              color: AppColors.white,
-                              fontSize: AppFontSizes.s11,
-                              height: 1.7,
-                              letterSpacing: 0.55,
-                              shadows: _bodyGlow,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.s4),
-                        _TextAction(
-                          label: 'SKIP FOR NOW',
-                          onPressed: () => _openResonanceChamber(context),
-                        ),
-                        const SizedBox(height: AppSpacing.s4),
-                        HikaruPillButton(
-                          label: 'CONTINUE',
-                          onPressed: () => _openResonanceChamber(context),
-                          buttonHeight: AppSpacing.s56,
-                          blurRadius: 8,
-                          borderAlpha: 0.3,
-                        ),
-                      ],
-                    ),
-                  ],
+                const SizedBox(height: AppSpacing.s28),
+                Text(
+                  'Add A Photo Of Your Face For Personal Tracking',
+                  textAlign: TextAlign.center,
+                  style: AppTypography.title.copyWith(
+                    color: AppColors.white,
+                    fontSize: AppFontSizes.s30,
+                    height: 1.15,
+                    shadows: _titleShadow,
+                  ),
                 ),
-              ),
+                Expanded(
+                  child: Center(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: _PhotoChoice(onUpload: () {}),
+                    ),
+                  ),
+                ),
+                HikaruPillButton(
+                  label: 'CONTINUE',
+                  onPressed: () => _openResonanceChamber(context),
+                ),
+                const SizedBox(height: AppSpacing.s8),
+                _TextAction(
+                  label: 'SKIP FOR NOW',
+                  onPressed: () => _openResonanceChamber(context),
+                ),
+              ],
             ),
           ),
         ],
@@ -212,6 +169,53 @@ class _Vignettes extends StatelessWidget {
   }
 }
 
+/// The mirror with its upload option and the optional note right under it.
+class _PhotoChoice extends StatelessWidget {
+  const _PhotoChoice({required this.onUpload});
+
+  static const double _hintWidth = 270;
+
+  final VoidCallback onUpload;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: _hintWidth,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          PhotoMirror(onPressed: () {}),
+          const SizedBox(height: AppSpacing.s8),
+          _TextAction(label: 'UPLOAD A PHOTO', onPressed: onUpload),
+          Text(
+            '(Optional)',
+            textAlign: TextAlign.center,
+            style: AppTypography.subheadline.copyWith(
+              color: AppColors.champagneGold,
+              fontSize: AppFontSizes.s16,
+              height: 1.25,
+              letterSpacing: 0,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.s4),
+          Text(
+            'This helps you track your progress and personalize '
+            'your ritual even more.',
+            textAlign: TextAlign.center,
+            style: AppTypography.body.copyWith(
+              color: AppColors.white,
+              fontSize: AppFontSizes.s11,
+              height: 1.7,
+              letterSpacing: 0.55,
+              shadows: _bodyGlow,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _TextAction extends StatelessWidget {
   const _TextAction({required this.label, required this.onPressed});
 
@@ -226,7 +230,7 @@ class _TextAction extends StatelessWidget {
         onPressed: onPressed,
         style: TextButton.styleFrom(
           foregroundColor: AppColors.champagneGold,
-          minimumSize: const Size.fromHeight(56),
+          minimumSize: const Size.fromHeight(AppSpacing.s40),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadii.r8),
           ),

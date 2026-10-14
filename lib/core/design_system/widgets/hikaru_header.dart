@@ -4,7 +4,9 @@ class HikaruHeader extends StatelessWidget {
   const HikaruHeader({super.key});
 
   static const double _designWidth = 390;
-  static const double _height = 68;
+
+  /// Header height in design pixels, before scaling to the screen width.
+  static const double height = 68;
   static const String _kanjiAsset = 'assets/images/harmony_kanji.png';
 
   @override
@@ -12,7 +14,7 @@ class HikaruHeader extends StatelessWidget {
     final scale = MediaQuery.sizeOf(context).width / _designWidth;
 
     return SizedBox(
-      height: _height * scale,
+      height: height * scale,
       child: Center(
         child: Image.asset(
           _kanjiAsset,

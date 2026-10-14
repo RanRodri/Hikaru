@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:ui' show ImageFilter;
 
 import 'package:audioplayers/audioplayers.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,9 +21,10 @@ import '../../crystals/application/selected_crystal_controller.dart';
 import '../../crystals/domain/crystal.dart';
 import '../data/cymatic_headphones_prompts.dart';
 import '../domain/cymatic_audio.dart';
+import 'crystal_scene_photo.dart';
 import 'cymatic_audio_loader.dart';
+import 'cymatic_kaleidoscope.dart';
 import 'cymatic_projection.dart';
-import 'cymatic_signature.dart';
 import 'resonance_sections.dart';
 
 final TextStyle _bodyStyle = AppTypography.headline.copyWith(
@@ -45,10 +46,12 @@ class CrystalResonanceScreen extends ConsumerStatefulWidget {
 
 class _CrystalResonanceScreenState
     extends ConsumerState<CrystalResonanceScreen> {
-  static const double _horizontalPadding = AppSpacing.s24;
-  static const double _heroScreenRatio = 0.3;
-  static const double _minHeroHeight = 180;
-  static const double _maxHeroHeight = 300;
+  static const EdgeInsets _sidePadding = EdgeInsets.symmetric(
+    horizontal: AppSpacing.s24,
+  );
+  static const double _heroScreenRatio = 0.36;
+  static const double _minHeroHeight = 220;
+  static const double _maxHeroHeight = 360;
 
   final AudioPlayer _player = AudioPlayer();
   final ValueNotifier<Duration> _position = ValueNotifier(Duration.zero);
@@ -77,6 +80,7 @@ class _CrystalResonanceScreenState
       _position.value = position;
     });
     _loadEnvelope();
+    unawaited(loadCymaticKaleidoscope());
   }
 
   @override
@@ -92,11 +96,7 @@ class _CrystalResonanceScreenState
   Future<void> _handlePlayProjection() async {
     if (await _prompts.shouldShow()) {
       if (!mounted) return;
-      await showDialog<void>(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const _HeadphonesDialog(),
-      );
+      await _HeadphonesDialog.show(context);
       if (!mounted) return;
       await _prompts.recordShown();
     }
@@ -112,7 +112,7 @@ class _CrystalResonanceScreenState
       _controlsVisible = false;
       _isPlaying = true;
     });
-    await _lockLandscape();
+    await _allowRotationImmersive();
     if (!mounted || token != _playbackToken) return;
     await _startFrequency(token);
   }
@@ -140,8 +140,9 @@ class _CrystalResonanceScreenState
     setState(() => _controlsVisible = !_controlsVisible);
   }
 
-  Future<void> _lockLandscape() async {
+  Future<void> _allowRotationImmersive() async {
     await SystemChrome.setPreferredOrientations(const [
+      DeviceOrientation.portraitUp,
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
     ]);
@@ -266,50 +267,60 @@ class _CrystalResonanceScreenState
                 children: [
                   Expanded(
                     child: ChamberScrollView(
-                      padding: EdgeInsets.fromLTRB(
-                        _horizontalPadding,
-                        insets.top + AppSpacing.s8,
-                        _horizontalPadding,
-                        AppSpacing.s16,
+                      padding: EdgeInsets.only(
+                        top: insets.top + AppSpacing.s8,
+                        bottom: AppSpacing.s16,
                       ),
                       children: [
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: _BackButton(onPressed: _handleBackPressed),
-                        ),
-                        _CrystalIntroduction(crystal: _crystal),
-                        SizedBox(
-                          height: heroHeight,
-                          child: _CrystalHero(
-                            crystal: _crystal,
-                            playing: false,
-                            envelope: _envelope,
-                            playbackPosition: _position,
+                        Padding(
+                          padding: _sidePadding,
+                          child: Column(
+                            children: [
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: _BackButton(
+                                  onPressed: _handleBackPressed,
+                                ),
+                              ),
+                              _CrystalIntroduction(crystal: _crystal),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: AppSpacing.s12),
-                        _FrequencyPlayer(
-                          crystal: _crystal,
-                          isPlaying: false,
-                          isUnavailable: false,
-                          onToggle: () => unawaited(_handlePlayProjection()),
+                        SizedBox(
+                          height: heroHeight,
+                          width: double.infinity,
+                          child: CrystalScenePhoto(crystal: _crystal),
                         ),
-                        const SizedBox(height: AppSpacing.s24),
-                        _CrystalDetail(
-                          label: 'THERAPEUTIC PURPOSE',
-                          text: _crystal.purpose,
-                        ),
-                        _CrystalDetail(
-                          label: 'SKIN BENEFIT',
-                          text: _crystal.skinBenefit,
-                        ),
-                        _CrystalDetail(
-                          label: 'ILLUMINATED MERIDIANS',
-                          text: _crystal.meridians,
-                        ),
-                        _CrystalDetail(
-                          label: 'VISUAL ENVIRONMENT',
-                          text: _crystal.environment,
+                        Padding(
+                          padding: _sidePadding,
+                          child: Column(
+                            children: [
+                              _FrequencyPlayer(
+                                crystal: _crystal,
+                                isPlaying: false,
+                                isUnavailable: false,
+                                onToggle: () =>
+                                    unawaited(_handlePlayProjection()),
+                              ),
+                              const SizedBox(height: AppSpacing.s24),
+                              _CrystalDetail(
+                                label: 'THERAPEUTIC PURPOSE',
+                                text: _crystal.purpose,
+                              ),
+                              _CrystalDetail(
+                                label: 'SKIN BENEFIT',
+                                text: _crystal.skinBenefit,
+                              ),
+                              _CrystalDetail(
+                                label: 'ILLUMINATED MERIDIANS',
+                                text: _crystal.meridians,
+                              ),
+                              _CrystalDetail(
+                                label: 'VISUAL ENVIRONMENT',
+                                text: _crystal.environment,
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -442,49 +453,6 @@ class _CrystalIntroduction extends StatelessWidget {
   }
 }
 
-class _CrystalHero extends StatelessWidget {
-  const _CrystalHero({
-    required this.crystal,
-    required this.playing,
-    required this.envelope,
-    required this.playbackPosition,
-  });
-
-  final Crystal crystal;
-  final bool playing;
-  final CymaticEnvelope? envelope;
-  final ValueListenable<Duration> playbackPosition;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: AspectRatio(
-        aspectRatio: 1,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.champagneGold.withValues(alpha: 0.22),
-                blurRadius: 48,
-                spreadRadius: -12,
-              ),
-            ],
-          ),
-          child: CymaticSignature(
-            crystal: crystal,
-            playing: playing,
-            showSeal: true,
-            envelope: envelope,
-            playbackPosition: playbackPosition,
-            semanticLabel: '${crystal.displayName} crystal',
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _FrequencyPlayer extends StatelessWidget {
   const _FrequencyPlayer({
     required this.crystal,
@@ -606,43 +574,162 @@ class _CrystalDetail extends StatelessWidget {
   }
 }
 
+/// Gentle note before the cymatic plays: the frequency is meant to be heard
+/// in stereo. The chamber blurs softly behind it.
 class _HeadphonesDialog extends StatelessWidget {
   const _HeadphonesDialog();
 
+  static const Duration _transition = Duration(milliseconds: 280);
+  static const double _maxWidth = 300;
+  static const double _iconRing = AppSpacing.s52;
+  static const double _backdropBlur = 6;
+
+  static Future<void> show(BuildContext context) {
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    return showGeneralDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: AppColors.darkIndigoBlue.withValues(alpha: 0.55),
+      transitionDuration: reduceMotion ? Duration.zero : _transition,
+      pageBuilder: (context, animation, secondaryAnimation) =>
+          const _HeadphonesDialog(),
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        final eased = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+        );
+        return BackdropFilter(
+          filter: ImageFilter.blur(
+            sigmaX: _backdropBlur * animation.value,
+            sigmaY: _backdropBlur * animation.value,
+          ),
+          child: FadeTransition(
+            opacity: eased,
+            child: ScaleTransition(
+              scale: Tween(begin: 0.96, end: 1.0).animate(eased),
+              child: child,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _handleContinue(BuildContext context) => Navigator.of(context).pop();
+
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: resonanceChamberColor,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadii.r20),
-        side: BorderSide(
-          color: AppColors.champagneGold.withValues(alpha: 0.6),
-          width: 0.75,
-        ),
-      ),
-      content: Text(
-        'This experience will be better with headphones',
-        textAlign: TextAlign.center,
-        style: _bodyStyle.copyWith(color: AppColors.fog),
-      ),
-      actionsAlignment: MainAxisAlignment.center,
-      actions: [
-        FilledButton(
-          onPressed: () => Navigator.of(context).pop(),
-          style: FilledButton.styleFrom(
-            backgroundColor: AppColors.champagneGold,
-            foregroundColor: AppColors.darkIndigoBlue,
-            shape: const StadiumBorder(),
-          ),
-          child: Text(
-            'Continue',
-            style: AppTypography.subheadline.copyWith(
-              color: AppColors.darkIndigoBlue,
-              letterSpacing: 1.2,
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.s32),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: _maxWidth),
+          child: Semantics(
+            scopesRoute: true,
+            namesRoute: true,
+            explicitChildNodes: true,
+            label: 'Headphones recommended',
+            child: Material(
+              type: MaterialType.transparency,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(AppRadii.r28),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      AppColors.indigoBlue.withValues(alpha: 0.96),
+                      resonanceChamberColor.withValues(alpha: 0.98),
+                    ],
+                  ),
+                  border: Border.all(
+                    color: AppColors.champagneGold.withValues(alpha: 0.45),
+                    width: 0.6,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.champagneGold.withValues(alpha: 0.12),
+                      blurRadius: 32,
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.s28,
+                    AppSpacing.s32,
+                    AppSpacing.s28,
+                    AppSpacing.s28,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: _iconRing,
+                        height: _iconRing,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppColors.champagneGold.withValues(
+                            alpha: 0.08,
+                          ),
+                          border: Border.all(
+                            color: AppColors.champagneGold.withValues(
+                              alpha: 0.6,
+                            ),
+                            width: 0.75,
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.headphones_outlined,
+                          color: AppColors.champagneGold,
+                          size: AppSpacing.s24,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.s20),
+                      Text(
+                        'FOR THE FULL EXPERIENCE',
+                        textAlign: TextAlign.center,
+                        style: AppTypography.subheadline.copyWith(
+                          color: AppColors.champagneGold,
+                          fontSize: AppFontSizes.s10,
+                          letterSpacing: 2.4,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.s12),
+                      Text(
+                        'This experience will be better with headphones',
+                        textAlign: TextAlign.center,
+                        style: AppTypography.headline.copyWith(
+                          color: AppColors.white,
+                          fontSize: AppFontSizes.s18,
+                          fontWeight: FontWeight.w300,
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.s10),
+                      Text(
+                        'Stereo sound lets the frequency surround you.',
+                        textAlign: TextAlign.center,
+                        style: _bodyStyle.copyWith(
+                          color: AppColors.fog,
+                          fontSize: AppFontSizes.s11,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.s28),
+                      HikaruPillButton(
+                        label: 'CONTINUE',
+                        onPressed: () => _handleContinue(context),
+                        buttonHeight: AppSpacing.s44,
+                        blurRadius: 12,
+                        shadowAlpha: 0.25,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
         ),
-      ],
+      ),
     );
   }
 }

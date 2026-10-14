@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -8,6 +9,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
 import '../../../core/design_system/tokens/app_font_sizes.dart';
+import '../../../core/design_system/tokens/app_radii.dart';
 import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/design_system/widgets/hikaru_header.dart';
@@ -21,8 +23,14 @@ const double _designWidth = 390;
 const double _panelOverlap = 26;
 const Duration _inhale = Duration(seconds: 4);
 const Duration _breathCycle = Duration(seconds: 10);
+
+/// Open extent until the panel has been measured, and the tallest it may get.
 const double _sheetOpen = 0.62;
-const double _sheetShown = 0.4;
+const double _sheetMax = 0.86;
+
+/// Share of the slide from collapsed to open over which the crystal fades in.
+const double _crystalFadeShare = 0.6;
+const Duration _sheetSlide = Duration(milliseconds: 420);
 
 /// Top padding, handle, and the gap under it. Collapsed, this is all that shows.
 const double _handleBarHeight = 28;
@@ -49,6 +57,9 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
   int _zoneIndex = 0;
   final DraggableScrollableController _sheet = DraggableScrollableController();
   double _sheetExtent = _sheetOpen;
+  double _panelHeight = 0;
+  List<double>? _snapSizes;
+  int _videoTaps = 0;
 
   MassageRitual get _ritual => ritualFor(widget.surface);
 
@@ -76,12 +87,71 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
     if (!_sheet.isAttached) return;
     final next = _sheet.size;
     if ((next - _sheetExtent).abs() < 0.008) return;
+    final building =
+        SchedulerBinding.instance.schedulerPhase ==
+        SchedulerPhase.persistentCallbacks;
+    if (building) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _handleSheet();
+      });
+      return;
+    }
     setState(() => _sheetExtent = next);
   }
 
-  double _crystalOpacity(double collapsed) {
-    final span = _sheetShown - collapsed;
-    if (span <= 0) return _sheetExtent >= _sheetShown ? 1 : 0;
+  /// Sheet extent that leaves only the handle bar above the bottom edge.
+  double _collapsedExtent(Size size) {
+    final scale = size.width / _designWidth;
+    return (_handleBarHeight * scale / size.height).clamp(0.02, 0.12);
+  }
+
+  /// Sheet extent that fits the whole panel, so no empty space shows below it.
+  double _openExtent(Size size) {
+    final collapsed = _collapsedExtent(size);
+    if (_panelHeight <= 0 || size.height <= 0) return _sheetOpen;
+    return (_panelHeight / size.height).clamp(collapsed + 0.1, _sheetMax);
+  }
+
+  /// Same list instance while the sizes hold. A new list makes the sheet
+  /// snap again, which would fight the user's drag.
+  List<double> _snapSizesFor(double collapsed, double open) {
+    final current = _snapSizes;
+    if (current != null && current[0] == collapsed && current[1] == open) {
+      return current;
+    }
+    return _snapSizes = [collapsed, open];
+  }
+
+  void _handlePanelHeight(double height) {
+    if (!mounted || (height - _panelHeight).abs() < 1) return;
+    final size = MediaQuery.sizeOf(context);
+    final wasOpen =
+        _sheet.isAttached && (_sheet.size - _openExtent(size)).abs() < 0.01;
+    setState(() => _panelHeight = height);
+    if (!wasOpen) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_sheet.isAttached) return;
+      _sheet.jumpTo(_openExtent(MediaQuery.sizeOf(context)));
+    });
+  }
+
+  void _slideSheetTo(double extent) {
+    if (!_sheet.isAttached) return;
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _sheet.jumpTo(extent);
+      return;
+    }
+    _sheet.animateTo(extent, duration: _sheetSlide, curve: Curves.easeOutCubic);
+  }
+
+  void _revealVideo() =>
+      _slideSheetTo(_collapsedExtent(MediaQuery.sizeOf(context)));
+
+  void _revealPanel() => _slideSheetTo(_openExtent(MediaQuery.sizeOf(context)));
+
+  double _crystalOpacity(double collapsed, double open) {
+    final span = (open - collapsed) * _crystalFadeShare;
+    if (span <= 0) return _sheetExtent >= open ? 1 : 0;
     return ((_sheetExtent - collapsed) / span).clamp(0.0, 1.0);
   }
 
@@ -99,6 +169,7 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
     if (_isLastZone) {
       _stop();
       setState(() => _zoneElapsed = zoneLength);
+      _revealPanel();
       return;
     }
     setState(() {
@@ -122,7 +193,7 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
 
   void _handlePlayPause() {
     if (_playing) {
-      setState(_stop);
+      _handlePause();
       return;
     }
     final finished = _isLastZone && _zoneElapsed >= _ritual.zoneLength;
@@ -135,6 +206,18 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
     });
     _lastTick = Duration.zero;
     _ticker.start();
+    _revealVideo();
+  }
+
+  void _handlePause() {
+    if (!_playing) return;
+    setState(_stop);
+    _revealPanel();
+  }
+
+  void _handleVideoTap() {
+    setState(() => _videoTaps += 1);
+    _handlePlayPause();
   }
 
   void _handleRestart() {
@@ -164,14 +247,34 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
       body: LayoutBuilder(
         builder: (context, constraints) {
           final scale = constraints.maxWidth / _designWidth;
-          final collapsed = (_handleBarHeight * scale / constraints.maxHeight)
-              .clamp(0.02, 0.12);
-          final crystalOpacity = _crystalOpacity(collapsed);
+          final collapsed = _collapsedExtent(constraints.biggest);
+          final open = _openExtent(constraints.biggest);
+          final crystalOpacity = _crystalOpacity(collapsed, open);
 
           return Stack(
             children: [
               Positioned.fill(
-                child: RitualVideoSlot(videoUrl: ritual.videoUrl),
+                child: Semantics(
+                  button: true,
+                  label: _playing ? 'Pause ritual video' : 'Play ritual video',
+                  child: GestureDetector(
+                    onTap: _handleVideoTap,
+                    behavior: HitTestBehavior.opaque,
+                    child: RitualVideoSlot(videoUrl: ritual.videoUrl),
+                  ),
+                ),
+              ),
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: Center(
+                    child: _PlaybackPulse(
+                      key: ValueKey(_videoTaps),
+                      visible: _videoTaps > 0,
+                      playing: _playing,
+                      scale: scale,
+                    ),
+                  ),
+                ),
               ),
               Positioned.fill(
                 child: Padding(
@@ -185,33 +288,51 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
               ),
               DraggableScrollableSheet(
                 controller: _sheet,
-                initialChildSize: _sheetOpen,
+                initialChildSize: open,
                 minChildSize: collapsed,
-                maxChildSize: 0.86,
+                maxChildSize: _sheetMax,
                 snap: true,
-                snapSizes: [collapsed, _sheetOpen],
+                snapSizes: _snapSizesFor(collapsed, open),
                 builder: (context, scrollController) {
                   return DecoratedBox(
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: AppColors.darkIndigoBlue,
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(_panelOverlap * scale),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.champagneGold.withValues(
+                            alpha: 0.08,
+                          ),
+                          blurRadius: 24 * scale,
+                          offset: Offset(0, -4 * scale),
+                        ),
+                      ],
                     ),
                     child: SingleChildScrollView(
                       controller: scrollController,
-                      child: _ControlPanel(
-                        scale: scale,
-                        bottomInset: insets.bottom,
-                        ritual: ritual,
-                        crystal: crystal,
-                        crystalOpacity: crystalOpacity,
-                        zoneIndex: _zoneIndex,
-                        zoneElapsed: _zoneElapsed,
-                        sessionElapsed: _sessionElapsed,
-                        playing: _playing,
-                        onZoneSelected: _handleZoneSelected,
-                        onPrevious: () => _handleZoneSelected(_zoneIndex - 1),
-                        onPlayPause: _handlePlayPause,
-                        onNext: () => _handleZoneSelected(_zoneIndex + 1),
-                        onRestart: _handleRestart,
+                      physics: const ClampingScrollPhysics(
+                        parent: AlwaysScrollableScrollPhysics(),
+                      ),
+                      child: _MeasuredHeight(
+                        onHeight: _handlePanelHeight,
+                        child: _ControlPanel(
+                          scale: scale,
+                          bottomInset: insets.bottom,
+                          ritual: ritual,
+                          crystal: crystal,
+                          crystalOpacity: crystalOpacity,
+                          zoneIndex: _zoneIndex,
+                          zoneElapsed: _zoneElapsed,
+                          sessionElapsed: _sessionElapsed,
+                          playing: _playing,
+                          onZoneSelected: _handleZoneSelected,
+                          onPrevious: () => _handleZoneSelected(_zoneIndex - 1),
+                          onPlayPause: _handlePlayPause,
+                          onNext: () => _handleZoneSelected(_zoneIndex + 1),
+                          onRestart: _handleRestart,
+                        ),
                       ),
                     ),
                   );
@@ -222,6 +343,102 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
         },
       ),
     );
+  }
+}
+
+/// Brief play or pause glyph that blooms and fades over the video on each tap.
+class _PlaybackPulse extends StatelessWidget {
+  const _PlaybackPulse({
+    super.key,
+    required this.visible,
+    required this.playing,
+    required this.scale,
+  });
+
+  static const Duration _duration = Duration(milliseconds: 750);
+
+  final bool visible;
+  final bool playing;
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!visible || MediaQuery.disableAnimationsOf(context)) {
+      return const SizedBox.shrink();
+    }
+    final diameter = 64 * scale;
+
+    return ExcludeSemantics(
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0, end: 1),
+        duration: _duration,
+        curve: Curves.easeOutCubic,
+        builder: (context, progress, child) {
+          return Opacity(
+            opacity: (1 - progress) * 0.9,
+            child: Transform.scale(scale: 0.85 + 0.3 * progress, child: child),
+          );
+        },
+        child: Container(
+          width: diameter,
+          height: diameter,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.darkIndigoBlue.withValues(alpha: 0.45),
+            border: Border.all(
+              color: AppColors.champagneGold80.withValues(alpha: 0.6),
+              width: 0.8,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.champagneGold.withValues(alpha: 0.25),
+                blurRadius: 18 * scale,
+              ),
+            ],
+          ),
+          child: Icon(
+            playing ? Icons.play_arrow_rounded : Icons.pause_rounded,
+            color: AppColors.champagneGold80,
+            size: diameter * 0.45,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Reports its child's laid-out height after each frame where it changes.
+class _MeasuredHeight extends SingleChildRenderObjectWidget {
+  const _MeasuredHeight({required this.onHeight, required super.child});
+
+  final ValueChanged<double> onHeight;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _RenderMeasuredHeight(onHeight);
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _RenderMeasuredHeight renderObject,
+  ) {
+    renderObject.onHeight = onHeight;
+  }
+}
+
+class _RenderMeasuredHeight extends RenderProxyBox {
+  _RenderMeasuredHeight(this.onHeight);
+
+  ValueChanged<double> onHeight;
+  double? _reported;
+
+  @override
+  void performLayout() {
+    super.performLayout();
+    final height = size.height;
+    if (height == _reported) return;
+    _reported = height;
+    WidgetsBinding.instance.addPostFrameCallback((_) => onHeight(height));
   }
 }
 
@@ -460,8 +677,11 @@ class _ControlPanel extends StatelessWidget {
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(_panelOverlap * scale),
         ),
-        border: const Border(
-          top: BorderSide(color: AppColors.champagneGold, width: 0.5),
+        border: Border(
+          top: BorderSide(
+            color: AppColors.champagneGold.withValues(alpha: 0.35),
+            width: 0.5,
+          ),
         ),
         gradient: const LinearGradient(
           begin: Alignment.topCenter,
@@ -482,11 +702,11 @@ class _ControlPanel extends StatelessWidget {
               height: _handleBarHeight * scale,
               child: Center(
                 child: Container(
-                  width: 36 * scale,
-                  height: 4 * scale,
+                  width: 32 * scale,
+                  height: 3 * scale,
                   decoration: BoxDecoration(
-                    color: AppColors.champagneGold80,
-                    borderRadius: BorderRadius.circular(4),
+                    color: AppColors.champagneGold80.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(AppRadii.r4),
                   ),
                 ),
               ),
@@ -558,7 +778,7 @@ class _ControlPanel extends StatelessWidget {
             children: [
               _RoundControl(
                 scale: scale,
-                size: 28,
+                size: 32,
                 icon: Icons.skip_previous_rounded,
                 semanticsLabel: 'Previous zone',
                 onPressed: zoneIndex == 0 ? null : onPrevious,
@@ -566,7 +786,7 @@ class _ControlPanel extends StatelessWidget {
               SizedBox(width: AppSpacing.s26 * scale),
               _RoundControl(
                 scale: scale,
-                size: 43,
+                size: 48,
                 icon: playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
                 semanticsLabel: playing ? 'Pause' : 'Play',
                 isPrimary: true,
@@ -575,7 +795,7 @@ class _ControlPanel extends StatelessWidget {
               SizedBox(width: AppSpacing.s26 * scale),
               _RoundControl(
                 scale: scale,
-                size: 28,
+                size: 32,
                 icon: Icons.skip_next_rounded,
                 semanticsLabel: 'Next zone',
                 onPressed: zoneIndex >= ritual.zones.length - 1 ? null : onNext,
@@ -633,7 +853,7 @@ class _StepSummary extends StatelessWidget {
               child: Container(
                 width: frameSize,
                 height: frameSize,
-                padding: EdgeInsets.all(3 * scale),
+                padding: EdgeInsets.all(AppSpacing.s3 * scale),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
@@ -685,9 +905,10 @@ class _StepSummary extends StatelessWidget {
               Text(
                 zone.instruction,
                 style: AppTypography.body.copyWith(
-                  color: AppColors.silver,
+                  color: AppColors.silver.withValues(alpha: 0.78),
                   fontSize: AppFontSizes.s10_5 * scale,
-                  height: 1.3,
+                  fontWeight: FontWeight.w300,
+                  height: 1.4,
                 ),
               ),
             ],
@@ -715,9 +936,12 @@ class _ControlCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: AppColors.darkIndigoBlue.withValues(alpha: 0.95),
-        borderRadius: BorderRadius.circular(11 * scale),
-        border: Border.all(color: AppColors.champagneGold, width: 0.45),
+        color: AppColors.indigoBlue80.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(AppRadii.r16 * scale),
+        border: Border.all(
+          color: AppColors.champagneGold.withValues(alpha: 0.28),
+          width: 0.6,
+        ),
       ),
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: AppSpacing.s8 * scale),
@@ -929,7 +1153,7 @@ class _ZoneTimeline extends StatelessWidget {
           top: markerTop + 4.75 * scale,
           child: Container(
             height: AppSpacing.s0_5,
-            color: AppColors.champagneGold80.withValues(alpha: 0.7),
+            color: AppColors.champagneGold80.withValues(alpha: 0.3),
           ),
         ),
         Row(
@@ -990,17 +1214,23 @@ class _ZoneStage extends StatelessWidget {
               height: marker,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: filled ? AppColors.champagneGold80 : AppColors.black,
+                color: filled
+                    ? AppColors.champagneGold80
+                    : AppColors.darkIndigoBlue,
                 border: Border.all(
-                  color: AppColors.champagneGold80,
+                  color: AppColors.champagneGold80.withValues(
+                    alpha: filled ? 1 : 0.55,
+                  ),
                   width: 0.6,
                 ),
                 boxShadow: isActive
                     ? [
                         BoxShadow(
-                          color: AppColors.champagneGold,
-                          blurRadius: 5 * scale,
-                          spreadRadius: 2 * scale,
+                          color: AppColors.champagneGold.withValues(
+                            alpha: 0.55,
+                          ),
+                          blurRadius: 8 * scale,
+                          spreadRadius: 1 * scale,
                         ),
                       ]
                     : null,
@@ -1010,7 +1240,9 @@ class _ZoneStage extends StatelessWidget {
             Text(
               name.toUpperCase(),
               style: AppTypography.footnote.copyWith(
-                color: isActive ? AppColors.champagneGold80 : AppColors.silver,
+                color: isActive
+                    ? AppColors.champagneGold80
+                    : AppColors.silver.withValues(alpha: 0.6),
                 fontSize: AppFontSizes.s7_5 * scale,
                 letterSpacing: 0.4 * scale,
               ),
@@ -1060,13 +1292,24 @@ class _RoundControl extends StatelessWidget {
           height: diameter,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: AppColors.black,
-            border: Border.all(color: color, width: isPrimary ? 0.7 : 0.3),
+            gradient: isPrimary
+                ? RadialGradient(
+                    colors: [
+                      AppColors.champagneGold.withValues(alpha: 0.22),
+                      AppColors.darkIndigoBlue,
+                    ],
+                  )
+                : null,
+            color: isPrimary ? null : AppColors.darkIndigoBlue,
+            border: Border.all(
+              color: color.withValues(alpha: color.a * (isPrimary ? 0.9 : 0.5)),
+              width: isPrimary ? 0.8 : 0.5,
+            ),
             boxShadow: isPrimary
                 ? [
                     BoxShadow(
-                      color: AppColors.champagneGold,
-                      blurRadius: 2.7 * scale,
+                      color: AppColors.champagneGold.withValues(alpha: 0.35),
+                      blurRadius: 14 * scale,
                     ),
                   ]
                 : null,

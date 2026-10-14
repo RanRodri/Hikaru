@@ -5,11 +5,14 @@ import 'package:flutter/material.dart';
 import '../../../core/design_system/tokens/app_colors.dart';
 import '../domain/merkaba_session.dart';
 
-/// Seated woman, cropped to the portrait field. Edges fade into the screen indigo.
+/// Seated woman on a transparent background, over the starry night.
 const String merkabaWomanAsset = 'assets/images/merkaba_woman.png';
 
 /// Width / height of [merkabaWomanAsset].
 const double merkabaWomanAspect = 900 / 720;
+
+/// Breath level shown while animations are disabled.
+const double merkabaRestingBreath = 0.62;
 
 /// Painted Merkaba field over the seated woman. A pre-rendered video can
 /// replace this widget later by passing [MerkabaStage.replacement].
@@ -63,6 +66,8 @@ class MerkabaStage extends StatelessWidget {
   }
 }
 
+/// Geometry drawn in phases: a triangle forms, dissolves into figure-eight
+/// lines that envelop her, the Merkaba builds and turns, and a heart blossoms.
 class MerkabaFieldPainter extends CustomPainter {
   const MerkabaFieldPainter({required this.frame, required this.reduceMotion});
 
@@ -71,18 +76,36 @@ class MerkabaFieldPainter extends CustomPainter {
 
   /// Indexes into [merkabaScenes].
   static const int _blueprintScene = 0;
-  static const int _ribbonScene = 1;
+  static const int _envelopeScene = 1;
   static const int _buildScene = 2;
   static const int _expansionScene = 3;
   static const int _blossomScene = 4;
 
   /// Share of the blueprint scene spent on the woman and heart alone
-  /// before the star starts tracing, and the share spent tracing it.
-  static const double _starDelay = 0.25;
-  static const double _starTrace = 0.6;
+  /// before the triangle starts tracing, and the share spent tracing it.
+  static const double _triangleDelay = 0.25;
+  static const double _triangleTrace = 0.6;
+  static const double _triangleRadius = 0.30;
+
+  /// Share of the envelope scene the triangle takes to split into
+  /// figure-eight lines, and how the three lines differ in size.
+  static const double _dissolveShare = 0.35;
+  static const int _envelopeLines = 3;
+  static const int _morphSamples = 120;
+  static const double _eightHalfWidth = 0.34;
+  static const double _eightHalfHeight = 0.42;
 
   /// The two tetrahedra close slightly before the rotation scene begins.
   static const double _buildShare = 0.9;
+
+  /// Share of the blossom scene spent tracing the outer heart, and when the
+  /// inner heart starts.
+  static const double _heartTrace = 0.7;
+  static const double _innerHeartDelay = 0.35;
+
+  /// Heart curve units per woman height, and the curve's vertical middle.
+  static const double _heartScale = 0.022;
+  static const double _heartCurveMiddle = 2.5;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -90,27 +113,23 @@ class MerkabaFieldPainter extends CustomPainter {
     if (woman.width <= 0 || woman.height <= 0) return;
 
     // Heart glow sits on the chest. The geometry shares her vertical axis
-    // and is centered so the star frames the whole seated figure.
+    // and is centered so each figure frames the whole seated body.
     final heart = Offset(
       woman.left + woman.width * _axisX,
       woman.top + woman.height * _heartY,
     );
-    final body = Offset(
-      woman.left + woman.width * _axisX,
-      woman.top + woman.height * _bodyY,
-    );
     final sceneIndex = merkabaScenes.indexOf(frame.scene);
-    final breath = reduceMotion ? 0.62 : _breath(frame);
+    final breath = reduceMotion ? merkabaRestingBreath : frame.breathLevel;
     final sceneT = _sceneProgress(frame);
 
-    _paintHeart(canvas, heart, woman.height, breath, sceneIndex, sceneT);
-    _paintStar(canvas, body, woman, sceneIndex, sceneT, breath);
-    _paintRibbons(canvas, body, woman, sceneIndex, sceneT, breath);
-    _paintMerkaba(canvas, body, woman, sceneIndex, sceneT, breath);
-    _paintMandala(canvas, heart, woman, sceneIndex, sceneT);
+    _paintHeartGlow(canvas, heart, woman.height, breath, sceneIndex, sceneT);
+    _paintTriangle(canvas, heart, woman, sceneIndex, sceneT, breath);
+    _paintEnvelope(canvas, heart, woman, sceneIndex, sceneT, breath);
+    _paintMerkaba(canvas, heart, woman, sceneIndex, sceneT, breath);
+    _paintHeartFigure(canvas, heart, woman, sceneIndex, sceneT);
   }
 
-  void _paintHeart(
+  void _paintHeartGlow(
     Canvas canvas,
     Offset heart,
     double height,
@@ -153,58 +172,73 @@ class MerkabaFieldPainter extends CustomPainter {
     }
   }
 
-  void _paintStar(
+  void _paintTriangle(
     Canvas canvas,
-    Offset body,
+    Offset center,
     Rect woman,
     int sceneIndex,
     double sceneT,
     double breath,
   ) {
-    final draw = switch (sceneIndex) {
-      _blueprintScene when reduceMotion => 1.0,
-      _blueprintScene => ((sceneT - _starDelay) / _starTrace).clamp(0.0, 1.0),
-      _ribbonScene => 1.0,
-      _ => 0.0,
-    };
+    if (sceneIndex != _blueprintScene) return;
+    final draw = reduceMotion
+        ? 1.0
+        : ((sceneT - _triangleDelay) / _triangleTrace).clamp(0.0, 1.0);
     if (draw <= 0) return;
-    final fade = sceneIndex == _ribbonScene
-        ? (1 - sceneT / 0.28).clamp(0.0, 1.0)
-        : 1.0;
-    if (fade <= 0) return;
-    final pulse = draw >= 1 && !reduceMotion ? 1 + breath * 0.035 : 1.0;
-    final radius = woman.height * 0.30 * pulse;
-    final path = _starPath(body, radius);
-    _stroke(canvas, path, 0.82 * fade, draw);
+    final radius = _triangleRadiusFor(woman, draw >= 1 ? breath : 0);
+    final path = _closedPath(_trianglePoints(center, radius, _morphSamples));
+    _stroke(canvas, path, 0.82, draw);
   }
 
-  void _paintRibbons(
+  /// The closed triangle splits into three figure-eight lines that wrap her
+  /// head and lap, crossing at the heart. They breathe and drift gently.
+  void _paintEnvelope(
     Canvas canvas,
-    Offset body,
+    Offset center,
     Rect woman,
     int sceneIndex,
     double sceneT,
     double breath,
   ) {
-    var opacity = 0.0;
-    if (sceneIndex == _ribbonScene) {
-      opacity = (sceneT / 0.18).clamp(0.0, 1.0);
+    final double dissolve;
+    final double opacity;
+    if (sceneIndex == _envelopeScene) {
+      dissolve = reduceMotion
+          ? 1.0
+          : Curves.easeInOut.transform(
+              (sceneT / _dissolveShare).clamp(0.0, 1.0),
+            );
+      opacity = 1;
     } else if (sceneIndex == _buildScene) {
-      opacity = (1 - sceneT / 0.06).clamp(0.0, 1.0);
+      dissolve = 1;
+      opacity = (1 - sceneT / 0.08).clamp(0.0, 1.0);
+    } else {
+      return;
     }
     if (opacity <= 0) return;
-    final turn = reduceMotion
-        ? 0.0
-        : frame.elapsed.inMilliseconds / 1000 * 0.22;
-    final reach = 0.78 + breath * 0.22;
-    for (var ribbon = 0; ribbon < 3; ribbon++) {
-      final path = _ribbon(
-        body,
-        woman.width * 0.26 * reach,
-        woman.height * (0.16 + ribbon * 0.03) * reach,
-        turn + ribbon * 2.05,
+
+    final triangle = _trianglePoints(
+      center,
+      _triangleRadiusFor(woman, breath),
+      _morphSamples,
+    );
+    final reach = 0.86 + breath * 0.14;
+    final seconds = reduceMotion ? 0.0 : frame.elapsed.inMilliseconds / 1000;
+    for (var line = 0; line < _envelopeLines; line++) {
+      final tilt = math.sin(seconds * 0.25 + line * 2.1) * 0.07 * dissolve;
+      final eight = _eightPoints(
+        center: center,
+        halfWidth: woman.height * _eightHalfWidth * reach * (1 - line * 0.12),
+        halfHeight: woman.height * _eightHalfHeight * reach * (1 - line * 0.05),
+        tilt: tilt,
+        samples: _morphSamples,
       );
-      _stroke(canvas, path, 0.42 * opacity, 1);
+      final points = [
+        for (var index = 0; index < _morphSamples; index++)
+          Offset.lerp(triangle[index], eight[index], dissolve)!,
+      ];
+      final alpha = line == 0 ? 0.82 - 0.22 * dissolve : 0.42 * dissolve;
+      _stroke(canvas, _closedPath(points), alpha * opacity, 1);
     }
   }
 
@@ -222,7 +256,7 @@ class MerkabaFieldPainter extends CustomPainter {
         : 6.0;
     if (built <= 0) return;
     final fade = sceneIndex == _blossomScene
-        ? (1 - sceneT).clamp(0.0, 1.0)
+        ? (1 - sceneT / _heartTrace).clamp(0.0, 1.0)
         : 1.0;
     if (fade <= 0) return;
     final scale = sceneIndex == _expansionScene
@@ -250,7 +284,9 @@ class MerkabaFieldPainter extends CustomPainter {
     );
   }
 
-  void _paintMandala(
+  /// Both halves of the heart trace from the top dip down to its point,
+  /// cradling her, then a smaller heart blooms inside.
+  void _paintHeartFigure(
     Canvas canvas,
     Offset heart,
     Rect woman,
@@ -258,22 +294,22 @@ class MerkabaFieldPainter extends CustomPainter {
     double sceneT,
   ) {
     if (sceneIndex != _blossomScene) return;
-    final appear = reduceMotion ? 1.0 : sceneT.clamp(0.0, 1.0);
-    if (appear <= 0) return;
-    final radius = woman.height * 0.16 * (0.65 + 0.35 * appear);
-    final paint = _line(0.7 * appear);
-    for (var petal = 0; petal < 8; petal++) {
-      final angle = petal * math.pi / 4 - math.pi / 2;
-      final center =
-          heart +
-          Offset(math.cos(angle), math.sin(angle)) * radius * 0.62 * appear;
-      canvas.drawCircle(center, radius * 0.38, paint);
+    final outer = reduceMotion ? 1.0 : (sceneT / _heartTrace).clamp(0.0, 1.0);
+    if (outer <= 0) return;
+    final scale = woman.height * _heartScale;
+    for (final side in const [1.0, -1.0]) {
+      _stroke(canvas, _heartHalf(heart, scale, side), 0.85, outer);
     }
-    canvas.drawCircle(
-      heart,
-      radius * 0.16,
-      Paint()..color = AppColors.emerald.withValues(alpha: 0.85 * appear),
-    );
+    final inner = reduceMotion
+        ? 1.0
+        : ((sceneT - _innerHeartDelay) / (1 - _innerHeartDelay)).clamp(
+            0.0,
+            1.0,
+          );
+    if (inner <= 0) return;
+    for (final side in const [1.0, -1.0]) {
+      _stroke(canvas, _heartHalf(heart, scale * 0.6, side), 0.5, inner);
+    }
   }
 
   void _drawTetra({
@@ -302,10 +338,7 @@ class MerkabaFieldPainter extends CustomPainter {
       if (progress <= 0) break;
       final start = points[edge];
       final end = points[(edge + 1) % 3];
-      final tip = Offset(
-        start.dx + (end.dx - start.dx) * progress,
-        start.dy + (end.dy - start.dy) * progress,
-      );
+      final tip = Offset.lerp(start, end, progress)!;
       if (!drawing) {
         path.moveTo(start.dx, start.dy);
         drawing = true;
@@ -351,32 +384,76 @@ class MerkabaFieldPainter extends CustomPainter {
       );
   }
 
-  Path _starPath(Offset center, double radius) {
-    final path = Path();
-    for (var point = 0; point < 5; point++) {
-      final angle = -math.pi / 2 + point * 4 * math.pi / 5;
-      final offset = center + Offset(math.cos(angle), math.sin(angle)) * radius;
-      if (point == 0) {
-        path.moveTo(offset.dx, offset.dy);
-      } else {
-        path.lineTo(offset.dx, offset.dy);
-      }
-    }
-    path.close();
-    return path;
+  double _triangleRadiusFor(Rect woman, double breath) {
+    final pulse = reduceMotion ? 1.0 : 1 + breath * 0.035;
+    return woman.height * _triangleRadius * pulse;
   }
 
-  Path _ribbon(Offset center, double radiusX, double radiusY, double turn) {
-    final path = Path();
-    const steps = 42;
-    for (var step = 0; step <= steps; step++) {
-      final t = step / steps;
-      final angle = turn + t * math.pi * 2.15;
-      final grow = 0.42 + t * 0.58;
-      final point = Offset(
-        center.dx + math.cos(angle) * radiusX * grow,
-        center.dy + math.sin(angle) * radiusY * grow,
+  /// Evenly spaced points around an upward triangle, clockwise from the top.
+  List<Offset> _trianglePoints(Offset center, double radius, int samples) {
+    final corners = [
+      for (var corner = 0; corner < 3; corner++)
+        center +
+            Offset(
+                  math.cos(-math.pi / 2 + corner * 2 * math.pi / 3),
+                  math.sin(-math.pi / 2 + corner * 2 * math.pi / 3),
+                ) *
+                radius,
+    ];
+    return [
+      for (var index = 0; index < samples; index++)
+        _alongTriangle(corners, index * 3 / samples),
+    ];
+  }
+
+  Offset _alongTriangle(List<Offset> corners, double position) {
+    final side = position.floor();
+    return Offset.lerp(
+      corners[side % 3],
+      corners[(side + 1) % 3],
+      position - side,
+    )!;
+  }
+
+  /// Vertical figure eight starting at the top, so its lower-right and
+  /// lower-left lobes line up with the triangle's lower corners.
+  List<Offset> _eightPoints({
+    required Offset center,
+    required double halfWidth,
+    required double halfHeight,
+    required double tilt,
+    required int samples,
+  }) {
+    final cosTilt = math.cos(tilt);
+    final sinTilt = math.sin(tilt);
+    final points = <Offset>[];
+    for (var index = 0; index < samples; index++) {
+      final t = math.pi / 2 + index * 2 * math.pi / samples;
+      final x = halfWidth * math.sin(2 * t);
+      final y = -halfHeight * math.sin(t);
+      points.add(
+        center + Offset(x * cosTilt - y * sinTilt, x * sinTilt + y * cosTilt),
       );
+    }
+    return points;
+  }
+
+  /// One half of the classic heart curve, from the top dip to the point.
+  /// [side] is 1 for her left (screen right) and -1 for the other half.
+  Path _heartHalf(Offset center, double scale, double side) {
+    final path = Path();
+    const steps = 64;
+    for (var step = 0; step <= steps; step++) {
+      final t = side * math.pi * step / steps;
+      final sine = math.sin(t);
+      final x = 16 * sine * sine * sine;
+      final y =
+          13 * math.cos(t) -
+          5 * math.cos(2 * t) -
+          2 * math.cos(3 * t) -
+          math.cos(4 * t);
+      final point =
+          center + Offset(x * scale, -(y + _heartCurveMiddle) * scale);
       if (step == 0) {
         path.moveTo(point.dx, point.dy);
       } else {
@@ -384,6 +461,16 @@ class MerkabaFieldPainter extends CustomPainter {
       }
     }
     return path;
+  }
+
+  Path _closedPath(List<Offset> points) {
+    final path = Path();
+    if (points.isEmpty) return path;
+    path.moveTo(points.first.dx, points.first.dy);
+    for (final point in points.skip(1)) {
+      path.lineTo(point.dx, point.dy);
+    }
+    return path..close();
   }
 
   /// Lower tetrahedron, then the upper one, one edge at a time.
@@ -411,9 +498,6 @@ class MerkabaFieldPainter extends CustomPainter {
   /// Glowing heart in the portrait, also the center of her seated figure.
   static const double _heartY = 0.478;
 
-  /// Star and tetrahedron share the heart, so the figure is framed on that axis.
-  static const double _bodyY = _heartY;
-
   Rect _womanRect(Size size) {
     final boxAspect = size.width / size.height;
     if (boxAspect > merkabaWomanAspect) {
@@ -424,15 +508,6 @@ class MerkabaFieldPainter extends CustomPainter {
     final width = size.width;
     final height = width / merkabaWomanAspect;
     return Rect.fromLTWH(0, (size.height - height) / 2, width, height);
-  }
-
-  double _breath(MerkabaFrame frame) {
-    final progress = frame.phaseProgress;
-    return switch (frame.phase) {
-      BreathPhase.inhale => progress,
-      BreathPhase.hold => 1,
-      BreathPhase.exhale => 1 - progress,
-    };
   }
 
   double _sceneProgress(MerkabaFrame frame) {

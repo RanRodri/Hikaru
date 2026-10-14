@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../tokens/app_spacing.dart';
+import 'hikaru_header.dart';
 import 'hikaru_navigation_bar.dart';
 import 'hikaru_shell.dart';
 
@@ -13,7 +14,6 @@ class HikaruScrollPage extends StatelessWidget {
     this.dimBackground = false,
   });
 
-  static const double _headerHeight = 68;
   static const double _horizontalPadding = 22;
 
   final HikaruDestination active;
@@ -33,7 +33,7 @@ class HikaruScrollPage extends StatelessWidget {
         child: SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(
             _horizontalPadding,
-            insets.top + _headerHeight * scale + AppSpacing.s8,
+            insets.top + HikaruHeader.height * scale + AppSpacing.s8,
             _horizontalPadding,
             HikaruNavigationBar.height + insets.bottom + AppSpacing.s20,
           ),

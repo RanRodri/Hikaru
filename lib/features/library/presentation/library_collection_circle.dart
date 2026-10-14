@@ -83,35 +83,20 @@ class _CollectionCaption extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: AppSpacing.s4 * scale),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            collection.name,
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTypography.subheadline.copyWith(
-              color: AppColors.white,
-              fontSize: AppFontSizes.s12 * scale,
-              height: 1,
-              letterSpacing: 0.2 * scale,
-            ),
+      padding: EdgeInsets.symmetric(horizontal: AppSpacing.s8 * scale),
+      child: Center(
+        child: Text(
+          collection.name,
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: AppTypography.headline.copyWith(
+            color: AppColors.white,
+            fontSize: AppFontSizes.s9 * scale,
+            height: 1.2,
+            letterSpacing: 1.3 * scale,
           ),
-          Text(
-            collection.inlineDetail,
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: AppTypography.footnote.copyWith(
-              color: AppColors.fog,
-              fontSize: AppFontSizes.s11 * scale,
-              height: 1.05,
-              letterSpacing: 0,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

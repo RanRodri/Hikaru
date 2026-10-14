@@ -32,6 +32,10 @@ const Duration breathHold = Duration(seconds: 4);
 const Duration breathExhale = Duration(seconds: 6);
 const Duration breathCycle = Duration(seconds: 14);
 
+/// Full 4-4-6 breaths that fit in one session.
+final int merkabaTotalBreaths =
+    merkabaDuration.inMilliseconds ~/ breathCycle.inMilliseconds;
+
 /// Official Merkaba Room timeline (corrected): five scenes.
 const List<MerkabaScene> merkabaScenes = [
   MerkabaScene(
@@ -104,6 +108,14 @@ class MerkabaFrame {
     if (total == 0) return 0;
     return (phaseElapsed.inMilliseconds / total).clamp(0.0, 1.0);
   }
+
+  /// Lung fullness from 0 to 1: rises on inhale, stays full on hold and
+  /// empties on exhale.
+  double get breathLevel => switch (phase) {
+    BreathPhase.inhale => phaseProgress,
+    BreathPhase.hold => 1,
+    BreathPhase.exhale => 1 - phaseProgress,
+  };
 
   String get phaseLabel => switch (phase) {
     BreathPhase.inhale => 'Inhale',

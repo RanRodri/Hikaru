@@ -50,6 +50,11 @@ void main() {
     );
     expect(merkabaFrameAt(merkabaDuration).sessionProgress, 1);
     expect(merkabaFrameAt(merkabaDuration).completedCycles, 21);
+    expect(merkabaTotalBreaths, 21);
+    expect(merkabaFrameAt(Duration.zero).breathLevel, 0);
+    expect(merkabaFrameAt(const Duration(seconds: 2)).breathLevel, 0.5);
+    expect(merkabaFrameAt(const Duration(seconds: 6)).breathLevel, 1);
+    expect(merkabaFrameAt(const Duration(seconds: 11)).breathLevel, 0.5);
   });
 
   test('scenes change at the brief timestamps', () {
@@ -130,8 +135,10 @@ void main() {
     await tester.pump();
 
     expect(find.text('Breath Builds the Merkaba'), findsOneWidget);
-    expect(find.text('Lotus Mudra'), findsNWidgets(2));
-    expect(find.text('Cycles 11'), findsOneWidget);
+    expect(find.text('SCENE 3 OF 5'), findsOneWidget);
+    expect(find.text('Lotus Mudra'), findsOneWidget);
+    expect(find.text('11 / 21'), findsOneWidget);
+    expect(find.text('Cycle 0%'), findsOneWidget);
     expect(find.text('Inhale'), findsOneWidget);
     expect(_mudraSvg('assets/images/mudras/lotus.svg'), findsOneWidget);
     expect(_mudraSvg('assets/images/mudras/gyan.svg'), findsNothing);
@@ -155,8 +162,8 @@ void main() {
     await tester.pump();
 
     expect(find.text('Human Blueprint'), findsOneWidget);
-    expect(find.text('Gyan Mudra'), findsNWidgets(2));
-    expect(find.text('Cycles 0'), findsOneWidget);
+    expect(find.text('Gyan Mudra'), findsOneWidget);
+    expect(find.text('0 / 21'), findsOneWidget);
     expect(_mudraSvg('assets/images/mudras/gyan.svg'), findsOneWidget);
     expect(find.bySemanticsLabel('Session progress'), findsOneWidget);
   });
@@ -195,7 +202,7 @@ void main() {
     await tester.tap(find.text('REPEAT'));
     await tester.pump();
     expect(find.text('Human Blueprint'), findsOneWidget);
-    expect(find.text('Cycles 0'), findsOneWidget);
+    expect(find.text('0 / 21'), findsOneWidget);
     expect(find.text('PAUSE'), findsOneWidget);
 
     await tester.tap(find.text('PAUSE'));
@@ -221,7 +228,7 @@ void main() {
       ),
     );
     await tester.pump();
-    expect(find.text('Cycles 2'), findsOneWidget);
+    expect(find.text('2 / 21'), findsOneWidget);
 
     await tester.tap(find.text('PLAY'));
     await tester.pump();

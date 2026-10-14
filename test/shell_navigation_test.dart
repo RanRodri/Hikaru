@@ -92,7 +92,7 @@ void main() {
 
       await tester.tap(find.text('Home'));
       await tester.pumpAndSettle();
-      await tester.tap(find.bySemanticsLabel('Red Jasper'));
+      await tester.tap(find.bySemanticsLabel('Your crystal'));
       await tester.pumpAndSettle();
       expect(find.text('THE FOUR TEMPLES'), findsOneWidget);
 
@@ -130,7 +130,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
 
-    expect(find.text('Continue'), findsNothing);
+    expect(find.text('CONTINUE'), findsNothing);
     expect(find.text('JADE'), findsWidgets);
     router.pop();
     await tester.pumpAndSettle();

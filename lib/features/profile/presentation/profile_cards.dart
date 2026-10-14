@@ -319,7 +319,7 @@ class _ReminderRow extends StatelessWidget {
               inactiveThumbColor: AppColors.white,
               inactiveTrackColor: AppColors.darkIndigoBlue20,
               trackOutlineColor: const WidgetStatePropertyAll(
-                Colors.transparent,
+                AppColors.transparent,
               ),
             ),
           ),
