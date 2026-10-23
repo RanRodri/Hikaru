@@ -13,24 +13,39 @@ import '../../../core/design_system/widgets/hikaru_navigation_bar.dart';
 import '../../../core/design_system/widgets/hikaru_page_intro.dart';
 import '../../../core/design_system/widgets/hikaru_shell.dart';
 import '../../../core/router/app_routes.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../crystals/application/selected_crystal_controller.dart';
 import '../../crystals/domain/crystal.dart';
+import '../../crystals/presentation/crystal_texts.dart';
 import '../../library/domain/library_collection.dart';
+import 'home_tour.dart';
 
 class HarmonyGardenScreen extends ConsumerWidget {
   const HarmonyGardenScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final crystal = ref.watch(selectedCrystalProvider).value;
+    final anchors = ref.watch(homeTourAnchorsProvider);
+    final baseAccesses = _buildAccesses(l10n);
     final accesses = [
-      for (final access in _accesses)
-        access.isCrystalSlot ? _crystalAccess(crystal) : access,
+      for (final access in baseAccesses)
+        access.isCrystalSlot ? _crystalAccess(access, crystal, l10n) : access,
     ];
 
-    return HikaruShell(
-      active: HikaruDestination.home,
-      builder: (context, scale) => _Garden(scale: scale, accesses: accesses),
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        HikaruShell(
+          active: HikaruDestination.home,
+          sanctuaryKey: anchors.sanctuary,
+          navigationBarKey: anchors.bar,
+          builder: (context, scale) =>
+              _Garden(scale: scale, accesses: accesses, anchors: anchors),
+        ),
+        const HomeTour(),
+      ],
     );
   }
 }
@@ -66,6 +81,7 @@ class _Access {
     this.diameter = homeCircleDiameter,
     this.isHighlighted = false,
     this.isCrystalSlot = false,
+    this.stepNumber,
   });
 
   final String semanticsLabel;
@@ -82,11 +98,16 @@ class _Access {
 
   /// Replaced by the selected crystal, see [_crystalAccess].
   final bool isCrystalSlot;
+
+  /// Recommended journey order: 1 Merkaba → 2 Ritual → 3 Crystal.
+  final int? stepNumber;
 }
 
 /// Clockwise from the top. Each side mirrors the other across the vertical axis.
-const List<_Access> _accesses = [
-  _Access(
+///
+/// Merkaba is a proper name and stays the same in every language.
+List<_Access> _buildAccesses(AppLocalizations l10n) => [
+  const _Access(
     semanticsLabel: 'Merkaba',
     angle: -90,
     imageAsset: 'assets/images/library_merkaba.png',
@@ -94,62 +115,68 @@ const List<_Access> _accesses = [
     route: AppRoutes.merkaba,
     diameter: merkabaCircleDiameter,
     isHighlighted: true,
+    stepNumber: 1,
   ),
   _Access(
-    semanticsLabel: 'Your crystal',
+    semanticsLabel: l10n.homeYourCrystalSemantics,
     angle: -25,
     imageAsset: 'assets/images/library_white_quartz.png',
-    title: 'YOUR CRYSTAL',
+    title: l10n.homeYourCrystal,
     route: AppRoutes.fourTemples,
     isCrystalSlot: true,
+    stepNumber: 3,
   ),
   _Access(
-    semanticsLabel: 'Library',
+    semanticsLabel: l10n.homeLibrarySemantics,
     angle: 25,
     imageAsset: 'assets/images/harmony_library.png',
-    title: 'LIBRARY',
+    title: l10n.homeLibrary,
     route: AppRoutes.library,
   ),
   _Access(
-    semanticsLabel: 'Hikaru Ritual Body',
+    semanticsLabel: l10n.homeRitualBodySemantics,
     angle: 155,
     imageAsset: 'assets/images/harmony_body.png',
-    title: 'HIKARU RITUAL\nBODY',
+    title: l10n.homeRitualBody,
     route: AppRoutes.ritualBody,
+    stepNumber: 2,
   ),
   _Access(
-    semanticsLabel: 'Hikaru Ritual Face',
+    semanticsLabel: l10n.homeRitualFaceSemantics,
     angle: 205,
     imageAsset: 'assets/images/harmony_face.png',
-    title: 'HIKARU RITUAL\nFACE',
+    title: l10n.homeRitualFace,
     route: AppRoutes.ritualFace,
+    stepNumber: 2,
   ),
 ];
 
-/// The selected crystal opens its frequency and cymatics. With no crystal
-/// yet, the slot invites the user to choose one in the Four Temples.
-_Access _crystalAccess(Crystal? crystal) {
-  final slot = _accesses.firstWhere((access) => access.isCrystalSlot);
+/// Shows the recommended crystal and opens the Four Temples map so the user
+/// can explore all four, with theirs highlighted.
+_Access _crystalAccess(_Access slot, Crystal? crystal, AppLocalizations l10n) {
   final collection = crystalCollections[crystal];
   if (crystal == null || collection == null) return slot;
+  final name = crystal.localizedName(l10n);
   return _Access(
-    semanticsLabel: 'Your crystal ${crystal.displayName}',
+    semanticsLabel: l10n.homeYourCrystalNamedSemantics(name),
     angle: slot.angle,
     imageAsset: collection.imageAsset,
-    title: collection.name,
+    title: name,
     diameter: slot.diameter,
-    route: AppRoutes.crystalResonanceFor(crystal.name),
+    route: AppRoutes.fourTemples,
     isCrystalSlot: true,
+    stepNumber: slot.stepNumber,
+    isHighlighted: true,
   );
 }
 
 /// Light points on the orbit, halfway between neighboring circles.
-List<double> get _orbitDotAngles => [
-  for (final (index, access) in _accesses.indexed)
+List<double> _orbitDotAngles(List<_Access> accesses) => [
+  for (final (index, access) in accesses.indexed)
     (access.angle +
-            (index + 1 < _accesses.length
-                ? _accesses[index + 1].angle
-                : _accesses.first.angle + 360)) /
+            (index + 1 < accesses.length
+                ? accesses[index + 1].angle
+                : accesses.first.angle + 360)) /
         2,
 ];
 
@@ -175,10 +202,15 @@ Rect _backgroundRect(Size size) {
 }
 
 class _Garden extends StatelessWidget {
-  const _Garden({required this.scale, required this.accesses});
+  const _Garden({
+    required this.scale,
+    required this.accesses,
+    required this.anchors,
+  });
 
   final double scale;
   final List<_Access> accesses;
+  final HomeTourAnchors anchors;
 
   @override
   Widget build(BuildContext context) {
@@ -214,7 +246,7 @@ class _Garden extends StatelessWidget {
               painter: _OrbitPainter(
                 center: center,
                 radius: radius,
-                dotAngles: _orbitDotAngles,
+                dotAngles: _orbitDotAngles(accesses),
                 scale: scale,
               ),
             ),
@@ -227,6 +259,7 @@ class _Garden extends StatelessWidget {
               radius: access.diameter * scale / 2,
             ),
             child: _AccessCircle(
+              key: _anchorFor(access, anchors),
               access: access,
               scale: scale,
               onPressed: () => context.push(access.route),
@@ -236,7 +269,7 @@ class _Garden extends StatelessWidget {
           left: 20 * scale,
           right: 20 * scale,
           top: titleTop,
-          child: const _GardenTitle(),
+          child: _GardenTitle(anchorKey: anchors.title),
         ),
       ],
     );
@@ -286,6 +319,7 @@ class _OrbitPainter extends CustomPainter {
 
 class _AccessCircle extends StatelessWidget {
   const _AccessCircle({
+    super.key,
     required this.access,
     required this.scale,
     required this.onPressed,
@@ -379,16 +413,19 @@ class _AccessCaption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final step = access.stepNumber;
+    final label = step == null ? access.title : '$step\n${access.title}';
+
     return FittedBox(
       fit: BoxFit.scaleDown,
       child: Text(
-        access.title,
+        label,
         textAlign: TextAlign.center,
         softWrap: false,
         style: AppTypography.headline.copyWith(
           color: AppColors.white,
           fontSize: AppFontSizes.s9 * scale,
-          height: 1.2,
+          height: 1.15,
           letterSpacing: 1.3 * scale,
         ),
       ),
@@ -396,26 +433,41 @@ class _AccessCaption extends StatelessWidget {
   }
 }
 
+Key? _anchorFor(_Access access, HomeTourAnchors anchors) {
+  if (access.route == AppRoutes.merkaba) return anchors.merkaba;
+  if (access.route == AppRoutes.ritualFace) return anchors.face;
+  if (access.route == AppRoutes.ritualBody) return anchors.body;
+  if (access.isCrystalSlot) return anchors.crystal;
+  if (access.route == AppRoutes.library) return anchors.library;
+  return null;
+}
+
 class _GardenTitle extends StatelessWidget {
-  const _GardenTitle();
+  const _GardenTitle({required this.anchorKey});
+
+  final Key anchorKey;
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: RadialGradient(
-          radius: 0.9,
-          colors: [
-            AppColors.black.withValues(alpha: 0.38),
-            AppColors.black.withValues(alpha: 0),
-          ],
+    final l10n = AppLocalizations.of(context);
+    return KeyedSubtree(
+      key: anchorKey,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: RadialGradient(
+            radius: 0.9,
+            colors: [
+              AppColors.black.withValues(alpha: 0.38),
+              AppColors.black.withValues(alpha: 0),
+            ],
+          ),
         ),
-      ),
-      child: const Padding(
-        padding: EdgeInsets.symmetric(vertical: 14),
-        child: HikaruPageIntro(
-          title: 'THE HARMONY GARDEN',
-          subtitle: 'Your Journey Begins Within',
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          child: HikaruPageIntro(
+            title: l10n.homeGardenTitle,
+            subtitle: l10n.homeGardenSubtitle,
+          ),
         ),
       ),
     );

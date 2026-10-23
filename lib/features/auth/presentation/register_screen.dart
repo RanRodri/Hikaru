@@ -1,34 +1,43 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
 import '../../../core/design_system/tokens/app_font_sizes.dart';
 import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/router/app_routes.dart';
+import '../../../l10n/app_localizations.dart';
+import '../data/auth_gateway.dart';
 import 'auth_background.dart';
 import 'auth_field.dart';
 
-class RegisterScreen extends StatefulWidget {
+class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _RegisterScreenState extends ConsumerState<RegisterScreen> {
+  final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _birthdayController = TextEditingController();
 
+  bool _busy = false;
+  String? _usernameError;
   String? _nameError;
   String? _emailError;
   String? _passwordError;
   String? _birthdayError;
+  String? _formError;
 
   @override
   void dispose() {
+    _usernameController.dispose();
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
@@ -74,10 +83,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
     if (picked == null || !mounted) return;
 
-    final month = picked.month.toString().padLeft(2, '0');
-    final day = picked.day.toString().padLeft(2, '0');
+    final l10n = AppLocalizations.of(context);
     setState(() {
-      _birthdayController.text = '$month / $day / ${picked.year}';
+      _birthdayController.text = DateFormat(
+        l10n.registerBirthdayFormat,
+      ).format(picked);
       _birthdayError = null;
     });
   }
@@ -90,29 +100,90 @@ class _RegisterScreenState extends State<RegisterScreen> {
     context.go(AppRoutes.login);
   }
 
-  void _handleContinue() {
+  String? _cognitoBirthdate(String displayed, String pattern) {
+    try {
+      final date = DateFormat(pattern).parseStrict(displayed);
+      return DateFormat('yyyy-MM-dd').format(date);
+    } on FormatException {
+      return null;
+    }
+  }
+
+  Future<void> _handleContinue() async {
+    if (_busy) return;
+    final l10n = AppLocalizations.of(context);
+    final username = _usernameController.text.trim();
     final name = _nameController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text;
     final birthday = _birthdayController.text.trim();
-    final emailLooksValid = RegExp(
-      r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
-    ).hasMatch(email);
+    final emailLooksValid = identityLooksValid(email) && email.contains('@');
+    final usernameValid = usernameIsAllowed(username);
+    final passwordValid = passwordMeetsPolicy(password);
+    final birthdate = _cognitoBirthdate(birthday, l10n.registerBirthdayFormat);
 
     setState(() {
-      _nameError = name.isEmpty ? 'Enter your full name' : null;
+      _formError = null;
+      _usernameError = username.isEmpty
+          ? l10n.registerErrorUsernameRequired
+          : usernameValid
+          ? null
+          : l10n.registerErrorUsernameInvalid;
+      _nameError = name.isEmpty ? l10n.registerErrorNameRequired : null;
       _emailError = email.isEmpty
-          ? 'Enter your email'
+          ? l10n.authErrorEmailRequired
           : emailLooksValid
           ? null
-          : 'Enter a valid email';
-      _passwordError = password.isEmpty ? 'Enter your password' : null;
-      _birthdayError = birthday.isEmpty ? 'Select your birthday' : null;
+          : l10n.authErrorEmailInvalid;
+      _passwordError = password.isEmpty
+          ? l10n.authErrorPasswordRequired
+          : passwordValid
+          ? null
+          : l10n.authErrorPasswordPolicy;
+      _birthdayError = birthday.isEmpty || birthdate == null
+          ? l10n.registerErrorBirthdayRequired
+          : null;
     });
+
+    if (!usernameValid ||
+        name.isEmpty ||
+        !emailLooksValid ||
+        !passwordValid ||
+        birthdate == null) {
+      return;
+    }
+
+    setState(() => _busy = true);
+    try {
+      final outcome = await ref
+          .read(authGatewayProvider)
+          .signUp(
+            username: username,
+            password: password,
+            email: email,
+            name: name,
+            birthdate: birthdate,
+          );
+      if (!mounted) return;
+      if (outcome == AuthSignUpOutcome.signedIn) {
+        context.go(AppRoutes.listeningRoom);
+        return;
+      }
+      context.push(
+        AppRoutes.confirmSignUp,
+        extra: PendingConfirmation(username: username, password: password),
+      );
+    } on AuthRequestException catch (error) {
+      if (!mounted) return;
+      setState(() => _formError = error.message);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final bottomPadding = MediaQuery.paddingOf(context).bottom;
 
     return Scaffold(
@@ -131,7 +202,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               children: [
                 const SizedBox(height: AppSpacing.s100),
                 Text(
-                  'Create Your\nSanctuary',
+                  l10n.registerTitle,
                   textAlign: TextAlign.center,
                   style: AppTypography.title.copyWith(
                     color: AppColors.white,
@@ -142,7 +213,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: AppSpacing.s8),
                 Text(
-                  'Lets begin with essentials to\npersonalize your experience.',
+                  l10n.registerSubtitle,
                   textAlign: TextAlign.center,
                   style: AppTypography.body.copyWith(
                     color: AppColors.fog.withValues(alpha: 0.85),
@@ -154,9 +225,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: AppSpacing.s18),
                 AuthField(
+                  controller: _usernameController,
+                  label: l10n.registerUsernameLabel,
+                  hint: l10n.registerUsernameHint,
+                  icon: 'U',
+                  textInputAction: TextInputAction.next,
+                  autofillHints: const [AutofillHints.newUsername],
+                  errorText: _usernameError,
+                  onChanged: (_) {
+                    if (_usernameError == null) return;
+                    setState(() => _usernameError = null);
+                  },
+                ),
+                const SizedBox(height: AppSpacing.s10),
+                AuthField(
                   controller: _nameController,
-                  label: 'Full Name',
-                  hint: 'Your full name',
+                  label: l10n.registerFullNameLabel,
+                  hint: l10n.registerFullNameHint,
                   icon: 'A',
                   textInputAction: TextInputAction.next,
                   autofillHints: const [AutofillHints.name],
@@ -166,8 +251,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: AppSpacing.s10),
                 AuthField(
                   controller: _emailController,
-                  label: 'Email',
-                  hint: 'you@domain.com',
+                  label: l10n.authEmailLabel,
+                  hint: l10n.authEmailHintExample,
                   icon: '@',
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
@@ -178,7 +263,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: AppSpacing.s10),
                 AuthField(
                   controller: _passwordController,
-                  label: 'Password',
+                  label: l10n.authPasswordLabel,
                   hint: '••••••••',
                   icon: '•••',
                   obscureText: true,
@@ -190,8 +275,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: AppSpacing.s10),
                 AuthField(
                   controller: _birthdayController,
-                  label: 'Birthday',
-                  hint: 'MM / DD / YYYY',
+                  label: l10n.registerBirthdayLabel,
+                  hint: l10n.registerBirthdayHint,
                   icon: '☆',
                   readOnly: true,
                   onTap: _handleBirthday,
@@ -200,19 +285,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: AppSpacing.s22),
                 AuthPillButton(
-                  label: 'CONTINUE',
+                  label: l10n.registerContinue,
                   backgroundColor: AppColors.champagneGold,
                   foregroundColor: AppColors.darkIndigoBlue,
                   glow: true,
                   onPressed: _handleContinue,
                 ),
+                if (_formError != null) ...[
+                  const SizedBox(height: AppSpacing.s12),
+                  Text(
+                    _formError!,
+                    textAlign: TextAlign.center,
+                    style: AppTypography.body.copyWith(
+                      color: AppColors.fog,
+                      fontSize: AppFontSizes.s12,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: AppSpacing.s16),
                 Wrap(
                   alignment: WrapAlignment.center,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text(
-                      'Already have an account? ',
+                      l10n.registerHaveAccount,
                       style: AppTypography.body.copyWith(
                         color: AppColors.fog.withValues(alpha: 0.55),
                         fontSize: AppFontSizes.s12,
@@ -230,7 +327,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                       child: Text(
-                        'Log in',
+                        l10n.registerLogIn,
                         style: AppTypography.bodyAccent.copyWith(
                           color: AppColors.champagneGold,
                           fontSize: AppFontSizes.s12,

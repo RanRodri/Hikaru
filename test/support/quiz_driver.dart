@@ -3,15 +3,22 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hikaru/features/listening_room/presentation/listening_room_quiz_screen.dart';
 
 Future<void> tapQuizChoice(WidgetTester tester, String label) async {
+  final screen = find.byType(ListeningRoomQuizScreen);
   final scrollable = find.descendant(
-    of: find.byType(ListeningRoomQuizScreen),
+    of: screen,
     matching: find.byType(Scrollable),
   );
-  final finder = find.text(label).hitTestable();
-  if (finder.evaluate().isEmpty) {
-    await tester.scrollUntilVisible(finder, 48, scrollable: scrollable);
+  final labelFinder = find.descendant(of: screen, matching: find.text(label));
+  expect(labelFinder, findsOneWidget, reason: 'Missing quiz choice "$label"');
+
+  if (scrollable.evaluate().isNotEmpty) {
+    await tester.scrollUntilVisible(labelFinder, 48, scrollable: scrollable);
+    await tester.pumpAndSettle();
   }
-  await tester.tap(finder);
+
+  final tappable = labelFinder.hitTestable();
+  expect(tappable, findsOneWidget, reason: 'Choice "$label" not tappable');
+  await tester.tap(tappable);
   await tester.pump();
 }
 

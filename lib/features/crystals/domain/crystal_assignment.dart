@@ -2,20 +2,18 @@ import '../../listening_room/domain/discovery_quiz.dart';
 import '../../listening_room/domain/quiz_answers.dart';
 import 'crystal.dart';
 
-/// Maps a completed quiz to a crystal.
+/// Proposed personalization weights (not scientific or diagnostic).
 ///
-/// Tiers follow crystal-assignment.md, highest priority first. A tier that
-/// matches one crystal wins immediately. A tier that matches several narrows
-/// the pool and later tiers may only keep crystals still in that pool. Renewal
-/// is the only option that matches two crystals (Jade and Obsidian). When
-/// Renewal is the only intention and no sensitive, irritated, or stress signal
-/// remains, the result is Obsidian. Those Jade skin and stress signals still
-/// select Jade. Any other tie uses the note's order: Jade, White Quartz,
-/// Red Jasper, Obsidian. The same order is the fallback when no answer
-/// matches a crystal.
-///
-/// Questions 3, 9 and 10 are stored with the quiz and are not part of the
-/// algorithm. Options absent from [quizCrystalSignals] do not vote.
+/// Emotional / intention answers carry 60% and skin / cosmetic outcome 30%.
+/// Ritual time preference (Q9) is stored for the journey but does not score
+/// crystals, so active buckets are renormalized to sum to 1.0. Q10 is
+/// informative screening only and never votes.
+const double emotionWeight = 0.60;
+const double skinWeight = 0.30;
+
+const List<int> emotionQuestions = [3, 4, 6, 7, 8];
+const List<int> skinQuestions = [1, 2, 5];
+
 const List<Crystal> crystalTieBreakOrder = [
   Crystal.jade,
   Crystal.whiteQuartz,
@@ -23,98 +21,115 @@ const List<Crystal> crystalTieBreakOrder = [
   Crystal.obsidian,
 ];
 
-const List<List<int>> crystalPriorityTiers = [
-  [8],
-  [2, 6],
-  [1, 4, 5],
-  [7],
-];
+/// Option id → crystal signal for scoring.
+const Map<String, Crystal> quizCrystalSignals = {
+  // Skin / cosmetic outcome (30%)
+  QuizOptionIds.q1CalmComfort: Crystal.jade,
+  QuizOptionIds.q1LiftedFirm: Crystal.redJasper,
+  QuizOptionIds.q1HydrationSoftness: Crystal.jade,
+  QuizOptionIds.q1RadianceVitality: Crystal.whiteQuartz,
+  QuizOptionIds.q2Sensitive: Crystal.jade,
+  QuizOptionIds.q2TightDry: Crystal.jade,
+  QuizOptionIds.q2PuffyTired: Crystal.redJasper,
+  QuizOptionIds.q2ComfortableLackingRadiance: Crystal.whiteQuartz,
+  QuizOptionIds.q5ChangesUnknown: Crystal.obsidian,
+  QuizOptionIds.q5LossBrightness: Crystal.whiteQuartz,
+  QuizOptionIds.q5StressTension: Crystal.jade,
+  QuizOptionIds.q5FirmnessVitality: Crystal.redJasper,
 
-const Map<String, Set<Crystal>> quizCrystalSignals = {
-  QuizOptionIds.q8Harmony: {Crystal.jade},
-  QuizOptionIds.q8SelfLove: {Crystal.jade},
-  QuizOptionIds.q8Renewal: {Crystal.jade, Crystal.obsidian},
-  QuizOptionIds.q8Clarity: {Crystal.whiteQuartz},
-  QuizOptionIds.q8Expansion: {Crystal.whiteQuartz},
-  QuizOptionIds.q8Vitality: {Crystal.redJasper},
-  QuizOptionIds.q8Grounding: {Crystal.redJasper},
-  QuizOptionIds.q8Protection: {Crystal.obsidian},
-  QuizOptionIds.q2Sensitive: {Crystal.jade},
-  QuizOptionIds.q6SlightlySensitive: {Crystal.jade},
-  QuizOptionIds.q6RedOrIrritated: {Crystal.jade},
-  QuizOptionIds.q1ReducePuffiness: {Crystal.obsidian},
-  QuizOptionIds.q1RestoreGlow: {Crystal.whiteQuartz},
-  QuizOptionIds.q1ReduceRedness: {Crystal.jade},
-  QuizOptionIds.q4Jaw: {Crystal.jade},
-  QuizOptionIds.q4BetweenEyebrows: {Crystal.jade},
-  QuizOptionIds.q4Neck: {Crystal.jade},
-  QuizOptionIds.q7Relaxed: {Crystal.jade},
-  QuizOptionIds.q7Radiant: {Crystal.whiteQuartz},
-  QuizOptionIds.q7Connected: {Crystal.whiteQuartz},
-  QuizOptionIds.q7Grounded: {Crystal.redJasper},
-  QuizOptionIds.q7Restored: {Crystal.redJasper},
-  QuizOptionIds.q7Sculpted: {Crystal.obsidian},
-  QuizOptionIds.q7LessPuffy: {Crystal.obsidian},
+  // Emotional state / intention (60%)
+  QuizOptionIds.q3EmotionallyOverwhelmed: Crystal.obsidian,
+  QuizOptionIds.q3MentallyBusy: Crystal.whiteQuartz,
+  QuizOptionIds.q3DisconnectedBody: Crystal.redJasper,
+  QuizOptionIds.q3CalmBalanced: Crystal.jade,
+  QuizOptionIds.q4UncertaintyTension: Crystal.obsidian,
+  QuizOptionIds.q4MentalNoise: Crystal.whiteQuartz,
+  QuizOptionIds.q4StressPressure: Crystal.jade,
+  QuizOptionIds.q4FatigueHeaviness: Crystal.redJasper,
+  QuizOptionIds.q6SpaceReflect: Crystal.obsidian,
+  QuizOptionIds.q6MomentClarity: Crystal.whiteQuartz,
+  QuizOptionIds.q6GentlenessBalance: Crystal.jade,
+  QuizOptionIds.q6GroundingStrength: Crystal.redJasper,
+  QuizOptionIds.q7UnderstandBeneath: Crystal.obsidian,
+  QuizOptionIds.q7GreaterClarity: Crystal.whiteQuartz,
+  QuizOptionIds.q7ReturnHarmony: Crystal.jade,
+  QuizOptionIds.q7InnerStrength: Crystal.redJasper,
+  QuizOptionIds.q8SelfAware: Crystal.obsidian,
+  QuizOptionIds.q8ClearRefreshed: Crystal.whiteQuartz,
+  QuizOptionIds.q8CalmNurtured: Crystal.jade,
+  QuizOptionIds.q8GroundedEnergized: Crystal.redJasper,
 };
 
-/// Jade signals for sensitive or irritated skin, and for marked tension.
-const Set<String> jadeSkinOrStressSignals = {
-  QuizOptionIds.q2Sensitive,
-  QuizOptionIds.q6SlightlySensitive,
-  QuizOptionIds.q6RedOrIrritated,
-  QuizOptionIds.q1ReduceRedness,
-  QuizOptionIds.q4Jaw,
-  QuizOptionIds.q4BetweenEyebrows,
-  QuizOptionIds.q4Neck,
-};
+Map<Crystal, double> _bucketScores(QuizAnswers answers, List<int> questions) {
+  final totals = <Crystal, double>{
+    for (final crystal in Crystal.values) crystal: 0,
+  };
+  var answered = 0;
 
-bool _renewalIsOnlyIntention(QuizAnswers answers) {
-  final selected = answers.selectedIds(8);
-  return selected.length == 1 && selected.contains(QuizOptionIds.q8Renewal);
-}
+  for (final question in questions) {
+    final selected = answers.selectedIds(question);
+    if (selected.isEmpty) continue;
 
-bool _hasJadeSkinOrStress(QuizAnswers answers) {
-  for (final question in const [1, 2, 4, 6]) {
-    for (final optionId in answers.selectedIds(question)) {
-      if (jadeSkinOrStressSignals.contains(optionId)) return true;
+    final votes = <Crystal>{};
+    for (final optionId in selected) {
+      final crystal = quizCrystalSignals[optionId];
+      if (crystal != null) votes.add(crystal);
+    }
+    if (votes.isEmpty) continue;
+
+    answered += 1;
+    final share = 1.0 / votes.length;
+    for (final crystal in votes) {
+      totals[crystal] = totals[crystal]! + share;
     }
   }
-  return false;
+
+  if (answered == 0) return const {};
+
+  return {
+    for (final entry in totals.entries)
+      if (entry.value > 0) entry.key: entry.value / answered,
+  };
+}
+
+/// Per-crystal scores after renormalizing active bucket weights.
+Map<Crystal, double> scoreCrystals(QuizAnswers answers) {
+  final emotion = _bucketScores(answers, emotionQuestions);
+  final skin = _bucketScores(answers, skinQuestions);
+
+  var emotionW = 0.0;
+  var skinW = 0.0;
+  if (emotion.isNotEmpty) emotionW = emotionWeight;
+  if (skin.isNotEmpty) skinW = skinWeight;
+  final weightSum = emotionW + skinW;
+  if (weightSum == 0) return const {};
+
+  final scores = <Crystal, double>{};
+  void addBucket(Map<Crystal, double> bucket, double weight) {
+    if (bucket.isEmpty || weight == 0) return;
+    final scaled = weight / weightSum;
+    for (final entry in bucket.entries) {
+      scores[entry.key] = (scores[entry.key] ?? 0) + entry.value * scaled;
+    }
+  }
+
+  addBucket(emotion, emotionW);
+  addBucket(skin, skinW);
+  return scores;
 }
 
 Crystal assignCrystal(QuizAnswers answers) {
-  Set<Crystal>? pool;
+  final scores = scoreCrystals(answers);
+  if (scores.isEmpty) return crystalTieBreakOrder.first;
 
-  for (final tier in crystalPriorityTiers) {
-    final hits = <Crystal>{};
-    for (final question in tier) {
-      for (final optionId in answers.selectedIds(question)) {
-        hits.addAll(quizCrystalSignals[optionId] ?? const {});
-      }
-    }
-    if (hits.isEmpty) continue;
-
-    if (pool == null) {
-      if (hits.length == 1) return hits.single;
-      pool = hits;
-      continue;
-    }
-
-    final narrowed = pool.intersection(hits);
-    if (narrowed.length == 1) return narrowed.single;
-    if (narrowed.length > 1) pool = narrowed;
-  }
-
-  final remaining = pool ?? crystalTieBreakOrder.toSet();
-  if (_renewalIsOnlyIntention(answers) &&
-      remaining.contains(Crystal.jade) &&
-      remaining.contains(Crystal.obsidian) &&
-      !_hasJadeSkinOrStress(answers)) {
-    return Crystal.obsidian;
+  var bestScore = double.negativeInfinity;
+  for (final score in scores.values) {
+    if (score > bestScore) bestScore = score;
   }
 
   for (final crystal in crystalTieBreakOrder) {
-    if (remaining.contains(crystal)) return crystal;
+    final score = scores[crystal];
+    if (score != null && (score - bestScore).abs() < 1e-9) return crystal;
   }
   return crystalTieBreakOrder.first;
 }

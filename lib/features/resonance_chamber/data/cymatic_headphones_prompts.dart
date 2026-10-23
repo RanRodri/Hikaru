@@ -2,7 +2,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// How many times the headphones note has been confirmed.
 ///
-/// The crystal screen shows it on Play for the first [showLimit] times only.
+/// The crystal screen shows the note on every Play. The count is kept so the
+/// reminder can be measured.
 class CymaticHeadphonesPrompts {
   const CymaticHeadphonesPrompts(this._preferences);
 

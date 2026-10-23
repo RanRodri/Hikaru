@@ -3,10 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hikaru/core/design_system/theme/app_theme.dart';
 import 'package:hikaru/features/crystals/application/selected_crystal_controller.dart';
+import 'package:hikaru/core/media/remote_image.dart';
 import 'package:hikaru/features/crystals/domain/crystal.dart';
+import 'package:hikaru/features/listening_room/application/journey_recommendation_controller.dart';
+import 'package:hikaru/features/listening_room/domain/discovery_quiz.dart';
+import 'package:hikaru/features/listening_room/domain/journey_recommendation.dart';
+import 'package:hikaru/features/listening_room/domain/quiz_answers.dart';
 import 'package:hikaru/features/resonance_chamber/presentation/resonance_chamber_screen.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
+import 'package:hikaru/l10n/app_localizations.dart';
 
 void main() {
   setUp(() {
@@ -14,7 +20,9 @@ void main() {
         InMemorySharedPreferencesAsync.empty();
   });
 
-  testWidgets('hero crystal follows the selected crystal', (tester) async {
+  testWidgets('reveals crystal and protocol without frequency audio', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -23,62 +31,81 @@ void main() {
     final container = ProviderContainer();
     addTearDown(container.dispose);
 
+    final recommendation = buildJourneyRecommendation(
+      Crystal.obsidian,
+      const QuizAnswers({
+        1: {QuizOptionIds.q1HydrationSoftness},
+        7: {QuizOptionIds.q7UnderstandBeneath},
+        9: {QuizOptionIds.q9FiveMinutes},
+      }),
+    );
+
+    await container
+        .read(selectedCrystalProvider.notifier)
+        .select(Crystal.obsidian);
+    await container
+        .read(journeyRecommendationControllerProvider.notifier)
+        .save(recommendation);
+
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
         child: MaterialApp(
           theme: AppTheme.dark,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: const ResonanceChamberScreen(),
         ),
       ),
     );
     await tester.pumpAndSettle();
 
-    expect(find.bySemanticsLabel('Your crystal in the garden'), findsOneWidget);
-    expect(_sceneImage('resonance_crystal.png'), findsOneWidget);
+    expect(find.text('YOUR HIKARU JOURNEY'), findsOneWidget);
+    expect(find.text('HAS BEEN REVEALED'), findsOneWidget);
+    expect(find.bySemanticsLabel('Assigned crystal OBSIDIAN'), findsOneWidget);
+    expect(find.text('The Mirror of the Unseen'), findsOneWidget);
+    expect(find.text('YOUR RECOMMENDED PROTOCOL'), findsOneWidget);
+    expect(find.text('Hydration Protocol'), findsOneWidget);
+    expect(find.text('5 minutes'), findsOneWidget);
+    expect(find.text('ENTER MY HIKARU SANCTUARY'), findsOneWidget);
+    expect(find.text('639 Hz'), findsNothing);
+    expect(find.text('THE ALIGNMENT TRIAD'), findsNothing);
+    expect(find.bySemanticsLabel('Your cymatic signature'), findsNothing);
+    expect(_sceneImage('obsidian.png'), findsOneWidget);
+  });
 
-    await container
-        .read(selectedCrystalProvider.notifier)
-        .select(Crystal.redJasper);
-    await tester.pumpAndSettle();
+  testWidgets('falls back to selected crystal when recommendation is absent', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
 
-    expect(find.bySemanticsLabel('RED JASPER crystal'), findsOneWidget);
-    expect(find.bySemanticsLabel('Your crystal in the garden'), findsNothing);
-    expect(_sceneImage('jasper.png'), findsOneWidget);
-    expect(find.text('639 Hz'), findsOneWidget);
-    expect(find.text('Metabolic Flow • Vitality • Grounding'), findsOneWidget);
-    expect(find.text('1. METABOLIC & VASCULAR FLOW'), findsOneWidget);
-    expect(find.text('1. NERVOUS SYSTEM REGULATION'), findsNothing);
-    expect(
-      find.bySemanticsLabel('Assigned crystal RED JASPER'),
-      findsOneWidget,
-    );
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
 
     await container.read(selectedCrystalProvider.notifier).select(Crystal.jade);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          theme: AppTheme.dark,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const ResonanceChamberScreen(),
+        ),
+      ),
+    );
     await tester.pumpAndSettle();
 
-    expect(find.bySemanticsLabel('JADE crystal'), findsOneWidget);
-    expect(find.bySemanticsLabel('RED JASPER crystal'), findsNothing);
-    expect(_sceneImage('jade.png'), findsOneWidget);
-    expect(find.text('528 Hz'), findsOneWidget);
-    expect(find.text('1. NERVOUS SYSTEM REGULATION'), findsOneWidget);
-    expect(find.text(Crystal.compositionCredit), findsOneWidget);
     expect(find.bySemanticsLabel('Assigned crystal JADE'), findsOneWidget);
-
-    for (final (crystal, asset) in [
-      (Crystal.obsidian, 'obsidian.png'),
-      (Crystal.whiteQuartz, 'resonance_crystal.png'),
-    ]) {
-      await container.read(selectedCrystalProvider.notifier).select(crystal);
-      await tester.pumpAndSettle();
-      expect(_sceneImage(asset), findsOneWidget);
-    }
+    expect(find.text('The Garden of Harmony'), findsOneWidget);
+    expect(_sceneImage('jade.png'), findsOneWidget);
   });
 }
 
 Finder _sceneImage(String fileName) => find.byWidgetPredicate(
-  (widget) =>
-      widget is Image &&
-      widget.image is AssetImage &&
-      (widget.image as AssetImage).assetName == 'assets/images/$fileName',
+  (widget) => widget is RemoteImage && widget.fileName == fileName,
 );

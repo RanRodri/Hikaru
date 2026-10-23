@@ -12,10 +12,12 @@ import '../../../core/design_system/widgets/hikaru_navigation_bar.dart';
 import '../../../core/design_system/widgets/hikaru_page_intro.dart';
 import '../../../core/design_system/widgets/hikaru_scroll_page.dart';
 import '../../../core/router/app_routes.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../crystals/domain/crystal.dart';
 import '../domain/library_article.dart';
 import '../domain/library_collection.dart';
 import 'library_screen.dart';
+import 'library_texts.dart';
 
 final TextStyle _eyebrowStyle = AppTypography.subheadline.copyWith(
   color: AppColors.champagneGold,
@@ -91,7 +93,8 @@ class _LibraryDetailScreenState extends State<LibraryDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final article = widget.article;
+    final l10n = AppLocalizations.of(context);
+    final article = localizedLibraryArticle(l10n, widget.article);
     final collection = libraryCollectionFor(article.id);
     final next = nextLibraryCollection(article.id);
     final crystal = Crystal.fromName(article.id);
@@ -114,7 +117,7 @@ class _LibraryDetailScreenState extends State<LibraryDetailScreen> {
         const SizedBox(height: AppSpacing.s8),
         if (collection != null) ...[
           Text(
-            collection.category,
+            collection.localizedCategory(l10n),
             textAlign: TextAlign.center,
             style: _eyebrowStyle,
           ),
@@ -122,7 +125,7 @@ class _LibraryDetailScreenState extends State<LibraryDetailScreen> {
         ],
         HikaruPageIntro(
           title: article.title,
-          subtitle: collection?.inlineDetail ?? '',
+          subtitle: collection?.localizedInlineDetail(l10n) ?? '',
         ),
         const SizedBox(height: AppSpacing.s14),
         Wrap(
@@ -130,12 +133,8 @@ class _LibraryDetailScreenState extends State<LibraryDetailScreen> {
           spacing: AppSpacing.s8,
           runSpacing: AppSpacing.s8,
           children: [
-            _MetaPill(
-              label: chapters.length == 1
-                  ? '1 chapter'
-                  : '${chapters.length} chapters',
-            ),
-            _MetaPill(label: '${article.readingMinutes} min read'),
+            _MetaPill(label: l10n.libraryChapterCount(chapters.length)),
+            _MetaPill(label: l10n.libraryReadingTime(article.readingMinutes)),
             if (crystal != null) _MetaPill(label: crystal.hertzLabel),
           ],
         ),
@@ -156,7 +155,7 @@ class _LibraryDetailScreenState extends State<LibraryDetailScreen> {
               key: ValueKey('${article.id}-$featuredIndex'),
               number: featuredIndex + 1,
               block: chapters[featuredIndex],
-              subtitle: collection?.inlineDetail ?? article.title,
+              subtitle: collection?.localizedInlineDetail(l10n) ?? article.title,
               imageAsset: collection?.imageAsset,
             ),
           ),
@@ -187,9 +186,10 @@ class _BackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Semantics(
       button: true,
-      label: 'Back to library',
+      label: l10n.libraryBackSemantics,
       excludeSemantics: true,
       child: Material(
         color: AppColors.darkIndigoBlue.withValues(alpha: 0.45),
@@ -207,7 +207,7 @@ class _BackButton extends StatelessWidget {
               vertical: AppSpacing.s8,
             ),
             child: Text(
-              'BACK',
+              l10n.commonBack,
               style: _eyebrowStyle.copyWith(fontSize: AppFontSizes.s11),
             ),
           ),
@@ -266,14 +266,15 @@ class _ChapterFilter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return SizedBox(
       height: _height,
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: [
           _FilterChip(
-            label: 'ALL',
-            semanticsLabel: 'Show all chapters',
+            label: l10n.libraryFilterAll,
+            semanticsLabel: l10n.libraryFilterAllSemantics,
             selected: selected == null,
             onPressed: () => onSelected(null),
           ),
@@ -281,7 +282,10 @@ class _ChapterFilter extends StatelessWidget {
             const SizedBox(width: AppSpacing.s8),
             _FilterChip(
               label: heading.toUpperCase(),
-              semanticsLabel: 'Go to chapter ${index + 1}, $heading',
+              semanticsLabel: l10n.libraryFilterChapterSemantics(
+                index + 1,
+                heading,
+              ),
               selected: selected == index,
               onPressed: () => onSelected(index),
             ),
@@ -429,7 +433,9 @@ class _FeaturedChapter extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'CHAPTER ${_chapterNumber(number)}',
+                        AppLocalizations.of(
+                          context,
+                        ).libraryChapterLabel(_chapterNumber(number)),
                         style: _eyebrowStyle,
                       ),
                       const SizedBox(height: AppSpacing.s10),
@@ -604,7 +610,9 @@ class _ChapterTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: 'Open chapter $number, ${block.heading}',
+      label: AppLocalizations.of(
+        context,
+      ).libraryOpenChapterSemantics(number, block.heading),
       excludeSemantics: true,
       child: _GlassCard(
         child: Material(
@@ -672,9 +680,10 @@ class _NextCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Semantics(
       button: true,
-      label: 'Next in library, ${collection.semanticsLabel}',
+      label: l10n.libraryNextSemantics(collection.localizedSemanticsLabel(l10n)),
       excludeSemantics: true,
       child: _GlassCard(
         child: Material(
@@ -706,14 +715,14 @@ class _NextCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'NEXT IN LIBRARY',
+                          l10n.libraryNextLabel,
                           style: _eyebrowStyle.copyWith(
                             fontSize: AppFontSizes.s9,
                           ),
                         ),
                         const SizedBox(height: AppSpacing.s4),
                         Text(
-                          collection.name,
+                          collection.localizedName(l10n),
                           style: AppTypography.headline.copyWith(
                             color: AppColors.white,
                             fontSize: AppFontSizes.s15,
@@ -722,7 +731,7 @@ class _NextCard extends StatelessWidget {
                         ),
                         const SizedBox(height: AppSpacing.s2),
                         Text(
-                          collection.inlineDetail,
+                          collection.localizedInlineDetail(l10n),
                           style: AppTypography.footnote.copyWith(
                             color: AppColors.fog,
                             fontSize: AppFontSizes.s11,
@@ -732,7 +741,7 @@ class _NextCard extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'READ',
+                    l10n.libraryRead,
                     style: _eyebrowStyle.copyWith(fontSize: AppFontSizes.s11),
                   ),
                 ],

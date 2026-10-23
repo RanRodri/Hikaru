@@ -1,6 +1,8 @@
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../features/auth/data/auth_gateway.dart';
+import '../../features/auth/presentation/confirm_sign_up_screen.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
 import '../../features/auth/presentation/reset_password_screen.dart';
@@ -19,6 +21,7 @@ import '../../features/library/presentation/library_screen.dart';
 import '../../features/massage/domain/massage_ritual.dart';
 import '../../features/massage/presentation/massage_screen.dart';
 import '../../features/merkaba/presentation/merkaba_screen.dart';
+import '../../features/profile/presentation/profile_account_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/resonance_chamber/presentation/crystal_resonance_screen.dart';
 import '../../features/resonance_chamber/presentation/resonance_chamber_screen.dart';
@@ -57,6 +60,14 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: AppRoutes.register,
         builder: (context, state) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.confirmSignUp,
+        builder: (context, state) {
+          final pending = state.extra;
+          if (pending is! PendingConfirmation) return const LoginScreen();
+          return ConfirmSignUpScreen(pending: pending);
+        },
       ),
       GoRoute(
         path: AppRoutes.resetPassword,
@@ -107,18 +118,23 @@ GoRouter appRouter(Ref ref) {
                 routes: [
                   GoRoute(
                     path: 'merkaba',
-                    builder: (context, state) =>
-                        const MerkabaMeditationScreen(),
+                    builder: (context, state) => MerkabaMeditationScreen(
+                      inCycle: AppRoutes.isCycle(state.uri.queryParameters),
+                    ),
                   ),
                   GoRoute(
                     path: 'ritual-face',
-                    builder: (context, state) =>
-                        const MassageScreen(surface: MassageSurface.face),
+                    builder: (context, state) => MassageScreen(
+                      surface: MassageSurface.face,
+                      inCycle: AppRoutes.isCycle(state.uri.queryParameters),
+                    ),
                   ),
                   GoRoute(
                     path: 'ritual-body',
-                    builder: (context, state) =>
-                        const MassageScreen(surface: MassageSurface.body),
+                    builder: (context, state) => MassageScreen(
+                      surface: MassageSurface.body,
+                      inCycle: AppRoutes.isCycle(state.uri.queryParameters),
+                    ),
                   ),
                 ],
               ),
@@ -162,6 +178,12 @@ GoRouter appRouter(Ref ref) {
               GoRoute(
                 path: AppRoutes.profile,
                 builder: (context, state) => const ProfileScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'account',
+                    builder: (context, state) => const ProfileAccountScreen(),
+                  ),
+                ],
               ),
             ],
           ),

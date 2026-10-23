@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hikaru/core/design_system/theme/app_theme.dart';
+import 'package:hikaru/core/media/remote_image.dart';
 import 'package:hikaru/features/crystals/domain/crystal.dart';
 import 'package:hikaru/features/resonance_chamber/data/cymatic_headphones_prompts.dart';
 import 'package:hikaru/features/resonance_chamber/presentation/crystal_resonance_screen.dart';
@@ -10,6 +11,8 @@ import 'package:hikaru/features/resonance_chamber/presentation/cymatic_signature
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
+
+import 'package:hikaru/l10n/app_localizations.dart';
 
 void main() {
   late List<List<String>> orientations;
@@ -45,34 +48,27 @@ void main() {
 
     await _pumpCrystal(tester);
 
-    expect(_assetImage(_jadeScene), findsOneWidget);
+    expect(_remoteImage('jade.png'), findsOneWidget);
     expect(find.bySemanticsLabel('JADE crystal'), findsOneWidget);
-    expect(
-      find.text('This experience will be better with headphones'),
-      findsNothing,
-    );
+    expect(find.textContaining('immersive experience'), findsNothing);
     expect(find.bySemanticsLabel('Cymatic'), findsNothing);
     expect(find.bySemanticsLabel('Exit'), findsNothing);
 
+    await tester.ensureVisible(find.bySemanticsLabel('Play frequency'));
     await tester.tap(find.bySemanticsLabel('Play frequency'));
     await tester.pumpAndSettle();
 
-    expect(
-      find.text('This experience will be better with headphones'),
-      findsOneWidget,
-    );
-    expect(find.text('CONTINUE'), findsOneWidget);
+    expect(find.textContaining('immersive experience'), findsOneWidget);
+    expect(find.text("I'M READY"), findsOneWidget);
+    expect(find.text('CONTINUE WITHOUT HEADPHONES'), findsOneWidget);
     expect(find.byIcon(Icons.headphones_outlined), findsOneWidget);
     expect(find.bySemanticsLabel('Cymatic'), findsNothing);
 
-    await tester.tap(find.text('CONTINUE'));
+    await tester.tap(find.text("I'M READY"));
     await _pumpUntil(tester, find.bySemanticsLabel('Cymatic'));
 
-    expect(
-      find.text('This experience will be better with headphones'),
-      findsNothing,
-    );
-    expect(_assetImage(_jadeScene), findsNothing);
+    expect(find.textContaining('immersive experience'), findsNothing);
+    expect(_remoteImage('jade.png'), findsNothing);
     expect(find.bySemanticsLabel('Exit'), findsNothing);
     expect(find.bySemanticsLabel('Pause'), findsNothing);
     expect(_assetImage('assets/images/merkaba_starry_night.jpg'), findsNothing);
@@ -123,12 +119,12 @@ void main() {
 
     expect(find.bySemanticsLabel('Cymatic'), findsNothing);
     expect(find.bySemanticsLabel('Exit'), findsNothing);
-    expect(_assetImage(_jadeScene), findsOneWidget);
+    expect(_remoteImage('jade.png'), findsOneWidget);
     expect(find.text('JADE'), findsWidgets);
     expect(orientations.last, ['DeviceOrientation.portraitUp']);
   });
 
-  testWidgets('the headphones note is skipped after three confirms', (
+  testWidgets('the headphones note still reminds after earlier confirms', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(390, 844);
@@ -142,21 +138,14 @@ void main() {
     );
     await _pumpCrystal(tester);
 
+    await tester.ensureVisible(find.bySemanticsLabel('Play frequency'));
     await tester.tap(find.bySemanticsLabel('Play frequency'));
-    await _pumpUntil(tester, find.bySemanticsLabel('Cymatic'));
+    await tester.pumpAndSettle();
 
-    expect(find.text('CONTINUE'), findsNothing);
-    expect(
-      find.text('This experience will be better with headphones'),
-      findsNothing,
-    );
-    expect(_assetImage(_jadeScene), findsNothing);
-    expect(
-      await SharedPreferencesAsync().getInt(
-        CymaticHeadphonesPrompts.storageKey,
-      ),
-      CymaticHeadphonesPrompts.showLimit,
-    );
+    expect(find.text("I'M READY"), findsOneWidget);
+    expect(find.text('CONTINUE WITHOUT HEADPHONES'), findsOneWidget);
+    expect(find.byIcon(Icons.headphones_outlined), findsOneWidget);
+    expect(find.bySemanticsLabel('Cymatic'), findsNothing);
   });
 }
 
@@ -165,6 +154,8 @@ Future<void> _pumpCrystal(WidgetTester tester) async {
     ProviderScope(
       child: MaterialApp(
         theme: AppTheme.dark,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: const CrystalResonanceScreen(crystal: Crystal.jade),
       ),
     ),
@@ -180,7 +171,9 @@ Future<void> _pumpUntil(WidgetTester tester, Finder finder) async {
   fail('Timed out waiting for $finder');
 }
 
-const String _jadeScene = 'assets/images/jade.png';
+Finder _remoteImage(String fileName) => find.byWidgetPredicate(
+  (widget) => widget is RemoteImage && widget.fileName == fileName,
+);
 
 Finder _assetImage(String asset) => find.byWidgetPredicate(
   (widget) =>

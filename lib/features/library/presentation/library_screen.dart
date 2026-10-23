@@ -3,14 +3,17 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
+import '../../../core/media/remote_image.dart';
 import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/widgets/hikaru_navigation_bar.dart';
 import '../../../core/design_system/widgets/hikaru_page_intro.dart';
 import '../../../core/design_system/widgets/hikaru_scroll_page.dart';
 import '../../../core/router/app_routes.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../crystals/domain/crystal.dart';
 import '../domain/library_collection.dart';
 import 'library_collection_circle.dart';
+import 'library_texts.dart';
 
 const String libraryBackgroundAsset = 'assets/images/library.png';
 
@@ -19,13 +22,14 @@ class LibraryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return HikaruScrollPage(
       active: HikaruDestination.library,
       backgroundAsset: libraryBackgroundAsset,
       children: [
-        const HikaruPageIntro(
-          title: 'LIBRARY',
-          subtitle: 'Sacred knowledge for your journey',
+        HikaruPageIntro(
+          title: l10n.libraryTitle,
+          subtitle: l10n.librarySubtitle,
         ),
         const SizedBox(height: AppSpacing.s14),
         _CollectionsConstellation(
@@ -205,7 +209,7 @@ class _CollectionCircle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: collection.semanticsLabel,
+      label: collection.localizedSemanticsLabel(AppLocalizations.of(context)),
       excludeSemantics: true,
       child: GestureDetector(
         onTap: onPressed,

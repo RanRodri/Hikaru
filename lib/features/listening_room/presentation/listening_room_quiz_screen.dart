@@ -10,16 +10,29 @@ import '../../../core/design_system/tokens/app_radii.dart';
 import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/design_system/widgets/hikaru_pill_button.dart';
+import '../../../core/media/remote_image.dart';
 import '../../../core/router/app_routes.dart';
 import '../../crystals/application/selected_crystal_controller.dart';
 import '../../crystals/domain/crystal_assignment.dart';
+import '../application/journey_recommendation_controller.dart';
 import '../data/quiz_answers_repository.dart';
 import '../domain/discovery_quiz.dart';
+import '../domain/journey_recommendation.dart';
 import '../domain/quiz_answers.dart';
+import '../../../l10n/app_localizations.dart';
+import 'quiz_texts.dart';
 
 const List<Shadow> _textShadow = [
   Shadow(color: AppColors.scrim70, offset: Offset(0, 2), blurRadius: 8),
 ];
+
+/// Wide-tracked white caps used for the two header lines.
+final TextStyle _headerStyle = AppTypography.subheadline.copyWith(
+  color: AppColors.white,
+  letterSpacing: 3.2,
+  height: 1.7,
+  shadows: _textShadow,
+);
 
 class ListeningRoomQuizScreen extends ConsumerStatefulWidget {
   const ListeningRoomQuizScreen({super.key});
@@ -31,11 +44,21 @@ class ListeningRoomQuizScreen extends ConsumerStatefulWidget {
 
 class _ListeningRoomQuizScreenState
     extends ConsumerState<ListeningRoomQuizScreen> {
-  static const String _backgroundAsset =
-      'assets/images/listening_room_quiz.png';
-  static const double _contentTop = 60;
-  static const double _footerBottom = 50;
+  static const String _backgroundAsset = RemoteImages.listeningRoomQuiz;
+
+  /// Distance from the top to the progress bar in the design.
+  static const double _contentTop = 33;
+  static const double _topInsetGap = AppSpacing.s8;
+  static const double _footerBottom = 38;
   static const double _minInsetGap = AppSpacing.s16;
+
+  /// The options start about 29% from the left edge in the design, which
+  /// leaves the window of the photo clear.
+  static const double _optionsInsetShare = 0.205;
+  static const double _optionsTrailingInset = AppSpacing.s16;
+
+  /// Below this screen height the title uses a smaller size.
+  static const double _compactHeight = 700;
 
   QuizAnswers _answers = const QuizAnswers();
   int _index = 0;
@@ -89,8 +112,21 @@ class _ListeningRoomQuizScreenState
   void _handleSelect(String optionId) {
     final question = _question;
     final selected = _answers.selectedIds(question.number).toSet();
+    final exclusiveId = question.exclusiveOptionId;
+
     if (question.selection == QuizSelection.multiple) {
-      if (!selected.add(optionId)) selected.remove(optionId);
+      if (exclusiveId != null && optionId == exclusiveId) {
+        if (selected.contains(exclusiveId) && selected.length == 1) {
+          selected.clear();
+        } else {
+          selected
+            ..clear()
+            ..add(exclusiveId);
+        }
+      } else {
+        if (exclusiveId != null) selected.remove(exclusiveId);
+        if (!selected.add(optionId)) selected.remove(optionId);
+      }
     } else {
       selected
         ..clear()
@@ -129,9 +165,14 @@ class _ListeningRoomQuizScreenState
 
       if (!completed) return;
 
+      final crystal = assignCrystal(_answers);
+      await ref.read(selectedCrystalProvider.notifier).select(crystal);
       await ref
-          .read(selectedCrystalProvider.notifier)
-          .select(assignCrystal(_answers));
+          .read(journeyRecommendationControllerProvider.notifier)
+          .save(
+            buildJourneyRecommendation(crystal, _answers),
+            answers: _answers,
+          );
       if (!mounted) return;
       context.push(AppRoutes.ritualReady);
     } finally {
@@ -141,10 +182,15 @@ class _ListeningRoomQuizScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final insets = MediaQuery.paddingOf(context);
-    final topSpace = math.max(_contentTop, insets.top + _minInsetGap);
+    final topSpace = math.max(_contentTop, insets.top + _topInsetGap);
     final bottomSpace = math.max(_footerBottom, insets.bottom + _minInsetGap);
+    final screenSize = MediaQuery.sizeOf(context);
+    final optionsInset = screenSize.width * _optionsInsetShare;
+    final compact = screenSize.height < _compactHeight;
     final question = _question;
+    final instruction = l10n.quizInstruction(question);
     final progress = question.number / discoveryQuiz.length;
     final progressLabel =
         '${question.number.toString().padLeft(2, '0')} / ${discoveryQuiz.length}';
@@ -159,8 +205,8 @@ class _ListeningRoomQuizScreenState
         body: Stack(
           fit: StackFit.expand,
           children: [
-            const Image(
-              image: AssetImage(_backgroundAsset),
+            const RemoteImage(
+              fileName: _backgroundAsset,
               fit: BoxFit.cover,
               excludeFromSemantics: true,
             ),
@@ -170,13 +216,13 @@ class _ListeningRoomQuizScreenState
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    AppColors.darkIndigoBlue.withValues(alpha: 0.45),
                     AppColors.darkIndigoBlue.withValues(alpha: 0.3),
-                    AppColors.darkIndigoBlue.withValues(alpha: 0.12),
+                    AppColors.darkIndigoBlue.withValues(alpha: 0.16),
+                    AppColors.darkIndigoBlue.withValues(alpha: 0.04),
                     AppColors.darkIndigoBlue.withValues(alpha: 0),
-                    AppColors.darkIndigoBlue.withValues(alpha: 0.1),
+                    AppColors.darkIndigoBlue.withValues(alpha: 0.08),
+                    AppColors.darkIndigoBlue.withValues(alpha: 0.22),
                     AppColors.darkIndigoBlue.withValues(alpha: 0.4),
-                    AppColors.darkIndigoBlue.withValues(alpha: 0.65),
                   ],
                   stops: const [0, 0.2, 0.4, 0.55, 0.7, 0.85, 1],
                 ),
@@ -193,104 +239,88 @@ class _ListeningRoomQuizScreenState
                 children: [
                   _Progress(
                     value: progress,
-                    label:
-                        'Question ${question.number} of ${discoveryQuiz.length}',
+                    label: l10n.quizProgressSemantics(
+                      question.number,
+                      discoveryQuiz.length,
+                    ),
                   ),
-                  const SizedBox(height: AppSpacing.s8),
+                  const SizedBox(height: AppSpacing.s26),
                   Text(
                     progressLabel,
                     style: AppTypography.footnote.copyWith(
                       color: AppColors.white,
-                      fontSize: AppFontSizes.s9,
-                      letterSpacing: 0.9,
+                      fontSize: AppFontSizes.s10,
+                      fontWeight: FontWeight.w400,
+                      letterSpacing: 1,
                       shadows: _textShadow,
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.s10),
+                  const SizedBox(height: AppSpacing.s2),
                   Container(
-                    width: 40,
+                    width: 36,
                     height: 1.5,
                     color: AppColors.champagneGold,
                   ),
-                  const SizedBox(height: AppSpacing.s14),
+                  const SizedBox(height: 9),
                   Text(
-                    'THE LISTENING ROOM',
+                    l10n.quizHeader,
                     textAlign: TextAlign.center,
-                    style: AppTypography.subheadline.copyWith(
-                      color: AppColors.white,
-                      shadows: _textShadow,
-                    ),
+                    style: _headerStyle,
                   ),
-                  const SizedBox(height: AppSpacing.s4),
                   Text(
-                    'A  SPACE  TO  BE  HEARD',
+                    l10n.quizTagline,
                     textAlign: TextAlign.center,
-                    style: AppTypography.subheadline.copyWith(
-                      color: AppColors.white,
-                      shadows: _textShadow,
-                    ),
+                    style: _headerStyle,
                   ),
-                  const SizedBox(height: AppSpacing.s24),
+                  const SizedBox(height: AppSpacing.s20),
                   Text(
-                    question.prompt,
+                    l10n.quizPrompt(question),
                     textAlign: TextAlign.center,
                     style: AppTypography.title.copyWith(
                       color: AppColors.white,
-                      fontSize: AppFontSizes.s26,
+                      // Shorter phones get a smaller title so more options
+                      // stay in view.
+                      fontSize: compact ? AppFontSizes.s22 : AppFontSizes.s28,
+                      fontWeight: FontWeight.w500,
                       height: 1.15,
                       shadows: _textShadow,
                     ),
                   ),
-                  if (question.instruction != null) ...[
-                    const SizedBox(height: AppSpacing.s12),
+                  if (instruction != null) ...[
+                    const SizedBox(height: 10),
                     Text(
-                      question.instruction!,
+                      instruction,
                       textAlign: TextAlign.center,
                       style: AppTypography.body.copyWith(
-                        color: AppColors.fog,
-                        fontSize: AppFontSizes.s12,
+                        color: AppColors.white,
+                        fontSize: AppFontSizes.s11,
+                        height: 1.45,
+                        letterSpacing: 0.3,
                         shadows: _textShadow,
                       ),
                     ),
                   ],
-                  const SizedBox(height: AppSpacing.s20),
+                  SizedBox(height: instruction != null ? 10 : 40),
                   Expanded(
-                    child: Align(
-                      alignment: Alignment.topCenter,
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 280),
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              color: AppColors.scrim60,
-                              borderRadius: BorderRadius.circular(AppRadii.r16),
-                            ),
-                            child: ListView.separated(
-                              controller: _optionsController,
-                              primary: false,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: AppSpacing.s12,
-                                vertical: AppSpacing.s8,
+                    child: SingleChildScrollView(
+                      controller: _optionsController,
+                      padding: EdgeInsets.only(
+                        left: optionsInset,
+                        right: _optionsTrailingInset,
+                      ),
+                      child: Column(
+                        children: [
+                          for (final option in question.options)
+                            _QuizOptionTile(
+                              title: l10n.quizOptionLabel(option),
+                              detail: option.detail,
+                              selected: _answers.isSelected(
+                                question.number,
+                                option.id,
                               ),
-                              itemCount: question.options.length,
-                              separatorBuilder: (_, _) =>
-                                  const SizedBox(height: AppSpacing.s6),
-                              itemBuilder: (context, index) {
-                                final option = question.options[index];
-                                return _QuizOptionTile(
-                                  title: option.label,
-                                  detail: option.detail,
-                                  selected: _answers.isSelected(
-                                    question.number,
-                                    option.id,
-                                  ),
-                                  onPressed: () => _handleSelect(option.id),
-                                );
-                              },
+                              onPressed: () => _handleSelect(option.id),
                             ),
-                          ),
-                        ),
+                        ],
                       ),
                     ),
                   ),
@@ -298,7 +328,7 @@ class _ListeningRoomQuizScreenState
                     Padding(
                       padding: const EdgeInsets.only(bottom: AppSpacing.s8),
                       child: Text(
-                        'Select an option.',
+                        l10n.quizSelectOption,
                         textAlign: TextAlign.center,
                         style: AppTypography.body.copyWith(
                           color: AppColors.champagneGold,
@@ -310,7 +340,7 @@ class _ListeningRoomQuizScreenState
                   TextButton(
                     onPressed: _busy ? null : _handleBack,
                     child: Text(
-                      'BACK',
+                      l10n.commonBack,
                       style: AppTypography.subheadline.copyWith(
                         color: AppColors.champagneGold,
                         fontSize: AppFontSizes.s11,
@@ -318,16 +348,9 @@ class _ListeningRoomQuizScreenState
                       ),
                     ),
                   ),
-                  HikaruPillButton(label: 'NEXT', onPressed: _handleNext),
-                  const SizedBox(height: AppSpacing.s14),
-                  Text(
-                    'A  MORE  RADIANT  YOU  AWAITS',
-                    textAlign: TextAlign.center,
-                    style: AppTypography.footnote.copyWith(
-                      color: AppColors.white,
-                      letterSpacing: 1.2,
-                      shadows: _textShadow,
-                    ),
+                  HikaruPillButton(
+                    label: l10n.commonNext,
+                    onPressed: _handleNext,
                   ),
                 ],
               ),
@@ -398,14 +421,9 @@ class _QuizOptionTile extends StatelessWidget {
         child: InkWell(
           onTap: onPressed,
           child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 52),
+            constraints: const BoxConstraints(minHeight: 48),
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.s8,
-                AppSpacing.s8,
-                AppSpacing.s8,
-                AppSpacing.s8,
-              ),
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.s16),
               child: Row(
                 children: [
                   _ChoiceMark(selected: selected),
@@ -421,17 +439,20 @@ class _QuizOptionTile extends StatelessWidget {
                                 ? AppColors.champagneGold
                                 : AppColors.white,
                             fontSize: AppFontSizes.s12,
-                            letterSpacing: 0.4,
+                            letterSpacing: 0.3,
+                            height: 1.3,
                             shadows: _textShadow,
                           ),
                         ),
                         if (optionDetail != null) ...[
-                          const SizedBox(height: AppSpacing.s4),
+                          const SizedBox(height: AppSpacing.s2),
                           Text(
                             optionDetail,
                             style: AppTypography.body.copyWith(
-                              color: AppColors.fog,
+                              color: AppColors.white,
+                              fontWeight: FontWeight.w500,
                               fontSize: AppFontSizes.s12,
+                              height: 1.3,
                               letterSpacing: 0.2,
                               shadows: _textShadow,
                             ),
@@ -459,15 +480,18 @@ class _ChoiceMark extends StatelessWidget {
   Widget build(BuildContext context) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 160),
-      width: 28,
-      height: 28,
+      width: 24,
+      height: 24,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: selected
             ? AppColors.champagneGold
-            : AppColors.champagneGold.withValues(alpha: 0),
-        border: Border.all(color: AppColors.champagneGold, width: 2),
+            : AppColors.champagneGold.withValues(alpha: 0.1),
+        border: Border.all(
+          color: AppColors.champagneGold.withValues(alpha: selected ? 1 : 0.9),
+          width: 1.5,
+        ),
         boxShadow: selected
             ? [
                 BoxShadow(
@@ -478,7 +502,7 @@ class _ChoiceMark extends StatelessWidget {
             : null,
       ),
       child: selected
-          ? const Icon(Icons.check, size: 18, color: AppColors.darkIndigoBlue)
+          ? const Icon(Icons.check, size: 16, color: AppColors.darkIndigoBlue)
           : null,
     );
   }

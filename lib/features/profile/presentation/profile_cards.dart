@@ -2,44 +2,47 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
 import '../../../core/design_system/tokens/app_font_sizes.dart';
 import '../../../core/design_system/tokens/app_journal.dart';
-import '../../../core/design_system/tokens/app_radii.dart';
 import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
-import '../../../core/design_system/widgets/hikaru_dividers.dart';
-import '../../journey/domain/journey_progress.dart';
+import '../../../core/localization/locale_controller.dart';
+import '../../../core/router/app_routes.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../journey/application/ritual_cycle_controller.dart';
+import '../application/member_profile_controller.dart';
+import '../application/ritual_reminders_controller.dart';
+import '../data/member_profile_repository.dart';
 
 const Color _ink = AppColors.white;
-const Color _accent = AppColors.matteChampagne80;
+const Color _accent = AppColors.champagneGold;
 
 final TextStyle _cardText = AppTypography.headline.copyWith(
   color: _ink,
-  height: 1.23,
+  height: 1.35,
   letterSpacing: 0,
 );
 
 final TextStyle _sectionLabel = _cardText.copyWith(
-  fontSize: AppFontSizes.s9_5,
-  letterSpacing: 1.4,
+  color: _accent,
+  fontSize: AppFontSizes.s9,
+  fontWeight: FontWeight.w500,
+  letterSpacing: 1.8,
 );
 
-final int _sampleCycleDay = sampleJourneyProgress.currentDay;
-final int _cycleLength = sampleJourneyProgress.cycleLength;
-
 class _ProfileCard extends StatelessWidget {
-  const _ProfileCard({required this.child, this.icon, this.label});
+  const _ProfileCard({required this.child, this.label});
 
-  final String? icon;
   final String? label;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    final cardIcon = icon;
     final cardLabel = label;
 
     return DecoratedBox(
@@ -63,10 +66,10 @@ class _ProfileCard extends StatelessWidget {
           ),
           child: Container(
             padding: const EdgeInsets.fromLTRB(
+              AppSpacing.s16,
               AppSpacing.s14,
-              AppSpacing.s10,
-              AppSpacing.s14,
-              AppSpacing.s14,
+              AppSpacing.s16,
+              AppSpacing.s16,
             ),
             decoration: BoxDecoration(
               color: AppJournal.surface,
@@ -76,20 +79,9 @@ class _ProfileCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (cardIcon != null && cardLabel != null) ...[
-                  Row(
-                    children: [
-                      SvgPicture.asset(
-                        cardIcon,
-                        width: 18,
-                        height: 18,
-                        excludeFromSemantics: true,
-                      ),
-                      const SizedBox(width: AppSpacing.s8),
-                      Expanded(child: Text(cardLabel, style: _sectionLabel)),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.s12),
+                if (cardLabel != null) ...[
+                  Text(cardLabel, style: _sectionLabel),
+                  const SizedBox(height: AppSpacing.s14),
                 ],
                 child,
               ],
@@ -101,55 +93,53 @@ class _ProfileCard extends StatelessWidget {
   }
 }
 
-class _Chevron extends StatelessWidget {
-  const _Chevron();
-
-  @override
-  Widget build(BuildContext context) {
-    return SvgPicture.asset(
-      'assets/images/profile_chevron.svg',
-      width: 5.74,
-      height: 10.5,
-      excludeFromSemantics: true,
-    );
-  }
-}
-
-class MemberCard extends StatelessWidget {
+class MemberCard extends ConsumerWidget {
   const MemberCard({super.key});
 
-  static const double _portraitSize = 77;
+  static const double _portraitSize = 64;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final profile =
+        ref.watch(memberProfileControllerProvider).value ??
+        const MemberProfile(name: MemberProfile.defaultName);
+    final photo = profile.photo;
+    final progress = ref.watch(journeyProgressProvider);
+
     return _ProfileCard(
       child: Semantics(
         button: true,
-        label:
-            'María González, sanctuary member, day $_sampleCycleDay of '
-            '$_cycleLength',
-        excludeSemantics: true,
+        label: l10n.profileMemberSemantics(
+          profile.name,
+          progress.currentDay,
+          progress.cycleLength,
+        ),
         child: InkWell(
-          onTap: () {},
-          borderRadius: BorderRadius.circular(AppRadii.r9),
+          onTap: () => context.push(AppRoutes.profileAccount),
           child: Row(
             children: [
-              SizedBox.square(
-                dimension: _portraitSize,
-                child: Stack(
-                  children: [
-                    const Positioned.fill(
-                      child: Image(
-                        image: AssetImage('assets/images/profile_portrait.png'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    SvgPicture.asset(
-                      'assets/images/profile_portrait_border.svg',
-                      width: _portraitSize,
-                      height: _portraitSize,
-                    ),
-                  ],
+              Container(
+                width: _portraitSize,
+                height: _portraitSize,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppColors.champagneGold.withValues(alpha: 0.7),
+                    width: 0.8,
+                  ),
+                ),
+                child: ClipOval(
+                  child: photo == null
+                      ? Image.asset(
+                          'assets/images/profile_portrait.png',
+                          fit: BoxFit.cover,
+                        )
+                      : Image.memory(
+                          photo,
+                          fit: BoxFit.cover,
+                          gaplessPlayback: true,
+                        ),
                 ),
               ),
               const SizedBox(width: AppSpacing.s14),
@@ -158,21 +148,37 @@ class MemberCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'María González',
-                      style: _cardText.copyWith(fontSize: AppFontSizes.s18),
-                    ),
-                    const SizedBox(height: AppSpacing.s8),
-                    Text(
-                      'SANCTUARY MEMBER — DAY $_sampleCycleDay OF $_cycleLength',
+                      profile.name,
                       style: _cardText.copyWith(
-                        fontSize: AppFontSizes.s8_5,
-                        letterSpacing: 1.3,
+                        fontSize: AppFontSizes.s18,
+                        fontWeight: FontWeight.w500,
+                        height: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.s6),
+                    Text(
+                      l10n.profileMemberLabel(
+                        progress.currentDay,
+                        progress.cycleLength,
+                      ),
+                      style: _cardText.copyWith(
+                        color: AppColors.fog,
+                        fontSize: AppFontSizes.s9,
+                        letterSpacing: 1.1,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.s6),
+                    Text(
+                      l10n.profileAccountEdit,
+                      style: _cardText.copyWith(
+                        color: _accent,
+                        fontSize: AppFontSizes.s9,
+                        letterSpacing: 1.4,
                       ),
                     ),
                   ],
                 ),
               ),
-              const _Chevron(),
             ],
           ),
         ),
@@ -183,60 +189,53 @@ class MemberCard extends StatelessWidget {
 
 typedef _Reminder = ({String icon, String title, String detail, String time});
 
-class RitualRemindersCard extends StatefulWidget {
+class RitualRemindersCard extends ConsumerWidget {
   const RitualRemindersCard({super.key});
 
-  @override
-  State<RitualRemindersCard> createState() => _RitualRemindersCardState();
-}
-
-class _RitualRemindersCardState extends State<RitualRemindersCard> {
-  static const List<_Reminder> _reminders = [
+  /// Times are sample values until reminders are configurable.
+  static List<_Reminder> _reminders(AppLocalizations l10n) => [
     (
       icon: 'assets/images/profile_sunrise.svg',
-      title: 'Morning Sacred Ritual',
-      detail: 'Meditation & facial massage',
+      title: l10n.profileReminderMorningTitle,
+      detail: l10n.profileReminderMorningDetail,
       time: '08:00 AM',
     ),
     (
       icon: 'assets/images/profile_moon.svg',
-      title: 'Evening Reflection & Breath',
-      detail: 'Conscious breathing before sleep',
+      title: l10n.profileReminderEveningTitle,
+      detail: l10n.profileReminderEveningDetail,
       time: '09:30 PM',
     ),
   ];
 
-  final List<bool> _enabled = List.filled(_reminders.length, true);
-
-  void _handleToggle(int index, bool value) {
-    setState(() => _enabled[index] = value);
-  }
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final reminders = _reminders(l10n);
+    final enabled =
+        ref.watch(ritualRemindersControllerProvider).value ??
+        RitualReminders.defaults;
+    final controller = ref.read(ritualRemindersControllerProvider.notifier);
+    final states = [enabled.morning, enabled.evening];
+    final toggles = [controller.setMorning, controller.setEvening];
+
     return _ProfileCard(
-      icon: 'assets/images/profile_sun.svg',
-      label: 'RITUAL ALARMS & REMINDERS',
+      label: l10n.profileRemindersTitle,
       child: Column(
         children: [
-          for (var index = 0; index < _reminders.length; index++) ...[
+          for (var index = 0; index < reminders.length; index++) ...[
             if (index > 0)
-              const Padding(
-                padding: EdgeInsets.only(
-                  left: AppSpacing.s40,
-                  top: AppSpacing.s6,
-                  bottom: AppSpacing.s6,
-                ),
-                child: HikaruGoldRule(
-                  width: double.infinity,
-                  height: AppSpacing.s0_4,
-                  opacity: 0.7,
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.s12),
+                child: Container(
+                  height: 0.4,
+                  color: AppColors.champagneGold.withValues(alpha: 0.22),
                 ),
               ),
             _ReminderRow(
-              reminder: _reminders[index],
-              enabled: _enabled[index],
-              onChanged: (value) => _handleToggle(index, value),
+              reminder: reminders[index],
+              enabled: states[index],
+              onChanged: toggles[index],
             ),
           ],
         ],
@@ -252,8 +251,6 @@ class _ReminderRow extends StatelessWidget {
     required this.onChanged,
   });
 
-  static const double _medallionSize = 28;
-
   final _Reminder reminder;
   final bool enabled;
   final ValueChanged<bool> onChanged;
@@ -262,27 +259,14 @@ class _ReminderRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        SizedBox.square(
-          dimension: _medallionSize,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              SvgPicture.asset(
-                'assets/images/profile_ritual_medallion.svg',
-                width: _medallionSize,
-                height: _medallionSize,
-                excludeFromSemantics: true,
-              ),
-              SvgPicture.asset(
-                reminder.icon,
-                width: 16,
-                height: 16,
-                excludeFromSemantics: true,
-              ),
-            ],
-          ),
+        SvgPicture.asset(
+          reminder.icon,
+          width: 16,
+          height: 16,
+          colorFilter: const ColorFilter.mode(_accent, BlendMode.srcIn),
+          excludeFromSemantics: true,
         ),
-        const SizedBox(width: AppSpacing.s11),
+        const SizedBox(width: AppSpacing.s12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -308,7 +292,9 @@ class _ReminderRow extends StatelessWidget {
         ),
         const SizedBox(width: AppSpacing.s4),
         Semantics(
-          label: '${reminder.title} reminder',
+          label: AppLocalizations.of(
+            context,
+          ).profileReminderSemantics(reminder.title),
           child: Transform.scale(
             scale: 0.7,
             child: Switch(
@@ -334,51 +320,38 @@ class DataPrivacyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return _ProfileCard(
-      icon: 'assets/images/profile_lock.svg',
-      label: 'YOUR DATA, TREATED WITH REVERENCE',
-      child: Row(
+      label: l10n.profilePrivacyTitle,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Text(
-              'Your facial photos and personal information stay with your '
-              'account. Open Privacy to review what is kept.',
-              style: _cardText.copyWith(fontSize: AppFontSizes.s10_3),
+          Text(
+            l10n.profilePrivacyBody,
+            style: _cardText.copyWith(
+              color: AppColors.fog,
+              fontSize: AppFontSizes.s12,
+              height: 1.5,
             ),
           ),
-          const SizedBox(width: AppSpacing.s10),
-          HikaruGoldRule(width: AppSpacing.s0_5, height: 33, opacity: 0.7),
-          const SizedBox(width: AppSpacing.s10),
+          const SizedBox(height: AppSpacing.s12),
           Semantics(
             button: true,
-            label: 'Open privacy settings',
-            excludeSemantics: true,
-            child: InkWell(
-              onTap: () {},
-              borderRadius: BorderRadius.circular(AppRadii.r6),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.s4),
-                child: Row(
-                  children: [
-                    Column(
-                      children: [
-                        SvgPicture.asset(
-                          'assets/images/profile_flower.svg',
-                          width: 18,
-                          height: 18,
-                        ),
-                        const SizedBox(height: AppSpacing.s5),
-                        Text(
-                          'Privacy',
-                          style: _cardText.copyWith(
-                            fontSize: AppFontSizes.s8_4,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(width: AppSpacing.s12),
-                    const _Chevron(),
-                  ],
+            label: l10n.profilePrivacyOpenSemantics,
+            child: TextButton(
+              onPressed: () {},
+              style: TextButton.styleFrom(
+                foregroundColor: _accent,
+                padding: EdgeInsets.zero,
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: Text(
+                l10n.profilePrivacy,
+                style: _cardText.copyWith(
+                  color: _accent,
+                  fontSize: AppFontSizes.s11,
+                  letterSpacing: 1.2,
                 ),
               ),
             ),
@@ -389,96 +362,100 @@ class DataPrivacyCard extends StatelessWidget {
   }
 }
 
-class CycleCard extends StatelessWidget {
+class CycleCard extends ConsumerWidget {
   const CycleCard({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final progress = ref.watch(journeyProgressProvider);
     return _ProfileCard(
-      icon: 'assets/images/profile_flower.svg',
-      label: '30-DAY CYCLE',
-      child: Row(
+      label: l10n.profileCycleTitle,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _CycleRing(day: _sampleCycleDay, length: _cycleLength),
-          const SizedBox(width: AppSpacing.s11),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Your journey is in progress',
-                  style: _cardText.copyWith(fontSize: AppFontSizes.s9_7),
+          Row(
+            children: [
+              _CycleRing(
+                day: progress.currentDay,
+                length: progress.cycleLength,
+              ),
+              const SizedBox(width: AppSpacing.s14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.profileCycleInProgress,
+                      style: _cardText.copyWith(fontSize: AppFontSizes.s13),
+                    ),
+                    const SizedBox(height: AppSpacing.s4),
+                    Text(
+                      l10n.commonDayOfTotal(
+                        progress.currentDay,
+                        progress.cycleLength,
+                      ),
+                      style: _cardText.copyWith(
+                        color: _accent,
+                        fontSize: AppFontSizes.s12,
+                        letterSpacing: 0.4,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: AppSpacing.s4),
-                Text(
-                  'Day $_sampleCycleDay of $_cycleLength',
-                  style: _cardText.copyWith(fontSize: AppFontSizes.s10_7),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-          HikaruGoldRule(width: AppSpacing.s0_5, height: 57, opacity: 0.7),
-          const SizedBox(width: AppSpacing.s12),
-          const Expanded(child: _CompleteCycle()),
+          const SizedBox(height: AppSpacing.s14),
+          _CompleteCycle(cycleLength: progress.cycleLength),
         ],
       ),
     );
   }
 }
 
-class _CompleteCycle extends StatelessWidget {
-  const _CompleteCycle();
+class _CompleteCycle extends ConsumerWidget {
+  const _CompleteCycle({required this.cycleLength});
+
+  final int cycleLength;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            SvgPicture.asset(
-              'assets/images/profile_mountain.svg',
-              width: 22,
-              height: 22,
-              excludeFromSemantics: true,
-            ),
-            const SizedBox(width: AppSpacing.s6),
-            Expanded(
-              child: Text(
-                'Complete your cycle',
-                style: _cardText.copyWith(fontSize: AppFontSizes.s9_7),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.s4),
         Text(
-          'At day $_cycleLength, you’ll unlock your new diagnosis and '
-          'recalibrate your crystal, frequency and cymatic signature.',
-          style: _cardText.copyWith(fontSize: AppFontSizes.s7_7),
+          l10n.profileCycleComplete,
+          style: _cardText.copyWith(fontSize: AppFontSizes.s12),
         ),
-        const SizedBox(height: AppSpacing.s8),
-        SizedBox(
-          height: AppSpacing.s22,
-          child: OutlinedButton(
-            onPressed: () {},
-            style: OutlinedButton.styleFrom(
-              backgroundColor: AppColors.ivorySwitch,
+        const SizedBox(height: AppSpacing.s6),
+        Text(
+          l10n.profileCycleUnlock(cycleLength),
+          style: _cardText.copyWith(
+            color: AppColors.fog,
+            fontSize: AppFontSizes.s11,
+            height: 1.45,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.s12),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton(
+            onPressed: () =>
+                ref.read(ritualCycleControllerProvider.notifier).endCycle(),
+            style: TextButton.styleFrom(
               foregroundColor: _accent,
-              side: const BorderSide(
-                color: AppColors.champagneGold,
-                width: 0.5,
-              ),
-              shape: const StadiumBorder(),
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s14),
+              padding: EdgeInsets.zero,
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
             child: Text(
-              'END CYCLE',
-              style: AppTypography.footnote.copyWith(
+              l10n.profileCycleEnd,
+              style: _cardText.copyWith(
                 color: _accent,
-                letterSpacing: 0.8,
+                fontSize: AppFontSizes.s11,
+                letterSpacing: 1.4,
               ),
             ),
           ),
@@ -550,4 +527,104 @@ class _CycleRingPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _CycleRingPainter oldDelegate) =>
       oldDelegate.progress != progress;
+}
+
+/// Lets the user switch the app language at runtime. The choice is persisted
+/// and the whole app rebuilds in the selected locale.
+class LanguageCard extends ConsumerWidget {
+  const LanguageCard({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final current = Localizations.localeOf(context).languageCode;
+
+    return _ProfileCard(
+      label: l10n.profileLanguageCardTitle,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            l10n.profileLanguageCardSubtitle,
+            style: _cardText.copyWith(fontSize: AppFontSizes.s9_7),
+          ),
+          const SizedBox(height: AppSpacing.s12),
+          Row(
+            children: [
+              Expanded(
+                child: _LanguageOption(
+                  label: l10n.languageEnglish,
+                  selected: current == 'en',
+                  onTap: () => ref
+                      .read(localeControllerProvider.notifier)
+                      .setLocale(const Locale('en')),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.s8),
+              Expanded(
+                child: _LanguageOption(
+                  label: l10n.languageSpanish,
+                  selected: current == 'es',
+                  onTap: () => ref
+                      .read(localeControllerProvider.notifier)
+                      .setLocale(const Locale('es')),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LanguageOption extends StatelessWidget {
+  const _LanguageOption({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: label,
+      excludeSemantics: true,
+      child: Material(
+        color: selected
+            ? AppColors.champagneGold.withValues(alpha: 0.14)
+            : AppColors.transparent,
+        shape: StadiumBorder(
+          side: BorderSide(
+            color: AppColors.champagneGold.withValues(
+              alpha: selected ? 0.8 : 0.3,
+            ),
+          ),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: SizedBox(
+            height: AppSpacing.s36,
+            child: Center(
+              child: Text(
+                label,
+                maxLines: 1,
+                style: _cardText.copyWith(
+                  fontSize: AppFontSizes.s9_7,
+                  color: selected ? AppColors.champagneGold : _ink,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

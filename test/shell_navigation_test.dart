@@ -8,11 +8,14 @@ import 'package:hikaru/core/router/app_routes.dart';
 import 'package:hikaru/features/splash/presentation/splash_controller.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
+import 'package:hikaru/l10n/app_localizations.dart';
 
 void main() {
   setUp(() {
     SharedPreferencesAsyncPlatform.instance =
-        InMemorySharedPreferencesAsync.empty();
+        InMemorySharedPreferencesAsync.withData({
+          'hikaru_home_tour_seen': true,
+        });
   });
 
   testWidgets(
@@ -30,22 +33,34 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp.router(theme: AppTheme.dark, routerConfig: router),
+          child: MaterialApp.router(
+            theme: AppTheme.dark,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: router,
+          ),
         ),
       );
 
       await tester.pump(splashMinimumDuration);
       router.go(AppRoutes.resonanceChamber);
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('ENTER MY 30-DAY JOURNEY'));
-      await tester.tap(find.text('ENTER MY 30-DAY JOURNEY'));
+      await tester.ensureVisible(find.text('ENTER MY HIKARU SANCTUARY'));
+      await tester.tap(find.text('ENTER MY HIKARU SANCTUARY'));
       await tester.pumpAndSettle();
 
       expect(find.text('THE HARMONY GARDEN'), findsOneWidget);
-      expect(find.text('THE RESONANCE CHAMBER'), findsNothing);
+      expect(find.text('YOUR HIKARU JOURNEY'), findsNothing);
       expect(router.canPop(), isFalse);
 
+      // The center kanji starts the full cycle at the Merkaba.
       await tester.tap(find.bySemanticsLabel('Sanctuary'));
+      await tester.pumpAndSettle();
+      expect(find.text('Human Blueprint'), findsOneWidget);
+      final cycleUri = router.routeInformationProvider.value.uri;
+      expect(cycleUri.path, AppRoutes.merkaba);
+      expect(AppRoutes.isCycle(cycleUri.queryParameters), isTrue);
+      await tester.tap(find.text('BACK'));
       await tester.pumpAndSettle();
       expect(find.text('THE HARMONY GARDEN'), findsOneWidget);
       expect(router.routeInformationProvider.value.uri.path, AppRoutes.home);
@@ -99,7 +114,7 @@ void main() {
       router.pop();
       await tester.pumpAndSettle();
       expect(find.text('THE HARMONY GARDEN'), findsOneWidget);
-      expect(find.text('THE RESONANCE CHAMBER'), findsNothing);
+      expect(find.text('YOUR HIKARU JOURNEY'), findsNothing);
       expect(router.canPop(), isFalse);
     },
   );
@@ -119,7 +134,12 @@ void main() {
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
-        child: MaterialApp.router(theme: AppTheme.dark, routerConfig: router),
+        child: MaterialApp.router(
+          theme: AppTheme.dark,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: router,
+        ),
       ),
     );
 
@@ -135,6 +155,6 @@ void main() {
     router.pop();
     await tester.pumpAndSettle();
     expect(find.text('JOURNEY'), findsOneWidget);
-    expect(find.text('THE RESONANCE CHAMBER'), findsNothing);
+    expect(find.text('YOUR HIKARU JOURNEY'), findsNothing);
   });
 }

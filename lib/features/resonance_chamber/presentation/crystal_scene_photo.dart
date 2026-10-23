@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
+import '../../../core/media/remote_image.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../crystals/domain/crystal.dart';
+import '../../crystals/presentation/crystal_texts.dart';
 import 'resonance_sections.dart';
 
 class _CrystalScene {
@@ -26,7 +29,7 @@ class _CrystalScene {
 }
 
 const _CrystalScene _whiteQuartzScene = _CrystalScene(
-  asset: 'assets/images/resonance_crystal.png',
+  asset: RemoteImages.resonanceCrystal,
   aspectRatio: 768 / 1344,
   visibleHeightFraction: 303 / 845,
   crystalFocus: Offset(0.4667, 0.36),
@@ -36,19 +39,19 @@ const _CrystalScene _whiteQuartzScene = _CrystalScene(
 const Map<Crystal, _CrystalScene> _crystalScenes = {
   Crystal.whiteQuartz: _whiteQuartzScene,
   Crystal.jade: _CrystalScene(
-    asset: 'assets/images/jade.png',
+    asset: RemoteImages.jade,
     aspectRatio: 1672 / 941,
     visibleHeightFraction: 0.95,
     crystalFocus: Offset(0.5, 0.512),
   ),
   Crystal.redJasper: _CrystalScene(
-    asset: 'assets/images/jasper.png',
+    asset: RemoteImages.jasper,
     aspectRatio: 1671 / 941,
     visibleHeightFraction: 0.95,
     crystalFocus: Offset(0.5, 0.482),
   ),
   Crystal.obsidian: _CrystalScene(
-    asset: 'assets/images/obsidian.png',
+    asset: RemoteImages.obsidian,
     aspectRatio: 1672 / 941,
     visibleHeightFraction: 0.95,
     crystalFocus: Offset(0.5, 0.477),
@@ -69,9 +72,10 @@ class CrystalScenePhoto extends StatelessWidget {
   Widget build(BuildContext context) {
     final selected = crystal;
     final scene = _crystalScenes[selected] ?? _whiteQuartzScene;
+    final l10n = AppLocalizations.of(context);
     final semanticLabel = selected == null
-        ? 'Your crystal in the garden'
-        : '${selected.displayName} crystal';
+        ? l10n.crystalSceneSemanticsDefault
+        : l10n.crystalSceneSemantics(selected.localizedName(l10n));
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -123,8 +127,8 @@ class _ScenePortrait extends StatelessWidget {
   Widget build(BuildContext context) {
     final imageHeight = constraints.maxHeight / scene.visibleHeightFraction;
     final imageWidth = imageHeight * scene.aspectRatio;
-    final image = Image(
-      image: AssetImage(scene.asset),
+    final image = RemoteImage(
+      fileName: scene.asset,
       fit: BoxFit.fill,
       semanticLabel: semanticLabel,
     );

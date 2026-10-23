@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
+import '../../../l10n/app_localizations.dart';
 import '../domain/merkaba_session.dart';
 
 /// Seated woman on a transparent background, over the starry night.
@@ -33,7 +34,7 @@ class MerkabaStage extends StatelessWidget {
         Image(
           image: const AssetImage(merkabaWomanAsset),
           fit: BoxFit.contain,
-          semanticLabel: 'Seated woman in meditation',
+          semanticLabel: AppLocalizations.of(context).merkabaWomanSemantics,
           frameBuilder: _fadeInWoman,
         ),
         CustomPaint(

@@ -6,7 +6,10 @@ import 'package:hikaru/features/resonance_chamber/domain/cymatic_audio.dart';
 
 const _tracks = ['white_quartz', 'jade', 'obsidian', 'red_jasper'];
 
-/// Decodes each bundled crystal AAC to mono PCM and writes a `.cym` envelope.
+/// Decodes each crystal AAC to mono PCM and writes a `.cym` envelope.
+///
+/// The `.m4a` masters live in S3 and are not shipped in the app. Place them
+/// at `assets/audio/` only while regenerating these envelopes.
 ///
 /// Run from the repo root: `dart run tool/generate_cymatic_envelopes.dart`.
 Future<void> main() async {

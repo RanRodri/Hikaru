@@ -9,6 +9,7 @@ import 'package:hikaru/features/merkaba/data/merkaba_progress_repository.dart';
 import 'package:hikaru/features/merkaba/domain/merkaba_session.dart';
 import 'package:hikaru/features/merkaba/presentation/merkaba_painter.dart';
 import 'package:hikaru/features/merkaba/presentation/merkaba_screen.dart';
+import 'package:hikaru/l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
@@ -109,6 +110,8 @@ void main() {
     await tester.pumpWidget(
       const ProviderScope(
         child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: MediaQuery(
             data: MediaQueryData(disableAnimations: true),
             child: MerkabaMeditationScreen(
@@ -152,6 +155,8 @@ void main() {
     await tester.pumpWidget(
       const ProviderScope(
         child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: MediaQuery(
             data: MediaQueryData(disableAnimations: true),
             child: MerkabaMeditationScreen(),
@@ -178,6 +183,8 @@ void main() {
           merkabaProgressRepositoryProvider.overrideWithValue(progress),
         ],
         child: const MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: MediaQuery(
             data: MediaQueryData(disableAnimations: true),
             child: MerkabaMeditationScreen(
@@ -218,6 +225,8 @@ void main() {
           merkabaProgressRepositoryProvider.overrideWithValue(progress),
         ],
         child: const MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: MediaQuery(
             data: MediaQueryData(disableAnimations: true),
             child: MerkabaMeditationScreen(
@@ -241,6 +250,29 @@ void main() {
     expect(history, hasLength(1));
     expect(history.single.completed, isFalse);
     expect(history.single.completedCycles, 2);
+    expect(await progress.readResume(), const Duration(seconds: 28));
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          merkabaProgressRepositoryProvider.overrideWithValue(progress),
+        ],
+        child: const MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: MediaQuery(
+            data: MediaQueryData(disableAnimations: true),
+            child: MerkabaMeditationScreen(),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('00:28 / 05:00'), findsOneWidget);
+    expect(find.text('2 / 21'), findsOneWidget);
+    expect(find.text('PLAY'), findsOneWidget);
   });
 
   test('session history persists date, cycles, and completion', () async {

@@ -30,6 +30,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: any
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -40,6 +43,15 @@ dependencies:
   flutter_svg: ^2.3.0
   audioplayers: ^6.7.1
   shared_preferences: ^2.5.6
+  image_picker: ^1.2.4
+  camera: ^0.12.0+2
+  path_provider: ^2.1.6
+  amplify_flutter: ^2.16.0
+  amplify_auth_cognito: ^2.16.0
+  amplify_api: ^2.16.0
+  amplify_storage_s3: ^2.16.0
+  local_auth: ^3.0.2
+  flutter_secure_storage: ^11.2.0
 
 dev_dependencies:
   flutter_test:
@@ -80,6 +92,10 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  # Generate localization classes (AppLocalizations) from the ARB files.
+  # Configuration lives in l10n.yaml.
+  generate: true
 
   shaders:
     - shaders/cymatic_kaleidoscope.frag

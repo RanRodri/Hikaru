@@ -8,6 +8,7 @@ import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/design_system/widgets/hikaru_button.dart';
 import '../../../core/router/app_routes.dart';
+import '../../../l10n/app_localizations.dart';
 
 class SanctuaryScreen extends StatelessWidget {
   const SanctuaryScreen({super.key});
@@ -24,6 +25,7 @@ class SanctuaryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final safeTop = MediaQuery.paddingOf(context).top;
     final safeBottom = MediaQuery.paddingOf(context).bottom;
     final kanjiTop = safeTop + _kanjiGapBelowStatusBar;
@@ -85,7 +87,7 @@ class SanctuaryScreen extends StatelessWidget {
                   SvgPicture.asset(_dotAsset),
                   const SizedBox(height: AppSpacing.s20),
                   Text(
-                    'Welcome to',
+                    l10n.sanctuaryWelcome,
                     textAlign: TextAlign.center,
                     style: AppTypography.headline.copyWith(
                       color: AppColors.champagneGold,
@@ -95,7 +97,7 @@ class SanctuaryScreen extends StatelessWidget {
                   FittedBox(
                     fit: BoxFit.scaleDown,
                     child: Text(
-                      'HIKARU SANCTUARY',
+                      l10n.sanctuaryTitle,
                       maxLines: 1,
                       softWrap: false,
                       textAlign: TextAlign.center,
@@ -108,7 +110,7 @@ class SanctuaryScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.s8),
                   Text(
-                    'Where Beauty Meets Frequency.',
+                    l10n.sanctuaryTagline,
                     textAlign: TextAlign.center,
                     style: AppTypography.headline.copyWith(
                       color: AppColors.champagneGold,
@@ -118,7 +120,7 @@ class SanctuaryScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.s36),
                   HikaruButton(
-                    label: 'ENTER THE SANCTUARY',
+                    label: l10n.sanctuaryEnter,
                     onPressed: () => context.push(AppRoutes.discovery),
                   ),
                 ],

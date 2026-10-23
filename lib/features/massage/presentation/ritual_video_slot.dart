@@ -4,6 +4,7 @@ import '../../../core/design_system/tokens/app_colors.dart';
 import '../../../core/design_system/tokens/app_font_sizes.dart';
 import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Reserved space for the ritual video. Until a [videoUrl] is wired to a
 /// player it shows a quiet placeholder in the ritual palette.
@@ -15,7 +16,7 @@ class RitualVideoSlot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label: 'Ritual video',
+      label: AppLocalizations.of(context).ritualVideoSemantics,
       excludeSemantics: true,
       child: DecoratedBox(
         decoration: BoxDecoration(
@@ -47,7 +48,7 @@ class RitualVideoSlot extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.s10),
               Text(
-                'RITUAL VIDEO',
+                AppLocalizations.of(context).ritualVideoPlaceholder,
                 style: AppTypography.footnote.copyWith(
                   color: AppColors.fog.withValues(alpha: 0.55),
                   fontSize: AppFontSizes.s9,

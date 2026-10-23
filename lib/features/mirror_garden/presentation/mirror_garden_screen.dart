@@ -1,7 +1,10 @@
 import 'dart:math' as math;
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
 import '../../../core/design_system/tokens/app_font_sizes.dart';
@@ -9,7 +12,11 @@ import '../../../core/design_system/tokens/app_radii.dart';
 import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/design_system/widgets/hikaru_pill_button.dart';
+import '../../../core/media/remote_image.dart';
 import '../../../core/router/app_routes.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../journey/application/reflection_photo_controller.dart';
+import 'face_camera_screen.dart';
 import 'photo_mirror.dart';
 
 const List<Shadow> _titleShadow = [
@@ -20,26 +27,90 @@ const List<Shadow> _bodyGlow = [
   Shadow(color: AppColors.ivoryGlow, blurRadius: 12),
 ];
 
-class MirrorGardenScreen extends StatelessWidget {
-  const MirrorGardenScreen({super.key});
+class MirrorGardenScreen extends ConsumerStatefulWidget {
+  const MirrorGardenScreen({super.key, this.initialPreview});
+
+  /// First reflection already chosen, used by tests.
+  final Uint8List? initialPreview;
 
   static const String _backgroundAsset = 'assets/images/mirror_garden.png';
   static const double _headerTop = 72;
 
   /// With the skip action under it, CONTINUE sits as high as the main
-  /// button on the Listening Room and Ritual Ready screens.
+  /// button on the Listening Garden and Ritual Ready screens.
   static const double _bottomGap = AppSpacing.s30;
   static const double _minInsetGap = AppSpacing.s16;
   static const double _horizontalPadding = AppSpacing.s32;
 
-  void _openResonanceChamber(BuildContext context) =>
-      context.push(AppRoutes.resonanceChamber);
+  @override
+  ConsumerState<MirrorGardenScreen> createState() => _MirrorGardenScreenState();
+}
+
+class _MirrorGardenScreenState extends ConsumerState<MirrorGardenScreen> {
+  final ImagePicker _picker = ImagePicker();
+  Uint8List? _preview;
+
+  @override
+  void initState() {
+    super.initState();
+    _preview = widget.initialPreview;
+  }
+
+  void _openResonanceChamber() => context.push(AppRoutes.resonanceChamber);
+
+  /// CONTINUE keeps this photo as day 1 of the cycle. Skip leaves no photo.
+  /// Either way the crystal recommendation stays as the quiz left it.
+  Future<void> _handleContinue() async {
+    final bytes = _preview;
+    if (bytes != null && bytes.isNotEmpty) {
+      await ref.read(reflectionPhotoControllerProvider.notifier).capture(bytes);
+    }
+    if (!mounted) return;
+    _openResonanceChamber();
+  }
+
+  Future<void> _takePhoto() async {
+    final bytes = await Navigator.of(context, rootNavigator: true)
+        .push<Uint8List>(
+          MaterialPageRoute(builder: (_) => const FaceCameraScreen()),
+        );
+    if (!mounted || bytes == null) return;
+    setState(() => _preview = bytes);
+  }
+
+  Future<void> _pickFromGallery() async {
+    try {
+      final file = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1080,
+        imageQuality: 85,
+      );
+      if (file == null || !mounted) return;
+      final bytes = await file.readAsBytes();
+      if (!mounted) return;
+      setState(() => _preview = bytes);
+    } catch (_) {
+      if (!mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context).mirrorPhotoError)),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final insets = MediaQuery.paddingOf(context);
-    final topSpace = math.max(_headerTop, insets.top + _minInsetGap);
-    final bottomSpace = math.max(_bottomGap, insets.bottom + _minInsetGap);
+    final topSpace = math.max(
+      MirrorGardenScreen._headerTop,
+      insets.top + MirrorGardenScreen._minInsetGap,
+    );
+    final bottomSpace = math.max(
+      MirrorGardenScreen._bottomGap,
+      insets.bottom + MirrorGardenScreen._minInsetGap,
+    );
 
     return Scaffold(
       backgroundColor: AppColors.indigoBlue,
@@ -51,8 +122,8 @@ class MirrorGardenScreen extends StatelessWidget {
               AppColors.indigoBlue.withValues(alpha: 0.12),
               BlendMode.color,
             ),
-            child: const Image(
-              image: AssetImage(_backgroundAsset),
+            child: const RemoteImage(
+              fileName: MirrorGardenScreen._backgroundAsset,
               fit: BoxFit.cover,
               excludeFromSemantics: true,
             ),
@@ -60,9 +131,9 @@ class MirrorGardenScreen extends StatelessWidget {
           const _Vignettes(),
           Padding(
             padding: EdgeInsets.fromLTRB(
-              _horizontalPadding,
+              MirrorGardenScreen._horizontalPadding,
               topSpace,
-              _horizontalPadding,
+              MirrorGardenScreen._horizontalPadding,
               bottomSpace,
             ),
             child: Column(
@@ -70,7 +141,7 @@ class MirrorGardenScreen extends StatelessWidget {
                 Opacity(
                   opacity: 0.85,
                   child: Text(
-                    'THE MIRROR GARDEN',
+                    l10n.mirrorGardenEyebrow,
                     textAlign: TextAlign.center,
                     style: AppTypography.headline.copyWith(
                       color: AppColors.champagneGold,
@@ -81,7 +152,7 @@ class MirrorGardenScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.s28),
                 Text(
-                  'Add A Photo Of Your Face For Personal Tracking',
+                  l10n.mirrorGardenTitle,
                   textAlign: TextAlign.center,
                   style: AppTypography.title.copyWith(
                     color: AppColors.white,
@@ -94,18 +165,22 @@ class MirrorGardenScreen extends StatelessWidget {
                   child: Center(
                     child: FittedBox(
                       fit: BoxFit.scaleDown,
-                      child: _PhotoChoice(onUpload: () {}),
+                      child: _PhotoChoice(
+                        preview: _preview,
+                        onTakePhoto: _takePhoto,
+                        onUpload: _pickFromGallery,
+                      ),
                     ),
                   ),
                 ),
                 HikaruPillButton(
-                  label: 'CONTINUE',
-                  onPressed: () => _openResonanceChamber(context),
+                  label: l10n.commonContinue,
+                  onPressed: _handleContinue,
                 ),
                 const SizedBox(height: AppSpacing.s8),
                 _TextAction(
-                  label: 'SKIP FOR NOW',
-                  onPressed: () => _openResonanceChamber(context),
+                  label: l10n.mirrorGardenSkip,
+                  onPressed: _openResonanceChamber,
                 ),
               ],
             ),
@@ -171,24 +246,35 @@ class _Vignettes extends StatelessWidget {
 
 /// The mirror with its upload option and the optional note right under it.
 class _PhotoChoice extends StatelessWidget {
-  const _PhotoChoice({required this.onUpload});
+  const _PhotoChoice({
+    required this.preview,
+    required this.onTakePhoto,
+    required this.onUpload,
+  });
 
   static const double _hintWidth = 270;
 
+  final Uint8List? preview;
+  final VoidCallback onTakePhoto;
   final VoidCallback onUpload;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final photo = preview;
     return SizedBox(
       width: _hintWidth,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          PhotoMirror(onPressed: () {}),
+          if (photo == null)
+            PhotoMirror(onPressed: onTakePhoto)
+          else
+            _CircularPreview(bytes: photo, onPressed: onTakePhoto),
           const SizedBox(height: AppSpacing.s8),
-          _TextAction(label: 'UPLOAD A PHOTO', onPressed: onUpload),
+          _TextAction(label: l10n.mirrorGardenUpload, onPressed: onUpload),
           Text(
-            '(Optional)',
+            l10n.mirrorGardenOptional,
             textAlign: TextAlign.center,
             style: AppTypography.subheadline.copyWith(
               color: AppColors.champagneGold,
@@ -199,8 +285,7 @@ class _PhotoChoice extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.s4),
           Text(
-            'This helps you track your progress and personalize '
-            'your ritual even more.',
+            l10n.mirrorGardenHint,
             textAlign: TextAlign.center,
             style: AppTypography.body.copyWith(
               color: AppColors.white,
@@ -211,6 +296,47 @@ class _PhotoChoice extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _CircularPreview extends StatelessWidget {
+  const _CircularPreview({required this.bytes, required this.onPressed});
+
+  static const double _size = 180;
+
+  final Uint8List bytes;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Semantics(
+      button: true,
+      label: l10n.mirrorPhotoPreviewSemantics,
+      child: GestureDetector(
+        onTap: onPressed,
+        child: Container(
+          width: _size,
+          height: _size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.champagneGold, width: 2),
+            boxShadow: const [
+              BoxShadow(color: AppColors.mirrorGold, blurRadius: 12),
+            ],
+          ),
+          child: ClipOval(
+            child: Image.memory(
+              bytes,
+              width: _size,
+              height: _size,
+              fit: BoxFit.cover,
+              gaplessPlayback: true,
+            ),
+          ),
+        ),
       ),
     );
   }

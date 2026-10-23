@@ -7,7 +7,12 @@ import '../tokens/app_spacing.dart';
 import '../tokens/app_typography.dart';
 
 class HikaruFaceIdButton extends StatelessWidget {
-  const HikaruFaceIdButton({super.key, required this.onPressed});
+  const HikaruFaceIdButton({
+    super.key,
+    required this.onPressed,
+    required this.label,
+    this.fingerprint = false,
+  });
 
   static const String _iconAsset = 'assets/images/face_id.svg';
   static const double _circleSize = AppSpacing.s52;
@@ -17,12 +22,14 @@ class HikaruFaceIdButton extends StatelessWidget {
   ];
 
   final VoidCallback onPressed;
+  final String label;
+  final bool fingerprint;
 
   @override
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: 'Sign in with Face ID',
+      label: label,
       excludeSemantics: true,
       child: InkWell(
         onTap: onPressed,
@@ -47,19 +54,25 @@ class HikaruFaceIdButton extends StatelessWidget {
                     width: AppSpacing.s0_75,
                   ),
                 ),
-                child: SvgPicture.asset(
-                  _iconAsset,
-                  width: _iconSize,
-                  height: _iconSize,
-                  colorFilter: const ColorFilter.mode(
-                    AppColors.champagneGold,
-                    BlendMode.srcIn,
-                  ),
-                ),
+                child: fingerprint
+                    ? const Icon(
+                        Icons.fingerprint,
+                        size: _iconSize,
+                        color: AppColors.champagneGold,
+                      )
+                    : SvgPicture.asset(
+                        _iconAsset,
+                        width: _iconSize,
+                        height: _iconSize,
+                        colorFilter: const ColorFilter.mode(
+                          AppColors.champagneGold,
+                          BlendMode.srcIn,
+                        ),
+                      ),
               ),
               const SizedBox(height: AppSpacing.s8),
               Text(
-                'Face ID',
+                label,
                 style: AppTypography.faceIdLabel.copyWith(
                   color: AppColors.champagneGold,
                   shadows: _labelShadow,

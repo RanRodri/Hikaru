@@ -55,4 +55,4 @@ final class MerkabaProgressRepositoryProvider
 }
 
 String _$merkabaProgressRepositoryHash() =>
-    r'4a1d6c0f7e2b9a3d5c8e1f0b6a7d2c9e3f5b8a14';
+    r'e4eff010585382d4807fdb289d6727ce2a5673b4';

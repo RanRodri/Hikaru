@@ -11,16 +11,19 @@ class MerkabaSessionRecord {
     required this.date,
     required this.completedCycles,
     required this.completed,
+    this.elapsed = Duration.zero,
   });
 
   final DateTime date;
   final int completedCycles;
   final bool completed;
+  final Duration elapsed;
 
   Map<String, Object?> toJson() => {
     'date': date.toIso8601String(),
     'completedCycles': completedCycles,
     'completed': completed,
+    'elapsedMs': elapsed.inMilliseconds,
   };
 
   static MerkabaSessionRecord? fromJson(Object? value) {
@@ -28,11 +31,15 @@ class MerkabaSessionRecord {
     final date = DateTime.tryParse('${value['date']}');
     final cycles = value['completedCycles'];
     final completed = value['completed'];
+    final elapsedMs = value['elapsedMs'];
     if (date == null || cycles is! int || completed is! bool) return null;
     return MerkabaSessionRecord(
       date: date,
       completedCycles: cycles,
       completed: completed,
+      elapsed: elapsedMs is int
+          ? Duration(milliseconds: elapsedMs)
+          : Duration(seconds: cycles * 14),
     );
   }
 }
@@ -42,10 +49,18 @@ abstract interface class MerkabaProgressRepository {
   Future<void> recordSession(MerkabaSessionRecord record);
 
   Future<List<MerkabaSessionRecord>> history();
+
+  /// Unfinished sitting, so the room can open where the user left it.
+  Future<void> saveResume(Duration elapsed);
+
+  Future<Duration?> readResume();
+
+  Future<void> clearResume();
 }
 
 class InMemoryMerkabaProgressRepository implements MerkabaProgressRepository {
   final List<MerkabaSessionRecord> _history = [];
+  Duration? _resume;
 
   @override
   Future<void> recordSession(MerkabaSessionRecord record) async {
@@ -55,6 +70,15 @@ class InMemoryMerkabaProgressRepository implements MerkabaProgressRepository {
   @override
   Future<List<MerkabaSessionRecord>> history() async =>
       List.unmodifiable(_history);
+
+  @override
+  Future<void> saveResume(Duration elapsed) async => _resume = elapsed;
+
+  @override
+  Future<Duration?> readResume() async => _resume;
+
+  @override
+  Future<void> clearResume() async => _resume = null;
 }
 
 class SharedPreferencesMerkabaProgressRepository
@@ -62,6 +86,7 @@ class SharedPreferencesMerkabaProgressRepository
   SharedPreferencesMerkabaProgressRepository(this._preferences);
 
   static const String storageKey = 'merkaba_session_history';
+  static const String resumeKey = 'merkaba_resume_ms';
 
   final SharedPreferencesAsync _preferences;
 
@@ -90,6 +115,23 @@ class SharedPreferencesMerkabaProgressRepository
     } catch (_) {
       return const [];
     }
+  }
+
+  @override
+  Future<void> saveResume(Duration elapsed) async {
+    await _preferences.setInt(resumeKey, elapsed.inMilliseconds);
+  }
+
+  @override
+  Future<Duration?> readResume() async {
+    final milliseconds = await _preferences.getInt(resumeKey);
+    if (milliseconds == null || milliseconds <= 0) return null;
+    return Duration(milliseconds: milliseconds);
+  }
+
+  @override
+  Future<void> clearResume() async {
+    await _preferences.remove(resumeKey);
   }
 }
 

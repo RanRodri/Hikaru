@@ -5,6 +5,9 @@ import 'package:shared_preferences_platform_interface/in_memory_shared_preferenc
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 
 import 'package:hikaru/app.dart';
+import 'package:hikaru/features/auth/data/auth_gateway.dart';
+import 'package:hikaru/features/auth/data/biometric_login.dart';
+import 'package:hikaru/features/auth/data/device_biometric_login.dart';
 import 'package:hikaru/core/design_system/widgets/radial_glow_background.dart';
 import 'package:hikaru/features/sanctuary/presentation/sanctuary_screen.dart';
 import 'package:hikaru/features/splash/presentation/splash_controller.dart';
@@ -15,13 +18,26 @@ import 'support/quiz_driver.dart';
 void main() {
   setUp(() {
     SharedPreferencesAsyncPlatform.instance =
-        InMemorySharedPreferencesAsync.empty();
+        InMemorySharedPreferencesAsync.withData({
+          'hikaru_home_tour_seen': true,
+        });
   });
 
   testWidgets('Shows the splash and then the sanctuary', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const ProviderScope(child: HikaruApp()));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          authGatewayProvider.overrideWithValue(_WidgetAuthGateway()),
+          biometricGateProvider.overrideWithValue(_WidgetBiometricGate()),
+          biometricSecretStoreProvider.overrideWithValue(
+            MemoryBiometricSecretStore(),
+          ),
+        ],
+        child: const HikaruApp(),
+      ),
+    );
     // The animated WebP does not finish decoding inside the fake async zone.
     // Open the gate the logo opens once its first frame is ready.
     final ready = ProviderScope.containerOf(
@@ -93,7 +109,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Reset Your\nPassword'), findsOneWidget);
-    expect(find.text('RESET PASSWORD'), findsOneWidget);
+    expect(find.text('SEND CODE'), findsOneWidget);
 
     await tester.ensureVisible(find.text('Sign in'));
     await tester.tap(find.text('Sign in'));
@@ -106,6 +122,16 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('The\nListening Room'), findsOneWidget);
+    expect(
+      find.text(
+        "Share what's on your mind\n"
+        'so we can guide you with a\n'
+        'personalized ritual for your skin,\n'
+        'your body, and your energy.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('LISTEN   ·   ALIGN   ·   RECEIVE'), findsNothing);
     expect(find.text('BEGIN'), findsOneWidget);
 
     await tester.ensureVisible(find.text('BEGIN'));
@@ -113,23 +139,20 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('01 / 10'), findsOneWidget);
-    expect(
-      find.text('What would you like to see reflected in the mirror today?'),
-      findsOneWidget,
-    );
+    expect(find.text('What is your skin asking for today?'), findsOneWidget);
     expect(find.text('NEXT'), findsOneWidget);
 
     const quizAnswers = [
-      'Reduce puffiness',
-      'Comfortable and balanced',
-      'In the morning',
-      'Jaw',
-      'Jawline',
-      'Calm',
-      'Deeply relaxed',
-      'Harmony',
+      'Calm and comfort',
+      'Sensitive or easily irritated',
+      'Emotionally overwhelmed',
+      'Stress and emotional pressure',
+      'Signs of stress or tension',
+      'Gentleness and balance',
+      'Return to harmony',
+      'Calm and nurtured',
       '5 minutes',
-      'Today is my very first ritual',
+      'None of the above',
     ];
     for (final answer in quizAnswers) {
       await tapQuizChoice(tester, answer);
@@ -154,13 +177,14 @@ void main() {
     await tester.tap(find.text('CONTINUE'));
     await tester.pumpAndSettle();
 
-    expect(find.text('THE RESONANCE CHAMBER'), findsOneWidget);
+    expect(find.text('YOUR HIKARU JOURNEY'), findsOneWidget);
+    expect(find.text('HAS BEEN REVEALED'), findsOneWidget);
     expect(find.bySemanticsLabel('Assigned crystal JADE'), findsOneWidget);
-    expect(find.text('THE ALIGNMENT TRIAD'), findsOneWidget);
-    expect(find.text('ENTER MY 30-DAY JOURNEY'), findsOneWidget);
+    expect(find.text('YOUR RECOMMENDED PROTOCOL'), findsOneWidget);
+    expect(find.text('ENTER MY HIKARU SANCTUARY'), findsOneWidget);
 
-    await tester.ensureVisible(find.text('ENTER MY 30-DAY JOURNEY'));
-    await tester.tap(find.text('ENTER MY 30-DAY JOURNEY'));
+    await tester.ensureVisible(find.text('ENTER MY HIKARU SANCTUARY'));
+    await tester.tap(find.text('ENTER MY HIKARU SANCTUARY'));
     await tester.pumpAndSettle();
 
     expect(find.text('THE HARMONY GARDEN'), findsOneWidget);
@@ -168,4 +192,48 @@ void main() {
     expect(find.text('Home'), findsOneWidget);
     expect(find.text('Settings'), findsOneWidget);
   });
+}
+
+class _WidgetBiometricGate implements BiometricGate {
+  @override
+  Future<bool> authenticate({required String reason}) async => false;
+
+  @override
+  Future<BiometricKind> available() async => BiometricKind.none;
+}
+
+class _WidgetAuthGateway implements AuthGateway {
+  @override
+  Future<void> confirmSignUp({
+    required String username,
+    required String confirmationCode,
+  }) async {}
+
+  @override
+  Future<bool> hasSession() async => false;
+
+  @override
+  Future<void> signIn({
+    required String username,
+    required String password,
+  }) async {}
+
+  @override
+  Future<AuthSignUpOutcome> signUp({
+    required String username,
+    required String password,
+    required String email,
+    required String name,
+    String? birthdate,
+  }) async => AuthSignUpOutcome.signedIn;
+
+  @override
+  Future<void> requestPasswordReset({required String username}) async {}
+
+  @override
+  Future<void> confirmPasswordReset({
+    required String username,
+    required String newPassword,
+    required String confirmationCode,
+  }) async {}
 }

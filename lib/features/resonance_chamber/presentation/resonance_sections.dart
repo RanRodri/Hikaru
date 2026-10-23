@@ -8,8 +8,10 @@ import '../../../core/design_system/tokens/app_font_sizes.dart';
 import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/design_system/widgets/hikaru_dividers.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../crystals/application/selected_crystal_controller.dart';
 import '../../crystals/domain/crystal.dart';
+import '../../crystals/presentation/crystal_texts.dart';
 import '../domain/cymatic_audio.dart';
 import 'cymatic_audio_loader.dart';
 import 'cymatic_signature.dart';
@@ -32,7 +34,7 @@ class ChamberTitle extends StatelessWidget {
     return FittedBox(
       fit: BoxFit.scaleDown,
       child: Text(
-        'THE RESONANCE CHAMBER',
+        AppLocalizations.of(context).resonanceChamberTitle,
         maxLines: 1,
         style: AppTypography.headline.copyWith(
           color: AppColors.white,
@@ -201,10 +203,11 @@ class _FrequencyColumn extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final crystal = ref.watch(selectedCrystalProvider).value ?? Crystal.jade;
+    final l10n = AppLocalizations.of(context);
 
     return _TriadColumn(
       medallionAsset: 'assets/images/resonance_medallion_frequency.svg',
-      label: 'YOUR FREQUENCY',
+      label: l10n.resonanceYourFrequency,
       children: [
         Column(
           children: [
@@ -215,7 +218,7 @@ class _FrequencyColumn extends ConsumerWidget {
             ),
             const SizedBox(height: AppSpacing.s3),
             Text(
-              crystal.frequencyTagline,
+              crystal.localizedFrequencyTagline(l10n),
               textAlign: TextAlign.center,
               style: _chamberText.copyWith(
                 color: AppColors.fog,
@@ -227,7 +230,7 @@ class _FrequencyColumn extends ConsumerWidget {
         ),
         _FrequencyWaveform(crystal: crystal),
         Text(
-          Crystal.compositionCredit,
+          l10n.crystalCompositionCredit,
           textAlign: TextAlign.center,
           style: _chamberText.copyWith(
             fontSize: AppFontSizes.s9_5,
@@ -337,7 +340,7 @@ class _CymaticColumn extends ConsumerWidget {
 
     return _TriadColumn(
       medallionAsset: 'assets/images/resonance_medallion_cymatic.svg',
-      label: 'YOUR CYMATIC\nSIGNATURE',
+      label: AppLocalizations.of(context).resonanceYourCymaticSignature,
       children: [
         SizedBox(
           width: _signatureSize,
@@ -346,7 +349,9 @@ class _CymaticColumn extends ConsumerWidget {
             crystal: crystal,
             playing: false,
             fillBackground: false,
-            semanticLabel: 'Your cymatic signature',
+            semanticLabel: AppLocalizations.of(
+              context,
+            ).resonanceCymaticSignatureSemantics,
           ),
         ),
       ],
@@ -358,24 +363,37 @@ class _RitualColumn extends StatelessWidget {
   const _RitualColumn();
 
   /// The same order for every crystal: regulate, massage, then integrate.
-  static const List<({String name, String subtitle})> _steps = [
-    (name: 'Regulation', subtitle: 'The Merkaba Room'),
-    (name: 'Gua Sha', subtitle: 'Physical Massage'),
-    (name: 'Frequency & Cymatics Integration', subtitle: 'Closing Integration'),
-  ];
+  static List<({String name, String subtitle})> _steps(AppLocalizations l10n) =>
+      [
+        (
+          name: l10n.resonanceStepRegulationName,
+          subtitle: l10n.resonanceStepRegulationSubtitle,
+        ),
+        (
+          name: l10n.resonanceStepGuaShaName,
+          subtitle: l10n.resonanceStepGuaShaSubtitle,
+        ),
+        (
+          name: l10n.resonanceStepIntegrationName,
+          subtitle: l10n.resonanceStepIntegrationSubtitle,
+        ),
+      ];
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final steps = _steps(l10n);
+
     return _TriadColumn(
       medallionAsset: 'assets/images/resonance_medallion_ritual.svg',
-      label: 'YOUR RITUAL',
+      label: l10n.resonanceYourRitual,
       children: [
         Padding(
           padding: const EdgeInsets.only(top: AppSpacing.s4),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              for (var index = 0; index < _steps.length; index++) ...[
+              for (var index = 0; index < steps.length; index++) ...[
                 if (index > 0) ...[
                   const SizedBox(height: AppSpacing.s9),
                   HikaruGoldRule(
@@ -387,8 +405,8 @@ class _RitualColumn extends StatelessWidget {
                 ],
                 _RitualStep(
                   number: index + 1,
-                  name: _steps[index].name,
-                  subtitle: _steps[index].subtitle,
+                  name: steps[index].name,
+                  subtitle: steps[index].subtitle,
                 ),
               ],
             ],
@@ -460,6 +478,7 @@ class CrystalBenefits extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final crystal = ref.watch(selectedCrystalProvider).value ?? Crystal.jade;
     final benefits = crystal.benefits;
+    final l10n = AppLocalizations.of(context);
 
     return Column(
       children: [
@@ -473,7 +492,12 @@ class CrystalBenefits extends ConsumerWidget {
                 opacity: 0.4,
               ),
             ),
-          _BenefitRow(number: index + 1, benefit: benefits[index]),
+          _BenefitRow(
+            number: index + 1,
+            icon: benefits[index].icon,
+            title: crystal.localizedBenefitTitle(l10n, index),
+            detail: crystal.localizedBenefitDetail(l10n, index),
+          ),
         ],
       ],
     );
@@ -481,31 +505,38 @@ class CrystalBenefits extends ConsumerWidget {
 }
 
 class _BenefitRow extends StatelessWidget {
-  const _BenefitRow({required this.number, required this.benefit});
+  const _BenefitRow({
+    required this.number,
+    required this.icon,
+    required this.title,
+    required this.detail,
+  });
 
   final int number;
-  final CrystalBenefit benefit;
+  final BenefitIcon icon;
+  final String title;
+  final String detail;
 
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label: '$number. ${benefit.title}. ${benefit.detail}',
+      label: '$number. $title. $detail',
       excludeSemantics: true,
       child: Row(
         children: [
-          _BenefitBadge(icon: benefit.icon),
+          _BenefitBadge(icon: icon),
           const SizedBox(width: AppSpacing.s12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '$number. ${benefit.title.toUpperCase()}',
+                  '$number. ${title.toUpperCase()}',
                   style: _goldLabel.copyWith(letterSpacing: 1),
                 ),
                 const SizedBox(height: AppSpacing.s2),
                 Text(
-                  benefit.detail,
+                  detail,
                   style: _chamberText.copyWith(
                     fontSize: AppFontSizes.s10_5,
                     height: 1.4,

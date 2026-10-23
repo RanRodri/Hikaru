@@ -7,6 +7,7 @@ import '../../../core/design_system/tokens/app_font_sizes.dart';
 import '../../../core/design_system/tokens/app_radii.dart';
 import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
+import '../../../l10n/app_localizations.dart';
 
 const List<Shadow> authTextShadow = [
   Shadow(color: AppColors.scrim80, offset: Offset(0, 1), blurRadius: 8),
@@ -168,8 +169,8 @@ class _AuthFieldState extends State<AuthField> {
                         IconButton(
                           onPressed: _handleToggleVisibility,
                           tooltip: _obscured
-                              ? 'Show password'
-                              : 'Hide password',
+                              ? AppLocalizations.of(context).authShowPassword
+                              : AppLocalizations.of(context).authHidePassword,
                           icon: Icon(
                             _obscured
                                 ? Icons.visibility_outlined

@@ -22,6 +22,9 @@ class MassageZone {
   final String instruction;
 }
 
+/// Available face-ritual lengths from the Listening Garden time preference.
+const List<int> faceSessionMinutesOptions = [3, 5, 10];
+
 class MassageRitual {
   const MassageRitual({
     required this.surface,
@@ -40,6 +43,21 @@ class MassageRitual {
   final String? videoUrl;
 
   Duration get zoneLength => sessionLength ~/ zones.length;
+
+  MassageRitual copyWith({Duration? sessionLength}) => MassageRitual(
+    surface: surface,
+    temple: temple,
+    subtitle: subtitle,
+    zones: zones,
+    sessionLength: sessionLength ?? this.sessionLength,
+    videoUrl: videoUrl,
+  );
+}
+
+int clampFaceSessionMinutes(int? minutes) {
+  if (minutes == null) return 5;
+  if (faceSessionMinutesOptions.contains(minutes)) return minutes;
+  return 5;
 }
 
 const MassageRitual faceRitual = MassageRitual(

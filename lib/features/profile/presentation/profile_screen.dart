@@ -5,32 +5,36 @@ import '../../../core/design_system/widgets/hikaru_navigation_bar.dart';
 import '../../../core/design_system/widgets/hikaru_page_intro.dart';
 import '../../../core/design_system/widgets/hikaru_scroll_page.dart';
 import '../../../core/design_system/widgets/hikaru_shell.dart';
+import '../../../l10n/app_localizations.dart';
 import 'profile_cards.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
-  static const double _cardGap = AppSpacing.s10;
+  static const double _cardGap = AppSpacing.s14;
 
   @override
   Widget build(BuildContext context) {
-    return const HikaruScrollPage(
+    final l10n = AppLocalizations.of(context);
+
+    return HikaruScrollPage(
       active: HikaruDestination.settings,
       backgroundAsset: HikaruShell.sunsetGarden,
       children: [
         HikaruPageIntro(
-          title: 'SANCTUARY PROFILE',
-          subtitle:
-              'Personal details, daily ritual reminders & progress privacy',
+          title: l10n.profileTitle,
+          subtitle: l10n.profileSubtitle,
         ),
-        SizedBox(height: AppSpacing.s18),
-        MemberCard(),
-        SizedBox(height: _cardGap),
-        RitualRemindersCard(),
-        SizedBox(height: _cardGap),
-        DataPrivacyCard(),
-        SizedBox(height: _cardGap),
-        CycleCard(),
+        const SizedBox(height: AppSpacing.s18),
+        const MemberCard(),
+        const SizedBox(height: _cardGap),
+        const RitualRemindersCard(),
+        const SizedBox(height: _cardGap),
+        const DataPrivacyCard(),
+        const SizedBox(height: _cardGap),
+        const LanguageCard(),
+        const SizedBox(height: _cardGap),
+        const CycleCard(),
       ],
     );
   }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -16,7 +17,12 @@ import '../../../core/design_system/widgets/hikaru_header.dart';
 import '../../../core/router/app_routes.dart';
 import '../../crystals/application/selected_crystal_controller.dart';
 import '../../crystals/domain/crystal.dart';
+import '../../journey/application/ritual_cycle_controller.dart';
+import '../../listening_room/application/journey_recommendation_controller.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../crystals/presentation/crystal_texts.dart';
 import '../domain/massage_ritual.dart';
+import 'massage_texts.dart';
 import 'ritual_video_slot.dart';
 
 const double _designWidth = 390;
@@ -40,9 +46,12 @@ const List<Shadow> _textShadow = [
 ];
 
 class MassageScreen extends ConsumerStatefulWidget {
-  const MassageScreen({super.key, required this.surface});
+  const MassageScreen({super.key, required this.surface, this.inCycle = false});
 
   final MassageSurface surface;
+
+  /// When true, finishing this ritual continues to the next cycle step.
+  final bool inCycle;
 
   @override
   ConsumerState<MassageScreen> createState() => _MassageScreenState();
@@ -60,8 +69,13 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
   double _panelHeight = 0;
   List<double>? _snapSizes;
   int _videoTaps = 0;
+  int _faceSessionMinutes = 5;
 
-  MassageRitual get _ritual => ritualFor(widget.surface);
+  MassageRitual get _ritual {
+    final base = ritualFor(widget.surface);
+    if (widget.surface != MassageSurface.face) return base;
+    return base.copyWith(sessionLength: Duration(minutes: _faceSessionMinutes));
+  }
 
   bool get _isLastZone => _zoneIndex >= _ritual.zones.length - 1;
 
@@ -73,6 +87,33 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
     super.initState();
     _ticker = createTicker(_handleTick);
     _sheet.addListener(_handleSheet);
+    if (widget.surface == MassageSurface.face) {
+      _restoreFaceDuration();
+    }
+  }
+
+  Future<void> _restoreFaceDuration() async {
+    final recommendation = await ref.read(
+      journeyRecommendationControllerProvider.future,
+    );
+    if (!mounted) return;
+    setState(() {
+      _faceSessionMinutes = clampFaceSessionMinutes(
+        recommendation?.durationMinutes,
+      );
+    });
+  }
+
+  void _handleFaceDurationSelected(int minutes) {
+    if (!faceSessionMinutesOptions.contains(minutes)) return;
+    if (_faceSessionMinutes == minutes) return;
+    setState(() {
+      _faceSessionMinutes = minutes;
+      _zoneIndex = 0;
+      _zoneElapsed = Duration.zero;
+      _playing = false;
+    });
+    _ticker.stop();
   }
 
   @override
@@ -170,6 +211,7 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
       _stop();
       setState(() => _zoneElapsed = zoneLength);
       _revealPanel();
+      unawaited(ref.read(ritualCycleControllerProvider.notifier).markMassage());
       return;
     }
     setState(() {
@@ -189,6 +231,23 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
       return;
     }
     context.go(AppRoutes.home);
+  }
+
+  bool get _ritualFinished => _isLastZone && _zoneElapsed >= _ritual.zoneLength;
+
+  void _handleCycleContinue() {
+    if (widget.surface == MassageSurface.face) {
+      context.go(AppRoutes.cycle(AppRoutes.ritualBody));
+      return;
+    }
+    final crystal =
+        ref.read(selectedCrystalProvider).value ??
+        ref.read(journeyRecommendationControllerProvider).value?.crystal;
+    if (crystal == null) {
+      context.go(AppRoutes.fourTemples);
+      return;
+    }
+    context.go(AppRoutes.crystalResonanceFor(crystal.name));
   }
 
   void _handlePlayPause() {
@@ -238,6 +297,7 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final crystal = ref.watch(selectedCrystalProvider).value;
     final insets = MediaQuery.paddingOf(context);
     final ritual = _ritual;
@@ -256,7 +316,9 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
               Positioned.fill(
                 child: Semantics(
                   button: true,
-                  label: _playing ? 'Pause ritual video' : 'Play ritual video',
+                  label: _playing
+                      ? l10n.massageVideoPauseSemantics
+                      : l10n.massageVideoPlaySemantics,
                   child: GestureDetector(
                     onTap: _handleVideoTap,
                     behavior: HitTestBehavior.opaque,
@@ -327,11 +389,19 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
                           zoneElapsed: _zoneElapsed,
                           sessionElapsed: _sessionElapsed,
                           playing: _playing,
+                          faceSessionMinutes:
+                              widget.surface == MassageSurface.face
+                              ? _faceSessionMinutes
+                              : null,
+                          onFaceDurationSelected: _handleFaceDurationSelected,
                           onZoneSelected: _handleZoneSelected,
                           onPrevious: () => _handleZoneSelected(_zoneIndex - 1),
                           onPlayPause: _handlePlayPause,
                           onNext: () => _handleZoneSelected(_zoneIndex + 1),
                           onRestart: _handleRestart,
+                          onCycleContinue: widget.inCycle && _ritualFinished
+                              ? _handleCycleContinue
+                              : null,
                         ),
                       ),
                     ),
@@ -480,6 +550,7 @@ class _RitualHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -488,8 +559,8 @@ class _RitualHero extends StatelessWidget {
           left: 6,
           top: 18,
           child: _TextControl(
-            label: 'BACK',
-            semanticsLabel: 'Back',
+            label: l10n.commonBack,
+            semanticsLabel: l10n.massageBackSemantics,
             scale: scale,
             onPressed: onBackPressed,
           ),
@@ -502,7 +573,7 @@ class _RitualHero extends StatelessWidget {
           child: Column(
             children: [
               Text(
-                ritual.temple,
+                l10n.massageTemple(ritual),
                 textAlign: TextAlign.center,
                 style: AppTypography.headline.copyWith(
                   color: AppColors.silver,
@@ -513,7 +584,7 @@ class _RitualHero extends StatelessWidget {
               ),
               SizedBox(height: AppSpacing.s4 * scale),
               Text(
-                ritual.subtitle,
+                l10n.massageSubtitle(ritual),
                 textAlign: TextAlign.center,
                 style: _spaced(
                   AppFontSizes.s8 * scale,
@@ -571,12 +642,13 @@ class _HeaderActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Semantics(
           button: true,
-          label: 'Sound',
+          label: l10n.massageSound,
           excludeSemantics: true,
           child: GestureDetector(
             onTap: () {},
@@ -594,7 +666,7 @@ class _HeaderActions extends StatelessWidget {
         SizedBox(width: AppSpacing.s6 * scale),
         Semantics(
           button: true,
-          label: 'More options',
+          label: l10n.massageMoreOptions,
           excludeSemantics: true,
           child: GestureDetector(
             onTap: () {},
@@ -634,11 +706,14 @@ class _ControlPanel extends StatelessWidget {
     required this.zoneElapsed,
     required this.sessionElapsed,
     required this.playing,
+    required this.faceSessionMinutes,
+    required this.onFaceDurationSelected,
     required this.onZoneSelected,
     required this.onPrevious,
     required this.onPlayPause,
     required this.onNext,
     required this.onRestart,
+    this.onCycleContinue,
   });
 
   final double scale;
@@ -650,14 +725,18 @@ class _ControlPanel extends StatelessWidget {
   final Duration zoneElapsed;
   final Duration sessionElapsed;
   final bool playing;
+  final int? faceSessionMinutes;
+  final ValueChanged<int> onFaceDurationSelected;
   final ValueChanged<int> onZoneSelected;
   final VoidCallback onPrevious;
   final VoidCallback onPlayPause;
   final VoidCallback onNext;
   final VoidCallback onRestart;
+  final VoidCallback? onCycleContinue;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final zone = ritual.zones[zoneIndex];
     final zoneLength = ritual.zoneLength;
     final zoneProgress = zoneElapsed.inMilliseconds / zoneLength.inMilliseconds;
@@ -697,7 +776,7 @@ class _ControlPanel extends StatelessWidget {
       child: Column(
         children: [
           Semantics(
-            label: 'Ritual sheet',
+            label: l10n.massageRitualSheet,
             child: SizedBox(
               height: _handleBarHeight * scale,
               child: Center(
@@ -720,6 +799,14 @@ class _ControlPanel extends StatelessWidget {
             number: zoneIndex + 1,
             total: ritual.zones.length,
           ),
+          if (faceSessionMinutes != null) ...[
+            SizedBox(height: AppSpacing.s10 * scale),
+            _FaceDurationPicker(
+              scale: scale,
+              selectedMinutes: faceSessionMinutes!,
+              onSelected: onFaceDurationSelected,
+            ),
+          ],
           SizedBox(height: AppSpacing.s10 * scale),
           SizedBox(
             height: 95 * scale,
@@ -730,7 +817,7 @@ class _ControlPanel extends StatelessWidget {
                   flex: 117,
                   child: _ControlCard(
                     scale: scale,
-                    label: 'BREATHE',
+                    label: l10n.massageBreathe,
                     icon: const _FlowEmblem(),
                     child: _BreathingGauge(
                       scale: scale,
@@ -748,7 +835,7 @@ class _ControlPanel extends StatelessWidget {
                   flex: 101,
                   child: _ControlCard(
                     scale: scale,
-                    label: 'DURATION',
+                    label: l10n.massageDuration,
                     icon: Icon(
                       Icons.hourglass_bottom_outlined,
                       color: AppColors.champagneGold80,
@@ -780,7 +867,7 @@ class _ControlPanel extends StatelessWidget {
                 scale: scale,
                 size: 32,
                 icon: Icons.skip_previous_rounded,
-                semanticsLabel: 'Previous zone',
+                semanticsLabel: l10n.massagePreviousZone,
                 onPressed: zoneIndex == 0 ? null : onPrevious,
               ),
               SizedBox(width: AppSpacing.s26 * scale),
@@ -788,7 +875,7 @@ class _ControlPanel extends StatelessWidget {
                 scale: scale,
                 size: 48,
                 icon: playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                semanticsLabel: playing ? 'Pause' : 'Play',
+                semanticsLabel: playing ? l10n.commonPause : l10n.commonPlay,
                 isPrimary: true,
                 onPressed: onPlayPause,
               ),
@@ -797,19 +884,128 @@ class _ControlPanel extends StatelessWidget {
                 scale: scale,
                 size: 32,
                 icon: Icons.skip_next_rounded,
-                semanticsLabel: 'Next zone',
+                semanticsLabel: l10n.massageNextZone,
                 onPressed: zoneIndex >= ritual.zones.length - 1 ? null : onNext,
               ),
             ],
           ),
           SizedBox(height: AppSpacing.s10 * scale),
+          if (onCycleContinue != null) ...[
+            _TextControl(
+              label: l10n.commonContinue,
+              semanticsLabel: l10n.commonContinue,
+              scale: scale,
+              onPressed: onCycleContinue!,
+            ),
+            SizedBox(height: AppSpacing.s8 * scale),
+          ],
           _TextControl(
-            label: 'RESTART',
-            semanticsLabel: 'Restart ritual',
+            label: l10n.massageRestart,
+            semanticsLabel: l10n.massageRestartSemantics,
             scale: scale,
             onPressed: onRestart,
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _FaceDurationPicker extends StatelessWidget {
+  const _FaceDurationPicker({
+    required this.scale,
+    required this.selectedMinutes,
+    required this.onSelected,
+  });
+
+  final double scale;
+  final int selectedMinutes;
+  final ValueChanged<int> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          AppLocalizations.of(context).massageSessionLength,
+          style: _spaced(
+            AppFontSizes.s8 * scale,
+          ).copyWith(color: AppColors.champagneGold80, shadows: _textShadow),
+        ),
+        SizedBox(height: AppSpacing.s8 * scale),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            for (final minutes in faceSessionMinutesOptions) ...[
+              if (minutes != faceSessionMinutesOptions.first)
+                SizedBox(width: AppSpacing.s8 * scale),
+              _DurationChip(
+                scale: scale,
+                minutes: minutes,
+                selected: minutes == selectedMinutes,
+                onPressed: () => onSelected(minutes),
+              ),
+            ],
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _DurationChip extends StatelessWidget {
+  const _DurationChip({
+    required this.scale,
+    required this.minutes,
+    required this.selected,
+    required this.onPressed,
+  });
+
+  final double scale;
+  final int minutes;
+  final bool selected;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: AppLocalizations.of(context).recDuration(minutes),
+      excludeSemantics: true,
+      child: Material(
+        color: AppColors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(AppRadii.r20),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            padding: EdgeInsets.symmetric(
+              horizontal: AppSpacing.s14 * scale,
+              vertical: AppSpacing.s8 * scale,
+            ),
+            decoration: BoxDecoration(
+              color: selected
+                  ? AppColors.champagneGold.withValues(alpha: 0.2)
+                  : AppColors.scrim50.withValues(alpha: 0.35),
+              borderRadius: BorderRadius.circular(AppRadii.r20),
+              border: Border.all(
+                color: selected
+                    ? AppColors.champagneGold
+                    : AppColors.champagneGold.withValues(alpha: 0.35),
+                width: selected ? 1.2 : 0.7,
+              ),
+            ),
+            child: Text(
+              AppLocalizations.of(context).massageMinutesChip(minutes),
+              style: AppTypography.subheadline.copyWith(
+                color: selected ? AppColors.champagneGold : AppColors.white,
+                fontSize: AppFontSizes.s10 * scale,
+                letterSpacing: 1.2 * scale,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -836,6 +1032,7 @@ class _StepSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final frameSize = 71 * scale;
     final assigned = crystal;
 
@@ -848,7 +1045,9 @@ class _StepSummary extends StatelessWidget {
             child: Semantics(
               label: assigned == null
                   ? null
-                  : 'Assigned crystal ${assigned.displayName}',
+                  : l10n.resonanceAssignedCrystalSemantics(
+                      assigned.localizedName(l10n),
+                    ),
               excludeSemantics: true,
               child: Container(
                 width: frameSize,
@@ -894,7 +1093,7 @@ class _StepSummary extends StatelessWidget {
               ),
               SizedBox(height: AppSpacing.s4 * scale),
               Text(
-                zone.name.toUpperCase(),
+                l10n.massageZoneName(zone).toUpperCase(),
                 style: AppTypography.headline.copyWith(
                   color: AppColors.silver,
                   fontSize: AppFontSizes.s15 * scale,
@@ -903,7 +1102,7 @@ class _StepSummary extends StatelessWidget {
               ),
               SizedBox(height: AppSpacing.s4 * scale),
               Text(
-                zone.instruction,
+                l10n.massageZoneInstruction(zone),
                 style: AppTypography.body.copyWith(
                   color: AppColors.silver.withValues(alpha: 0.78),
                   fontSize: AppFontSizes.s10_5 * scale,
@@ -1008,7 +1207,9 @@ class _BreathingGauge extends StatelessWidget {
       children: [
         SizedBox(height: AppSpacing.s2 * scale),
         Text(
-          isInhaling ? 'INHALE' : 'EXHALE',
+          isInhaling
+              ? AppLocalizations.of(context).massageInhale
+              : AppLocalizations.of(context).massageExhale,
           style: AppTypography.footnote.copyWith(
             color: AppColors.silver,
             fontSize: AppFontSizes.s6_6 * scale,
@@ -1143,6 +1344,7 @@ class _ZoneTimeline extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final markerTop = 7 * scale;
 
     return Stack(
@@ -1162,7 +1364,7 @@ class _ZoneTimeline extends StatelessWidget {
               Expanded(
                 child: _ZoneStage(
                   scale: scale,
-                  name: zone.name,
+                  name: l10n.massageZoneName(zone),
                   isActive: index == activeIndex,
                   isDone: index < activeIndex,
                   markerTop: markerTop,

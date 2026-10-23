@@ -10,6 +10,7 @@ import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/design_system/widgets/hikaru_dividers.dart';
 import '../../../core/design_system/widgets/hikaru_outline_button.dart';
 import '../../../core/router/app_routes.dart';
+import '../../../l10n/app_localizations.dart';
 
 const List<Shadow> _textShadow = [
   Shadow(color: AppColors.scrim80, offset: Offset(0, 1), blurRadius: 8),
@@ -29,6 +30,7 @@ class RitualScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final padding = MediaQuery.paddingOf(context);
     final topPadding = padding.top + 24;
     final bottomPadding = padding.bottom + 8;
@@ -95,7 +97,7 @@ class RitualScreen extends StatelessWidget {
                       children: [
                         const SizedBox(height: AppSpacing.s26),
                         Text(
-                          'Your Sanctuary Is\nAlmost Ready',
+                          l10n.ritualHeadline,
                           textAlign: TextAlign.center,
                           style: AppTypography.headline.copyWith(
                             color: AppColors.white,
@@ -107,7 +109,7 @@ class RitualScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: AppSpacing.s12),
                         Text(
-                          'A sacred tool will elevate your ritual\nand guide you to visible transformation.',
+                          l10n.ritualSubtitle,
                           textAlign: TextAlign.center,
                           style: AppTypography.headline.copyWith(
                             color: AppColors.fog,
@@ -120,7 +122,7 @@ class RitualScreen extends StatelessWidget {
                         const HikaruGlyphStarDivider(lineWidth: AppSpacing.s64),
                         const SizedBox(height: AppSpacing.s10),
                         Text(
-                          'CHOOSE YOUR PATH',
+                          l10n.ritualChoosePath,
                           textAlign: TextAlign.center,
                           style: AppTypography.title.copyWith(
                             color: AppColors.white,
@@ -141,16 +143,18 @@ class RitualScreen extends StatelessWidget {
                                   children: [
                                     Expanded(
                                       child: _RitualPath(
-                                        title: "I DON'T HAVE\nMY HIKARU YET",
-                                        actionLabel: 'DISCOVER HIKARU',
+                                        title: l10n.ritualPathNoHikaruTitle,
+                                        actionLabel:
+                                            l10n.ritualPathNoHikaruAction,
                                         onPressed: () {},
                                       ),
                                     ),
                                     const SizedBox(width: AppSpacing.s16),
                                     Expanded(
                                       child: _RitualPath(
-                                        title: 'I ALREADY HAVE\nMY HIKARU',
-                                        actionLabel: 'BEGIN MY RITUAL',
+                                        title: l10n.ritualPathHaveHikaruTitle,
+                                        actionLabel:
+                                            l10n.ritualPathHaveHikaruAction,
                                         onPressed: () =>
                                             context.push(AppRoutes.login),
                                       ),
@@ -165,7 +169,7 @@ class RitualScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: AppSpacing.s6),
                             Text(
-                              'EVERY RITUAL BEGINS WITH INTENTION.\nYOU DESERVE THIS MOMENT.',
+                              l10n.ritualFooter,
                               textAlign: TextAlign.center,
                               style: AppTypography.headline.copyWith(
                                 color: AppColors.white.withValues(alpha: 0.9),

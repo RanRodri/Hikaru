@@ -5,7 +5,9 @@ import '../../../core/design_system/tokens/app_colors.dart';
 import '../../../core/design_system/tokens/app_font_sizes.dart';
 import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../crystals/domain/crystal.dart';
+import '../../crystals/presentation/crystal_texts.dart';
 import '../domain/cymatic_audio.dart';
 import 'cymatic_signature.dart';
 
@@ -70,7 +72,7 @@ class CymaticProjection extends StatelessWidget {
               fillBackground: false,
               envelope: envelope,
               playbackPosition: playbackPosition,
-              semanticLabel: 'Cymatic',
+              semanticLabel: AppLocalizations.of(context).cymaticSemantics,
             ),
           ),
         ),
@@ -132,7 +134,7 @@ class _ProjectionCaption extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            crystal.displayName,
+            crystal.localizedName(AppLocalizations.of(context)),
             textAlign: TextAlign.center,
             style: AppTypography.headline.copyWith(
               color: AppColors.white,
@@ -172,18 +174,19 @@ class _ProjectionControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Flex(
       direction: direction,
       mainAxisSize: MainAxisSize.min,
       spacing: AppSpacing.s24,
       children: [
         _ProjectionButton(
-          label: playing ? 'Pause' : 'Play',
+          label: playing ? l10n.commonPause : l10n.commonPlay,
           icon: playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
           onPressed: onTogglePlayback,
         ),
         _ProjectionButton(
-          label: 'Exit',
+          label: l10n.commonExit,
           icon: Icons.close_rounded,
           onPressed: onExit,
         ),

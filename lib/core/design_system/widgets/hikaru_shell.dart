@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../media/remote_image.dart';
 import '../../router/app_routes.dart';
 import '../tokens/app_colors.dart';
 import 'hikaru_header.dart';
@@ -16,15 +17,15 @@ class HikaruShell extends StatelessWidget {
     required this.builder,
     this.backgroundAsset = gardenBackground,
     this.dimBackground = false,
+    this.sanctuaryKey,
+    this.navigationBarKey,
   });
 
   static const double designWidth = 390;
-  static const String gardenBackground =
-      'assets/images/harmony_garden_background.png';
+  static const String gardenBackground = RemoteImages.harmonyGarden;
 
   /// Garden sunset with no figure. Journey and Settings use it.
-  static const String sunsetGarden =
-      'assets/images/garden_sunset_reflections.png';
+  static const String sunsetGarden = RemoteImages.sunsetGarden;
   static const Map<HikaruDestination, String> _destinationRoutes = {
     HikaruDestination.home: AppRoutes.home,
     HikaruDestination.journey: AppRoutes.journey,
@@ -43,11 +44,18 @@ class HikaruShell extends StatelessWidget {
   final HikaruScaledBuilder builder;
   final String backgroundAsset;
   final bool dimBackground;
+  final Key? sanctuaryKey;
+  final Key? navigationBarKey;
 
   void _handleDestinationSelected(
     BuildContext context,
     HikaruDestination destination,
   ) {
+    if (destination == HikaruDestination.sanctuary) {
+      context.go(AppRoutes.cycle(AppRoutes.merkaba));
+      return;
+    }
+
     final route = _destinationRoutes[destination];
     if (route == null) return;
 
@@ -79,8 +87,8 @@ class HikaruShell extends StatelessWidget {
           return Stack(
             fit: StackFit.expand,
             children: [
-              Image(
-                image: AssetImage(backgroundAsset),
+              RemoteImage(
+                fileName: backgroundAsset,
                 fit: BoxFit.cover,
                 excludeFromSemantics: true,
               ),
@@ -105,6 +113,8 @@ class HikaruShell extends StatelessWidget {
                 bottom: 0,
                 child: HikaruNavigationBar(
                   active: active,
+                  sanctuaryKey: sanctuaryKey,
+                  barKey: navigationBarKey,
                   onSelected: (destination) =>
                       _handleDestinationSelected(context, destination),
                 ),

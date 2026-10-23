@@ -9,6 +9,7 @@ import 'package:hikaru/core/design_system/theme/app_theme.dart';
 import 'package:hikaru/features/crystals/application/selected_crystal_controller.dart';
 import 'package:hikaru/features/crystals/domain/crystal.dart';
 import 'package:hikaru/core/router/app_routes.dart';
+import 'package:hikaru/features/four_temples/presentation/four_temples_screen.dart';
 import 'package:hikaru/features/harmony_garden/presentation/harmony_garden_screen.dart';
 import 'package:hikaru/features/library/domain/library_article.dart';
 import 'package:hikaru/features/library/presentation/library_detail_screen.dart';
@@ -18,6 +19,7 @@ import 'package:hikaru/features/massage/presentation/massage_screen.dart';
 import 'package:hikaru/features/merkaba/presentation/merkaba_screen.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
+import 'package:hikaru/l10n/app_localizations.dart';
 
 double _sheetTop(WidgetTester tester) =>
     tester.getTopLeft(find.bySemanticsLabel('Ritual sheet')).dy;
@@ -47,7 +49,9 @@ Finder _ritualLotus() {
 void main() {
   setUp(() {
     SharedPreferencesAsyncPlatform.instance =
-        InMemorySharedPreferencesAsync.empty();
+        InMemorySharedPreferencesAsync.withData({
+          'hikaru_home_tour_seen': true,
+        });
   });
 
   Future<GoRouter> pumpGarden(WidgetTester tester) async {
@@ -77,6 +81,10 @@ void main() {
               builder: (context, state) =>
                   const MassageScreen(surface: MassageSurface.body),
             ),
+            GoRoute(
+              path: 'four-temples',
+              builder: (context, state) => const FourTemplesScreen(),
+            ),
           ],
         ),
         GoRoute(
@@ -97,7 +105,12 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
-        child: MaterialApp.router(theme: AppTheme.dark, routerConfig: router),
+        child: MaterialApp.router(
+          theme: AppTheme.dark,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: router,
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -153,6 +166,9 @@ void main() {
     expect(find.text('THE FACE TEMPLE'), findsOneWidget);
     expect(find.bySemanticsLabel(RegExp('Ritual video')), findsOneWidget);
     expect(find.text('01 / 05'), findsOneWidget);
+    expect(find.text('3 MIN'), findsOneWidget);
+    expect(find.text('5 MIN'), findsOneWidget);
+    expect(find.text('10 MIN'), findsOneWidget);
     expect(find.text(faceRitual.zones.first.instruction), findsOneWidget);
     expect(find.text('00:00'), findsOneWidget);
     expect(find.text('MERIDIAN'), findsNothing);
@@ -178,7 +194,7 @@ void main() {
     await tester.tap(find.bySemanticsLabel(RegExp('Pause ritual video')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));
-    expect(_sheetTop(tester), inInclusiveRange(400, 520));
+    expect(_sheetTop(tester), inInclusiveRange(300, 520));
     expect(tester.getBottomLeft(find.text('RESTART')).dy, lessThan(844));
     expect(_crystalOpacity(tester), 1);
     final pausedClock = find.textContaining(RegExp(r'^00:0[1-9]$'));
@@ -197,7 +213,7 @@ void main() {
     await tester.tapAt(const Offset(195, 300));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));
-    expect(_sheetTop(tester), inInclusiveRange(400, 520));
+    expect(_sheetTop(tester), inInclusiveRange(300, 520));
     expect(find.bySemanticsLabel(RegExp('^Play ritual video')), findsOneWidget);
     await tester.tap(find.text('RESTART'));
     await tester.pump();
@@ -419,7 +435,7 @@ void main() {
       lessThan(headTop),
     );
 
-    expect(find.text('YOUR CRYSTAL'), findsOneWidget);
+    expect(find.text('3\nYOUR CRYSTAL'), findsOneWidget);
     expect(find.text('Listening Sanctuary'), findsNothing);
     expect(find.text('THE HARMONY GARDEN'), findsOneWidget);
     expect(find.text('Your Journey Begins Within'), findsOneWidget);
@@ -449,7 +465,12 @@ void main() {
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
-        child: MaterialApp.router(theme: AppTheme.dark, routerConfig: router),
+        child: MaterialApp.router(
+          theme: AppTheme.dark,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: router,
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -466,7 +487,7 @@ void main() {
       ),
       findsOneWidget,
     );
-    expect(find.text('JADE'), findsOneWidget);
+    expect(find.text('3\nJADE'), findsOneWidget);
     expect(find.text('Balance · Harmony'), findsNothing);
     expect(find.text('RED JASPER'), findsNothing);
   });

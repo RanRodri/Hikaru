@@ -1,0 +1,684 @@
+{
+  "@@locale": "en",
+
+  "languageName": "English",
+  "@languageName": {
+    "description": "Native name of this locale, shown in the language selector."
+  },
+
+  "sanctuaryWelcome": "Welcome to",
+  "sanctuaryTitle": "HIKARU SANCTUARY",
+  "sanctuaryTagline": "Where Beauty Meets Frequency.",
+  "sanctuaryEnter": "ENTER THE SANCTUARY",
+
+  "discoveryRoomEyebrow": "THE DISCOVERY ROOM",
+  "discoveryHeadline": "Your Journey\nBegins With You",
+  "discoveryStepKnowYouTitle": "GETTING TO KNOW YOU",
+  "discoveryStepKnowYouBody": "A few details to make your Hikaru experience uniquely yours.",
+  "discoveryStepSkinTitle": "YOUR SKIN JOURNEY",
+  "discoveryStepSkinBody": "Optional photos to help you observe your progress over time.",
+  "discoveryStepPrivacyTitle": "YOUR PRIVACY",
+  "discoveryStepPrivacyBody": "Your information is yours. Your trust is our priority.",
+  "discoveryStepChoiceTitle": "ALWAYS YOUR CHOICE",
+  "discoveryStepChoiceBody": "You decide what to share and how to personalize your experience.",
+  "discoveryBegin": "BEGIN MY DISCOVERY",
+  "discoveryFooter": "BEAUTY MEETS FREQUENCY",
+
+  "ritualHeadline": "Your Sanctuary Is\nAlmost Ready",
+  "ritualSubtitle": "A sacred tool will elevate your ritual\nand guide you to visible transformation.",
+  "ritualChoosePath": "CHOOSE YOUR PATH",
+  "ritualPathNoHikaruTitle": "I DON'T HAVE\nMY HIKARU YET",
+  "ritualPathNoHikaruAction": "DISCOVER HIKARU",
+  "ritualPathHaveHikaruTitle": "I ALREADY HAVE\nMY HIKARU",
+  "ritualPathHaveHikaruAction": "BEGIN MY RITUAL",
+  "ritualFooter": "EVERY RITUAL BEGINS WITH INTENTION.\nYOU DESERVE THIS MOMENT.",
+
+  "authEmailLabel": "Email",
+  "authEmailHint": "Enter your email",
+  "authEmailHintExample": "you@domain.com",
+  "authPasswordLabel": "Password",
+  "authPasswordHint": "Enter your password",
+  "authErrorEmailRequired": "Enter your email",
+  "authErrorEmailInvalid": "Enter a valid email",
+  "authErrorPasswordRequired": "Enter your password",
+  "authErrorPasswordPolicy": "Use 8 characters with upper, lower, number, and a symbol",
+  "authIdentityLabel": "Email or username",
+  "authIdentityHint": "username or you@domain.com",
+  "authErrorIdentityRequired": "Enter your email or username",
+  "registerUsernameLabel": "Username",
+  "registerUsernameHint": "Not your email",
+  "registerErrorUsernameRequired": "Choose a username",
+  "registerErrorUsernameInvalid": "Use letters and numbers, not an email",
+  "confirmSignUpTitle": "Confirm your email",
+  "confirmSignUpSubtitle": "Enter the code we sent you.",
+  "confirmSignUpCodeLabel": "Verification code",
+  "confirmSignUpCodeHint": "123456",
+  "confirmSignUpAction": "CONFIRM",
+  "confirmSignUpErrorCode": "Enter the code",
+  "authShowPassword": "Show password",
+  "authHidePassword": "Hide password",
+
+  "loginTitle": "Welcome Home",
+  "loginSubtitle": "YOUR JOURNEY TO RADIANT SKIN",
+  "loginRememberMe": "Remember me",
+  "loginForgotPassword": "Forgot password?",
+  "loginSignIn": "SIGN IN",
+  "loginOr": "or",
+  "loginNoAccount": "Don't have a sanctuary? ",
+  "loginCreateOne": "Create one",
+
+  "registerTitle": "Create Your\nSanctuary",
+  "registerSubtitle": "Let's begin with essentials to\npersonalize your experience.",
+  "registerFullNameLabel": "Full Name",
+  "registerFullNameHint": "Your full name",
+  "registerBirthdayLabel": "Birthday",
+  "registerBirthdayHint": "MM / DD / YYYY",
+  "registerBirthdayFormat": "MM / dd / yyyy",
+  "@registerBirthdayFormat": {
+    "description": "intl DateFormat pattern used to display the chosen birthday. Not user-visible text."
+  },
+  "registerErrorNameRequired": "Enter your full name",
+  "registerErrorBirthdayRequired": "Select your birthday",
+  "registerContinue": "CONTINUE",
+  "registerHaveAccount": "Already have an account? ",
+  "registerLogIn": "Log in",
+
+  "resetTitle": "Reset Your\nPassword",
+  "resetSubtitle": "We'll help you regain access\nto your sanctuary.",
+  "resetNewPasswordLabel": "New Password",
+  "resetNewPasswordHint": "Enter new password",
+  "resetConfirmLabel": "Confirm Password",
+  "resetConfirmHint": "Confirm your password",
+  "resetErrorNewPasswordRequired": "Enter new password",
+  "resetErrorConfirmRequired": "Confirm your password",
+  "resetErrorMismatch": "Passwords do not match",
+  "resetButton": "RESET PASSWORD",
+  "resetSendCode": "SEND CODE",
+  "resetResend": "RESEND CODE",
+  "resetCodeLabel": "Verification code",
+  "resetCodeHint": "123456",
+  "resetCodeSent": "We sent a code to your email.",
+  "resetErrorCode": "Enter the code",
+  "resetRemember": "Remember your password? ",
+  "resetSignIn": "Sign in",
+
+  "commonBack": "BACK",
+  "commonNext": "NEXT",
+  "radiantFooter": "A  MORE  RADIANT  YOU  AWAITS",
+  "crystalDisclaimer": "Your crystal recommendation is symbolic and is not a medical diagnosis or a scientifically proven treatment for skin conditions.",
+
+  "listeningRoomTitle": "The\nListening Room",
+  "listeningRoomTagline": "A  SPACE  TO  BE  HEARD",
+  "listeningRoomDescription": "Share what's on your mind\nso we can guide you with a\npersonalized ritual for your skin,\nyour body, and your energy.",
+  "listeningRoomBegin": "BEGIN",
+  "listeningRoomFooter": "LISTEN   ·   ALIGN   ·   RECEIVE",
+
+  "quizHeader": "THE LISTENING GARDEN",
+  "quizTagline": "A SPACE TO BE HEARD",
+  "@quizTagline": {
+    "description": "Second header line of the quiz. Its letters are tracked by the style, so words use single spaces."
+  },
+  "quizProgressSemantics": "Question {number} of {total}",
+  "@quizProgressSemantics": {
+    "placeholders": {
+      "number": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "quizSelectOption": "Select an option.",
+
+  "ritualReadyTitle": "Your\nRitual Is Ready",
+  "ritualReadyBody": "Your personalized Hikaru Ritual has been thoughtfully prepared, bringing together the techniques, crystal, frequencies, and intention that best support your skin and your energy today.",
+  "ritualReadyEnter": "ENTER YOUR RITUAL",
+
+  "quizQ1Prompt": "What is your skin asking for today?",
+  "quizQ2Prompt": "How does your skin feel right now?",
+  "quizQ3Prompt": "How has your inner world been feeling lately?",
+  "quizQ4Prompt": "What would you most like to release?",
+  "quizQ5Prompt": "When you look in the mirror, what do you notice first?",
+  "quizQ6Prompt": "What does your body need more of today?",
+  "quizQ7Prompt": "Which intention resonates with you?",
+  "quizQ8Prompt": "How would you like to feel after your ritual?",
+  "quizQ9Prompt": "How much time would you like to dedicate to yourself?",
+  "quizQ10Prompt": "Is your skin currently experiencing any of these?",
+  "quizQ10Instruction": "Select all that apply",
+
+  "quizOptionQ1CalmComfort": "Calm and comfort",
+  "quizOptionQ1LiftedFirm": "A more lifted, firm appearance",
+  "quizOptionQ1HydrationSoftness": "Hydration and softness",
+  "quizOptionQ1RadianceVitality": "Radiance and renewed vitality",
+  "quizOptionQ2Sensitive": "Sensitive or easily irritated",
+  "quizOptionQ2TightDry": "Tight or dry",
+  "quizOptionQ2PuffyTired": "Puffy or tired",
+  "quizOptionQ2ComfortableLackingRadiance": "Comfortable, but lacking radiance",
+  "quizOptionQ3EmotionallyOverwhelmed": "Emotionally overwhelmed",
+  "quizOptionQ3MentallyBusy": "Mentally busy or distracted",
+  "quizOptionQ3DisconnectedBody": "Disconnected from my body",
+  "quizOptionQ3CalmBalanced": "Calm and balanced",
+  "quizOptionQ4UncertaintyTension": "Uncertainty or hidden tension",
+  "quizOptionQ4MentalNoise": "Mental noise and overthinking",
+  "quizOptionQ4StressPressure": "Stress and emotional pressure",
+  "quizOptionQ4FatigueHeaviness": "Fatigue and heaviness",
+  "quizOptionQ5ChangesUnknown": "Changes I don't fully understand",
+  "quizOptionQ5LossBrightness": "A loss of brightness",
+  "quizOptionQ5StressTension": "Signs of stress or tension",
+  "quizOptionQ5FirmnessVitality": "Changes in firmness or vitality",
+  "quizOptionQ6SpaceReflect": "Space to reflect",
+  "quizOptionQ6MomentClarity": "A moment of clarity",
+  "quizOptionQ6GentlenessBalance": "Gentleness and balance",
+  "quizOptionQ6GroundingStrength": "Grounding and strength",
+  "quizOptionQ7UnderstandBeneath": "Understand what lies beneath the surface",
+  "quizOptionQ7GreaterClarity": "See myself with greater clarity",
+  "quizOptionQ7ReturnHarmony": "Return to harmony",
+  "quizOptionQ7InnerStrength": "Reconnect with my inner strength",
+  "quizOptionQ8SelfAware": "More self-aware",
+  "quizOptionQ8ClearRefreshed": "Clear and refreshed",
+  "quizOptionQ8CalmNurtured": "Calm and nurtured",
+  "quizOptionQ8GroundedEnergized": "Grounded and energized",
+  "quizOptionQ9ThreeMinutes": "3 minutes",
+  "quizOptionQ9FiveMinutes": "5 minutes",
+  "quizOptionQ9TenMinutes": "10 minutes",
+  "quizOptionQ10OpenBroken": "Open or broken skin",
+  "quizOptionQ10ActiveIrritation": "Active irritation or painful inflammation",
+  "quizOptionQ10UnexplainedChange": "A new or unexplained skin change",
+  "quizOptionQ10None": "None of the above",
+
+  "commonContinue": "CONTINUE",
+  "commonPlay": "Play",
+  "commonPause": "Pause",
+  "commonExit": "Exit",
+
+  "mirrorGardenEyebrow": "THE MIRROR GARDEN",
+  "mirrorGardenTitle": "Add A Photo Of Your Face For Personal Tracking",
+  "mirrorGardenSkip": "SKIP FOR NOW",
+  "mirrorGardenUpload": "UPLOAD A PHOTO",
+  "mirrorGardenOptional": "(Optional)",
+  "mirrorGardenHint": "A photo helps you celebrate your progress over time and compare your results throughout your Hikaru journey.",
+  "mirrorTakePhoto": "TAKE A PHOTO",
+  "mirrorTakePhotoSemantics": "Take a photo",
+  "mirrorPhotoPreviewSemantics": "Your face photo preview",
+  "mirrorPhotoError": "Couldn't open the camera or photos. Check permissions and try again.",
+  "mirrorCameraHint": "SWIPE UP TO TAKE THE PHOTO",
+  "mirrorCameraCaptureSemantics": "Take photo",
+  "mirrorCameraCloseSemantics": "Close camera",
+
+  "resonanceChamberTitle": "THE RESONANCE CHAMBER",
+  "resonanceRevealTitle": "YOUR HIKARU JOURNEY",
+  "resonanceRevealSubtitle": "HAS BEEN REVEALED",
+  "resonanceMissingCrystal": "Complete the Listening Garden to receive your crystal and personalized protocol.",
+  "resonanceYourCrystal": "YOUR CRYSTAL",
+  "resonanceAssignedCrystalSemantics": "Assigned crystal {crystal}",
+  "@resonanceAssignedCrystalSemantics": {
+    "placeholders": {
+      "crystal": {"type": "String"}
+    }
+  },
+  "resonanceRecommendedProtocol": "YOUR RECOMMENDED PROTOCOL",
+  "resonanceProtocolCrystal": "Crystal",
+  "resonanceProtocolIntention": "Intention",
+  "resonanceProtocolSkinFocus": "Skin-care focus",
+  "resonanceProtocolFacialRitual": "Recommended facial ritual",
+  "resonanceProtocolDuration": "Duration",
+  "resonanceProtocolTemple": "Temple",
+  "resonanceEnterSanctuary": "ENTER MY HIKARU SANCTUARY",
+
+  "resonanceYourFrequency": "YOUR FREQUENCY",
+  "resonanceYourCymaticSignature": "YOUR CYMATIC\nSIGNATURE",
+  "resonanceCymaticSignatureSemantics": "Your cymatic signature",
+  "resonanceYourRitual": "YOUR RITUAL",
+  "resonanceStepRegulationName": "Regulation",
+  "resonanceStepRegulationSubtitle": "The Merkaba Room",
+  "resonanceStepGuaShaName": "Gua Sha",
+  "resonanceStepGuaShaSubtitle": "Physical Massage",
+  "resonanceStepIntegrationName": "Frequency & Cymatics Integration",
+  "resonanceStepIntegrationSubtitle": "Closing Integration",
+
+  "crystalSceneSemanticsDefault": "Your crystal in the garden",
+  "crystalSceneSemantics": "{crystal} crystal",
+  "@crystalSceneSemantics": {
+    "placeholders": {
+      "crystal": {"type": "String"}
+    }
+  },
+  "cymaticSemantics": "Cymatic",
+
+  "crystalDetailSymbolicMeaning": "SYMBOLIC MEANING",
+  "crystalDetailAssociatedIntention": "ASSOCIATED INTENTION",
+  "crystalDetailTherapeuticPurpose": "THERAPEUTIC PURPOSE",
+  "crystalDetailSkinBenefit": "SKIN BENEFIT",
+  "crystalDetailMeridians": "ILLUMINATED MERIDIANS",
+  "crystalDetailEnvironment": "VISUAL ENVIRONMENT",
+  "crystalChoose": "CHOOSE THIS CRYSTAL",
+  "crystalIsYours": "YOUR CRYSTAL",
+  "crystalIsYoursSemantics": "{crystal} is your crystal",
+  "@crystalIsYoursSemantics": {
+    "placeholders": {
+      "crystal": {"type": "String"}
+    }
+  },
+  "crystalChosenSnackbar": "{crystal} is now your crystal.",
+  "@crystalChosenSnackbar": {
+    "placeholders": {
+      "crystal": {"type": "String"}
+    }
+  },
+  "crystalFrequencyPlay": "Play frequency",
+  "crystalFrequencyPause": "Pause frequency",
+  "crystalFrequencyUnavailable": "Frequency unavailable right now",
+
+  "crystalCompositionCredit": "Composed by Maestro Jorge Alfano with Japanese instruments",
+
+  "crystalTextName": "{crystal, select, whiteQuartz{WHITE QUARTZ} jade{JADE} obsidian{OBSIDIAN} redJasper{RED JASPER} other{}}",
+  "@crystalTextName": {"placeholders": {"crystal": {"type": "String"}}},
+  "crystalTextTemple": "{crystal, select, whiteQuartz{Temple of Illumination} jade{Temple of Harmony} obsidian{Temple of Transformation} redJasper{Temple of Vitality} other{}}",
+  "@crystalTextTemple": {"placeholders": {"crystal": {"type": "String"}}},
+  "crystalTextProtocol": "{crystal, select, whiteQuartz{Quartz Illumination Protocol — Maestro Jorge Alfano} jade{Jade Harmony Protocol} obsidian{Obsidian Transformation Protocol} redJasper{Jasper Vitality Protocol — Maestro Jorge Alfano} other{}}",
+  "@crystalTextProtocol": {"placeholders": {"crystal": {"type": "String"}}},
+  "crystalTextFrequency": "{crystal, select, whiteQuartz{Cellular Coherence Frequency • 528 Hz} jade{528 Hz} obsidian{528 Hz} redJasper{Vitality & Vascular Flow Frequency • 639 Hz} other{}}",
+  "@crystalTextFrequency": {"placeholders": {"crystal": {"type": "String"}}},
+  "crystalTextFrequencyDetail": "{crystal, select, whiteQuartz{Energy amplification & cellular coherence} jade{Heart coherence, love & balance} obsidian{Transformation, repair, deep healing & protection} redJasper{Activates metabolic & vascular flow} other{}}",
+  "@crystalTextFrequencyDetail": {"placeholders": {"crystal": {"type": "String"}}},
+  "crystalTextFrequencyTagline": "{crystal, select, whiteQuartz{Cellular Coherence • Illumination • Expansion} jade{Heart Coherence • Love • Balance} obsidian{Deep Detox • Transformation • Protection} redJasper{Metabolic Flow • Vitality • Grounding} other{}}",
+  "@crystalTextFrequencyTagline": {"placeholders": {"crystal": {"type": "String"}}},
+  "crystalTextPurpose": "{crystal, select, whiteQuartz{Cellular biohacking, longevity, mental clarity and expansion of consciousness.} jade{Nervous system regulation, emotional balance, recovery and deep calm.} obsidian{Release of stagnant emotions (anger, stress, guilt), protection and detoxification.} redJasper{Vitality, physical strength, metabolic flow and grounding.} other{}}",
+  "@crystalTextPurpose": {"placeholders": {"crystal": {"type": "String"}}},
+  "crystalTextSkinBenefit": "{crystal, select, whiteQuartz{Amplifies cellular energy, enhancing luminosity and your natural inner glow.} jade{Soothes irritation and supports skin balance and health.} obsidian{Supports intensive sculpting, drainage and skin renewal.} redJasper{Awakens circulation, strength and resilience of facial and body tissues.} other{}}",
+  "@crystalTextSkinBenefit": {"placeholders": {"crystal": {"type": "String"}}},
+  "crystalTextMeridians": "{crystal, select, whiteQuartz{Kidney · Governing Vessel} jade{Heart · Pericardium · Lung} obsidian{Liver · Gallbladder · Heart} redJasper{Spleen · Stomach} other{}}",
+  "@crystalTextMeridians": {"placeholders": {"crystal": {"type": "String"}}},
+  "crystalTextEnvironment": "{crystal, select, whiteQuartz{A crystalline temple of white light, sacred geometry and DNA activation.} jade{An emerald temple surrounded by nature, reflective water and green energy currents.} obsidian{Volcanic landscapes, temples of black crystal and sacred fire.} redJasper{Earth and fire elements with golden-red currents of energy.} other{}}",
+  "@crystalTextEnvironment": {"placeholders": {"crystal": {"type": "String"}}},
+  "crystalTextSymbolicTitle": "{crystal, select, whiteQuartz{The Light of Clarity} jade{The Garden of Harmony} obsidian{The Mirror of the Unseen} redJasper{The Earth of Vitality} other{}}",
+  "@crystalTextSymbolicTitle": {"placeholders": {"crystal": {"type": "String"}}},
+  "crystalTextRevelation": "{crystal, select, whiteQuartz{Your answers point toward clarity and renewal. White Quartz invites you to clear mental noise, welcome illumination, and restore your natural radiance.} jade{Your answers suggest a need for gentleness and balance. Jade invites you to soften, return to harmony, and care for your skin with mindful presence.} obsidian{Your answers suggest this may be a moment for deeper reflection. Obsidian invites you to look beyond the surface, listen to yourself, and create space for understanding.} redJasper{Your answers speak to grounding and renewed strength. Red Jasper invites you to reconnect with your body, release heaviness, and restore vitality.} other{}}",
+  "@crystalTextRevelation": {"placeholders": {"crystal": {"type": "String"}}},
+  "crystalTextBenefitTitle": "{id, select, whiteQuartz0{Cellular Biohacking} whiteQuartz1{Mental Clarity} whiteQuartz2{Luminosity & Glow} whiteQuartz3{Energetic Alignment} whiteQuartz4{Daily Habit Rhythm} jade0{Nervous System Regulation} jade1{Heart-Mind Coherence} jade2{Lymphatic Balance} jade3{Natural Radiance} jade4{Daily Habit Rhythm} obsidian0{Emotional Release} obsidian1{Deep Sculpt & Detox} obsidian2{Cellular Renewal} obsidian3{Energetic Protection} obsidian4{Daily Habit Rhythm} redJasper0{Metabolic & Vascular Flow} redJasper1{Physical Grounding} redJasper2{Tissue Resilience} redJasper3{Vital Energy Activation} redJasper4{Daily Habit Rhythm} other{}}",
+  "@crystalTextBenefitTitle": {"placeholders": {"id": {"type": "String"}}},
+  "crystalTextBenefitDetail": "{id, select, whiteQuartz0{Supports regeneration and healthy cellular aging} whiteQuartz1{Expands consciousness and elevates focus} whiteQuartz2{Amplifies skin energy and inner radiance} whiteQuartz3{Harmonizes kidney and governing vessel meridians} whiteQuartz4{Builds a transformative 30-day ritual rhythm} jade0{Calms stress and restores deep inner balance} jade1{Promotes emotional harmony and heart connection} jade2{Calms inflammation and supports healthy skin tone} jade3{Enhances natural glow and overall skin wellness} jade4{Deepens consistency and long-term vitality} obsidian0{Transforms stress, guilt, and stagnant emotions} obsidian1{Promotes intense lymphatic fluid drainage} obsidian2{Releases stagnant energy and invites restoration} obsidian3{Shields and harmonizes liver and gallbladder pathways} obsidian4{Anchors a profound 30-day transformation practice} redJasper0{Awakens circulation and facial blood flow} redJasper1{Anchors energy and restores physical stamina} redJasper2{Enhances skin firmness and muscle tone} redJasper3{Stimulates spleen and stomach energy channels} redJasper4{Sustains daily strength and long-term resilience} other{}}",
+  "@crystalTextBenefitDetail": {"placeholders": {"id": {"type": "String"}}},
+
+  "recIntentionSelfAwareness": "Self-awareness and reflection",
+  "recIntentionMentalClarity": "Mental clarity and radiance",
+  "recIntentionCalmComfort": "Calm, comfort, and mindful skin care",
+  "recIntentionVitality": "Vitality and reconnection with the body",
+  "recIntentionInnerIllumination": "Clarity and inner illumination",
+  "recIntentionHarmony": "Harmony and gentle balance",
+  "recIntentionGrounding": "Grounding and inner strength",
+  "recSkinFocusSoothing": "Soothing comfort and calming facial care",
+  "recSkinFocusHydration": "Hydration and gentle facial care",
+  "recSkinFocusLift": "Lift, firmness, and depuffing support",
+  "recSkinFocusRadiance": "Radiance and renewed vitality",
+  "recRitualSoothing": "Soothing Comfort Protocol",
+  "recRitualHydration": "Hydration Protocol",
+  "recRitualLift": "Lift & Sculpt Protocol",
+  "recRitualRadiance": "Radiance Protocol",
+  "recDuration": "{minutes, plural, =1{1 minute} other{{minutes} minutes}}",
+  "@recDuration": {"placeholders": {"minutes": {"type": "int"}}},
+
+  "navHome": "Home",
+  "navJourney": "Journey",
+  "navLibrary": "Library",
+  "navSettings": "Settings",
+  "navSanctuary": "Sanctuary",
+
+  "homeGardenTitle": "THE HARMONY GARDEN",
+  "homeGardenSubtitle": "Your Journey Begins Within",
+  "homeTourGardenTitle": "YOUR SANCTUARY",
+  "homeTourGardenBody": "This is your sanctuary. The numbers mark the order of the day.",
+  "homeTourOrderTitle": "THE ORDER",
+  "homeTourOrderBody": "Merkaba is 1. Face and body are 2. Your crystal is 3. Each circle opens on its own.",
+  "homeTourBeginTitle": "BEGIN TODAY",
+  "homeTourBeginBody": "The center symbol starts today's ritual in that order. The circles open each part on its own.",
+  "homeTourBarTitle": "THE BAR",
+  "homeTourBarBody": "Journey keeps your day, streak, and photos. Settings keeps your account, language, and reminders.",
+  "homeTourSkip": "SKIP",
+  "homeTourNext": "NEXT",
+  "homeTourDone": "DONE",
+  "homeYourCrystal": "YOUR CRYSTAL",
+  "homeYourCrystalSemantics": "Your crystal",
+  "homeYourCrystalNamedSemantics": "Your crystal {crystal}",
+  "@homeYourCrystalNamedSemantics": {
+    "placeholders": {
+      "crystal": {"type": "String"}
+    }
+  },
+  "homeLibrary": "LIBRARY",
+  "homeLibrarySemantics": "Library",
+  "homeRitualBody": "HIKARU RITUAL\nBODY",
+  "homeRitualBodySemantics": "Hikaru Ritual Body",
+  "homeRitualFace": "HIKARU RITUAL\nFACE",
+  "homeRitualFaceSemantics": "Hikaru Ritual Face",
+
+  "templesTitle": "THE FOUR TEMPLES",
+  "templesSubtitle": "Four paths. One transformation.",
+  "templesChoose": "CHOOSE YOUR TEMPLE",
+  "templesRecommended": "RECOMMENDED",
+  "templesSelected": "SELECTED",
+  "templesSemanticsRecommended": "recommended for you",
+  "templesSemanticsSelected": "currently selected",
+
+  "commonDayOfTotal": "Day {day} of {total}",
+  "@commonDayOfTotal": {
+    "placeholders": {
+      "day": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+
+  "journeyTitle": "JOURNEY",
+  "journeySubtitle": "Your 30-day evolution",
+  "journeyCaption": "Small daily rituals. Profound transformation.",
+  "journeyChooseCrystal": "Choose your crystal",
+  "journeyActiveCrystalSemantics": "Your active crystal, {crystal}",
+  "@journeyActiveCrystalSemantics": {
+    "placeholders": {
+      "crystal": {"type": "String"}
+    }
+  },
+  "journeyActiveCrystalLabel": "YOUR ACTIVE CRYSTAL",
+  "journeyChooseTemple": "Choose your temple",
+  "journeyChooseTempleHint": "Select a crystal to begin your 30-day resonance.",
+  "journeyStreakTitle": "DAILY STREAK",
+  "journeyStreakDaysInARow": "Days in a row",
+  "journeyPhotosTitle": "PROGRESS PHOTOS",
+  "journeyPhotosViewAll": "View all",
+  "journeyPhotosViewAllSemantics": "View all progress photos",
+  "journeyPhotosSubtitle": "See your evolution over time",
+  "journeyPhotoDay": "DAY {day}",
+  "@journeyPhotoDay": {
+    "placeholders": {
+      "day": {"type": "int"}
+    }
+  },
+  "journeyPhotoBefore": "Before",
+  "journeyPhotoCurrent": "Current",
+  "journeyPhotoBeforeSemantics": "Before photo, {day}",
+  "@journeyPhotoBeforeSemantics": {
+    "placeholders": {
+      "day": {"type": "String"}
+    }
+  },
+  "journeyPhotoCurrentSemantics": "Current photo, {day}",
+  "journeyPhotoCaptureSemantics": "Take today's progress photo",
+  "journeyPhotosEmpty": "Your photos will appear here as the cycle unfolds.",
+  "journeyPhotoGallerySemantics": "Progress photo, {day}",
+  "@journeyPhotoGallerySemantics": {
+    "placeholders": {
+      "day": {"type": "String"}
+    }
+  },
+  "@journeyPhotoCurrentSemantics": {
+    "placeholders": {
+      "day": {"type": "String"}
+    }
+  },
+  "journeyContinuesTitle": "YOUR JOURNEY CONTINUES",
+  "journeyContinuesSemantics": "Your journey continues, {title}",
+  "@journeyContinuesSemantics": {
+    "placeholders": {
+      "title": {"type": "String"}
+    }
+  },
+  "journeyContinuesSubtitle": "Frequency · Cymatic Signature · Daily Ritual",
+
+  "profileTitle": "SANCTUARY PROFILE",
+  "profileSubtitle": "Personal details, daily ritual reminders & progress privacy",
+  "profileMemberSemantics": "{name}, sanctuary member, day {day} of {total}",
+  "@profileMemberSemantics": {
+    "placeholders": {
+      "name": {"type": "String"},
+      "day": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "profileMemberLabel": "SANCTUARY MEMBER — DAY {day} OF {total}",
+  "profileAccountEdit": "EDIT",
+  "profileAccountTitle": "YOUR DETAILS",
+  "profileAccountSubtitle": "Photo and name for your sanctuary.",
+  "profileAccountName": "NAME",
+  "profileAccountNameHint": "Your name",
+  "profileAccountSave": "SAVE",
+  "profileAccountClose": "CLOSE",
+  "profileAccountPhotoSemantics": "Your profile photo",
+  "@profileMemberLabel": {
+    "placeholders": {
+      "day": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "profileRecommendationTitle": "YOUR HIKARU RECOMMENDATION",
+  "profileRecommendationFacialRitual": "Facial ritual",
+  "profileRemindersTitle": "RITUAL ALARMS & REMINDERS",
+  "profileReminderMorningTitle": "Morning Sacred Ritual",
+  "profileReminderMorningDetail": "Meditation & facial massage",
+  "profileReminderEveningTitle": "Evening Reflection & Breath",
+  "profileReminderEveningDetail": "Conscious breathing before sleep",
+  "profileReminderSemantics": "{title} reminder",
+  "@profileReminderSemantics": {
+    "placeholders": {
+      "title": {"type": "String"}
+    }
+  },
+  "profilePrivacyTitle": "YOUR DATA, TREATED WITH REVERENCE",
+  "profilePrivacyBody": "Your facial photos and personal information stay with your account. Open Privacy to review what is kept.",
+  "profilePrivacyOpenSemantics": "Open privacy settings",
+  "profilePrivacy": "Privacy",
+  "profileCycleTitle": "30-DAY CYCLE",
+  "profileCycleInProgress": "Your journey is in progress",
+  "profileCycleComplete": "Complete your cycle",
+  "profileCycleUnlock": "At day {total}, you’ll unlock your new diagnosis and recalibrate your crystal, frequency and cymatic signature.",
+  "@profileCycleUnlock": {
+    "placeholders": {
+      "total": {"type": "int"}
+    }
+  },
+  "profileCycleEnd": "END CYCLE",
+
+  "libraryTitle": "LIBRARY",
+  "librarySubtitle": "Sacred knowledge for your journey",
+  "libraryBackSemantics": "Back to library",
+  "libraryChapterCount": "{count, plural, =1{1 chapter} other{{count} chapters}}",
+  "@libraryChapterCount": {"placeholders": {"count": {"type": "int"}}},
+  "libraryReadingTime": "{minutes} min read",
+  "@libraryReadingTime": {"placeholders": {"minutes": {"type": "int"}}},
+  "libraryFilterAll": "ALL",
+  "libraryFilterAllSemantics": "Show all chapters",
+  "libraryFilterChapterSemantics": "Go to chapter {number}, {heading}",
+  "@libraryFilterChapterSemantics": {
+    "placeholders": {"number": {"type": "int"}, "heading": {"type": "String"}}
+  },
+  "libraryChapterLabel": "CHAPTER {number}",
+  "@libraryChapterLabel": {"placeholders": {"number": {"type": "String"}}},
+  "libraryOpenChapterSemantics": "Open chapter {number}, {heading}",
+  "@libraryOpenChapterSemantics": {
+    "placeholders": {"number": {"type": "int"}, "heading": {"type": "String"}}
+  },
+  "libraryNextLabel": "NEXT IN LIBRARY",
+  "libraryNextSemantics": "Next in library, {label}",
+  "@libraryNextSemantics": {"placeholders": {"label": {"type": "String"}}},
+  "libraryRead": "READ",
+
+  "libraryTextCollectionName": "{id, select, merkaba{MERKABA} rituals{HIKARU RITUALS} other{}}",
+  "@libraryTextCollectionName": {"placeholders": {"id": {"type": "String"}}},
+  "libraryTextCollectionDetail": "{id, select, merkaba{Geometry & Energy} rituals{Face & Body} jade{Balance\n& Harmony} whiteQuartz{Clarity\n& Renewal} redJasper{Vitality\n& Grounding} obsidian{Protection\n& Transformation} other{}}",
+  "@libraryTextCollectionDetail": {"placeholders": {"id": {"type": "String"}}},
+  "libraryTextCollectionCategory": "{id, select, merkaba{SACRED GEOMETRY} rituals{RITUAL GUIDE} other{CRYSTAL GUIDE}}",
+  "@libraryTextCollectionCategory": {"placeholders": {"id": {"type": "String"}}},
+
+  "libraryCrystalHeadingTemple": "Temple",
+  "libraryCrystalHeadingPurpose": "Purpose",
+  "libraryCrystalHeadingSkin": "Skin",
+  "libraryCrystalHeadingMeridians": "Meridians",
+  "libraryCrystalHeadingFrequency": "Frequency",
+  "libraryCrystalHeadingEnvironment": "Environment",
+  "libraryCrystalHeadingIntention": "Intention",
+  "libraryCrystalIntention": "{crystal, select, whiteQuartz{Clarity, Expansion, Radiance} jade{Harmony, Self-Love, Renewal} obsidian{Protection, Renewal, Transformation} redJasper{Vitality, Grounding} other{}}",
+  "@libraryCrystalIntention": {"placeholders": {"crystal": {"type": "String"}}},
+
+  "libraryMerkabaHeadingDuration": "Duration",
+  "libraryMerkabaHeadingBreath": "Breath",
+  "libraryMerkabaHeadingScenes": "Scenes",
+  "libraryMerkabaHeadingCues": "Cues",
+  "libraryMerkabaBreath": "Inhale 4 seconds. Hold 4 seconds. Exhale 6 seconds.\nEvery inhale creates. Every hold is organized. Every exhale reveals.\nBreath is the invisible architect. Air is the medium. Light is the material. Geometry is the result.",
+  "libraryMerkabaScene1": "0:00–0:40 Human Blueprint. A figure of light with a pulsing heart traces the five-pointed star. Gyan Mudra. Presence and awareness.",
+  "libraryMerkabaScene2": "0:40–1:30 Air Becomes the Vehicle. The star dissolves into ribbons of air that spiral with the breath. Vayu Mudra. Air, movement, and breath.",
+  "libraryMerkabaScene3": "1:30–3:40 Breath Builds the Merkaba. The two interlocking tetrahedra are drawn edge by edge around the body. Lotus Mudra. Receiving and expansion.",
+  "libraryMerkabaScene4": "3:40–4:30 Expansion Through Coherence. The triangles counter-rotate and the field expands with heart coherence. Akash Mudra. Spaciousness and consciousness.",
+  "libraryMerkabaScene5": "4:30–5:00 The Heart Blossoms. The Merkaba slows, its lines soften and bloom into the Anahata heart mandala. Anjali. Integration and gratitude.",
+  "libraryMerkabaCues": "One clear chime cues Inhale (4 seconds). A soft sustained shimmer cues Hold (4 seconds). A warm lower chime cues Exhale (6 seconds).",
+
+  "libraryRitualsHeadingSequence": "Sequence",
+  "libraryRitualsSequence": "01 The Merkaba Room. Breathing 4·4·6: inhale 4 seconds, hold 4 seconds, exhale 6 seconds. Mudras.\n02 Hikaru Massage Experience. Facial Gua Sha. The massage maps meridians, lymphatic drainage, fascia, and the 54 facial muscles.\n03 Hikaru Massage Experience. Body Gua Sha. Timer. Pressure: Light, Moderate, Firm.\n04 Frequency and cymatics. 528 Hz, Maestro Jorge Alfano. Locked until the Merkaba meditation and the Gua Sha massage are complete.",
+
+  "merkabaPlay": "PLAY",
+  "merkabaPause": "PAUSE",
+  "merkabaRepeat": "REPEAT",
+  "merkabaSceneOf": "SCENE {number} OF {total}",
+  "@merkabaSceneOf": {
+    "placeholders": {"number": {"type": "int"}, "total": {"type": "int"}}
+  },
+  "merkabaBreaths": "BREATHS",
+  "merkabaCycle": "Cycle {percent}%",
+  "@merkabaCycle": {"placeholders": {"percent": {"type": "int"}}},
+  "merkabaBreathsSemantics": "{done} of {total} breaths. Cycle {percent} percent",
+  "@merkabaBreathsSemantics": {
+    "placeholders": {
+      "done": {"type": "int"},
+      "total": {"type": "int"},
+      "percent": {"type": "int"}
+    }
+  },
+  "merkabaSessionProgress": "Session progress",
+  "merkabaPercentValue": "{percent} percent",
+  "@merkabaPercentValue": {"placeholders": {"percent": {"type": "int"}}},
+  "merkabaSilence": "Silence.",
+  "merkabaWomanSemantics": "Seated woman in meditation",
+  "merkabaPhaseInhale": "Inhale",
+  "merkabaPhaseHold": "Hold",
+  "merkabaPhaseExhale": "Exhale",
+  "merkabaScene1Title": "Human Blueprint",
+  "merkabaScene1Purpose": "Presence and awareness",
+  "merkabaScene2Title": "Air Becomes the Vehicle",
+  "merkabaScene2Purpose": "Air, movement, and breath",
+  "merkabaScene3Title": "Breath Builds the Merkaba",
+  "merkabaScene3Purpose": "Receiving and expansion",
+  "merkabaScene4Title": "Expansion Through Coherence",
+  "merkabaScene4Purpose": "Spaciousness and consciousness",
+  "merkabaScene5Title": "The Heart Blossoms",
+  "merkabaScene5Purpose": "Integration and gratitude",
+
+  "massageFaceTemple": "THE FACE TEMPLE",
+  "massageBodyTemple": "THE BODY TEMPLE",
+  "massageFaceSubtitle": "HIKARU LIFT RITUAL · FACE",
+  "massageBodySubtitle": "HIKARU LIFT RITUAL · BODY",
+  "massageVideoPlaySemantics": "Play ritual video",
+  "massageVideoPauseSemantics": "Pause ritual video",
+  "massageBackSemantics": "Back",
+  "massageSound": "Sound",
+  "massageMoreOptions": "More options",
+  "massageRitualSheet": "Ritual sheet",
+  "massageBreathe": "BREATHE",
+  "massageDuration": "DURATION",
+  "massageInhale": "INHALE",
+  "massageExhale": "EXHALE",
+  "massagePreviousZone": "Previous zone",
+  "massageNextZone": "Next zone",
+  "massageRestart": "RESTART",
+  "massageRestartSemantics": "Restart ritual",
+  "massageSessionLength": "SESSION LENGTH",
+  "massageMinutesChip": "{minutes} MIN",
+  "@massageMinutesChip": {"placeholders": {"minutes": {"type": "int"}}},
+  "ritualVideoPlaceholder": "RITUAL VIDEO",
+  "ritualVideoSemantics": "Ritual video",
+  "massageZoneJawline": "Jawline",
+  "massageZoneNeck": "Neck",
+  "massageZoneCheeks": "Cheeks",
+  "massageZoneNasolabial": "Nasolabial",
+  "massageZoneForehead": "Forehead",
+  "massageZoneGlutes": "Glutes",
+  "massageZoneLegs": "Legs",
+  "massageZoneAbdomen": "Abdomen",
+  "massageZoneChest": "Chest",
+  "massageInstructionJawline": "Place Hikaru beneath the ear, then glide upward along the jawline.",
+  "massageInstructionNeck": "Glide Hikaru down the sides of the neck, from the jaw to the collarbone.",
+  "massageInstructionCheeks": "Sweep Hikaru from the side of the nose outward across the cheekbones.",
+  "massageInstructionNasolabial": "Glide Hikaru from the corner of the mouth up toward the temple.",
+  "massageInstructionForehead": "Glide Hikaru from the brows upward to the hairline, then out to the temples.",
+  "massageInstructionGlutes": "Sweep Hikaru upward from the base of the glutes toward the hips.",
+  "massageInstructionLegs": "Glide Hikaru upward from the ankles toward the knees and thighs.",
+  "massageInstructionAbdomen": "Trace slow clockwise circles around the navel.",
+  "massageInstructionChest": "Glide Hikaru from the sternum outward toward the underarms.",
+
+  "authFaceIdSemantics": "Sign in with Face ID",
+  "biometricFaceId": "Face ID",
+  "biometricTouchId": "Touch ID",
+  "biometricFingerprint": "Fingerprint",
+  "biometricOfferTitle": "Sign in with {method}",
+  "@biometricOfferTitle": {
+    "placeholders": {
+      "method": {"type": "String"}
+    }
+  },
+  "biometricOfferBody": "Next time Hikaru can open with {method}. The password stays on this phone.",
+  "@biometricOfferBody": {
+    "placeholders": {
+      "method": {"type": "String"}
+    }
+  },
+  "biometricOfferAccept": "USE {method}",
+  "@biometricOfferAccept": {
+    "placeholders": {
+      "method": {"type": "String"}
+    }
+  },
+  "biometricOfferDecline": "NOT NOW",
+  "biometricSignInReason": "Confirm to sign in to Hikaru",
+  "biometricEnableReason": "Confirm to turn on {method}",
+  "@biometricEnableReason": {
+    "placeholders": {
+      "method": {"type": "String"}
+    }
+  },
+
+  "profileLanguageCardTitle": "LANGUAGE",
+  "@profileLanguageCardTitle": {
+    "description": "Title of the language preference card on the profile screen."
+  },
+  "profileLanguageCardSubtitle": "Choose the language for the app.",
+  "@profileLanguageCardSubtitle": {
+    "description": "Helper text under the language preference card title."
+  },
+  "languageEnglish": "English",
+  "@languageEnglish": {
+    "description": "Label for the English option in the language selector."
+  },
+  "languageSpanish": "Spanish",
+  "@languageSpanish": {
+    "description": "Label for the Spanish option in the language selector."
+  },
+
+  "headphonesDialogSemanticsLabel": "Headphones recommended",
+  "@headphonesDialogSemanticsLabel": {
+    "description": "Accessibility label announcing the headphones note dialog."
+  },
+  "headphonesDialogEyebrow": "FOR THE FULL HIKARU FREQUENCY EXPERIENCE",
+  "@headphonesDialogEyebrow": {
+    "description": "Small overline above the headphones dialog title."
+  },
+  "headphonesDialogTitle": "Headphones recommended",
+  "@headphonesDialogTitle": {
+    "description": "Main title of the headphones recommendation dialog."
+  },
+  "headphonesDialogBody": "For a more immersive experience, we recommend headphones. Find a comfortable space, set a comfortable volume, and let the sound surround you.",
+  "@headphonesDialogBody": {
+    "description": "Body copy of the headphones dialog, including the comfortable-volume reminder."
+  },
+  "headphonesDialogReady": "I'M READY",
+  "@headphonesDialogReady": {
+    "description": "Primary button: continue with headphones ready."
+  },
+  "headphonesDialogContinueWithout": "CONTINUE WITHOUT HEADPHONES",
+  "@headphonesDialogContinueWithout": {
+    "description": "Secondary button: continue without headphones."
+  }
+}

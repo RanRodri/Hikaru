@@ -5,6 +5,7 @@ abstract final class AppRoutes {
   static const String ritual = '/ritual';
   static const String login = '/login';
   static const String register = '/register';
+  static const String confirmSignUp = '/confirm-sign-up';
   static const String resetPassword = '/reset-password';
   static const String listeningRoom = '/listening-room';
   static const String listeningRoomQuiz = '/listening-room/quiz';
@@ -20,9 +21,16 @@ abstract final class AppRoutes {
   static const String home = '/home';
   static const String fourTemples = '/home/four-temples';
   static const String profile = '/home/profile';
+  static const String profileAccount = '$profile/account';
   static const String journey = '/home/journey';
   static const String library = '/home/library';
   static const String merkaba = '$home/merkaba';
+  static const String cycleParam = 'cycle';
+
+  /// Marks a ritual step as part of the full sanctuary cycle.
+  static String cycle(String path) => '$path?$cycleParam=1';
+
+  static bool isCycle(Map<String, String> query) => query[cycleParam] == '1';
   static const String ritualFace = '$home/ritual-face';
   static const String ritualBody = '$home/ritual-body';
   static const String libraryTopicParam = 'topic';

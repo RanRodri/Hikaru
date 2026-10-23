@@ -9,47 +9,18 @@ QuizAnswers _answers(Map<int, List<String>> selected) => QuizAnswers({
 });
 
 void main() {
-  test('quiz has the 10 documented questions and 58 options', () {
+  test('quiz has the 10 briefing questions and 39 options', () {
     expect(discoveryQuiz, hasLength(10));
     expect(
       discoveryQuiz.fold<int>(
         0,
         (count, question) => count + question.options.length,
       ),
-      58,
+      39,
     );
-    expect(
-      discoveryQuiz.map((question) => question.number).toList(),
-      List.generate(10, (index) => index + 1),
-    );
-    expect(discoveryQuiz.first.selection, QuizSelection.multiple);
-    expect(discoveryQuiz[3].selection, QuizSelection.single);
-    expect(discoveryQuiz[3].instruction, 'Select the area you notice most');
-    expect(
-      discoveryQuiz.where(
-        (question) => question.selection == QuizSelection.multiple,
-      ),
-      hasLength(1),
-    );
-    expect(discoveryQuiz.first.options.map((option) => option.label), [
-      'Reduce puffiness',
-      'Define facial contours',
-      'Smooth fine lines',
-      'Restore glow/radiance',
-      'Deeply hydrate',
-      'Even skin tone',
-      'Calm blemish-prone skin',
-      'Reduce visible redness',
-    ]);
-    expect(
-      discoveryQuiz[8].options.map((option) => (option.label, option.detail)),
-      [
-        ('3 minutes', 'Reset'),
-        ('5 minutes', 'Daily Ritual'),
-        ('10 minutes', 'Lift & Sculpt'),
-        ('15 minutes', 'Full Sanctuary Journey'),
-      ],
-    );
+    expect(discoveryQuiz.first.selection, QuizSelection.single);
+    expect(discoveryQuiz.last.selection, QuizSelection.multiple);
+    expect(discoveryQuiz.last.exclusiveOptionId, QuizOptionIds.q10None);
   });
 
   test('every crystal signal points at a real quiz option', () {
@@ -60,13 +31,11 @@ void main() {
     expect(quizCrystalSignals.keys, everyElement(isIn(ids)));
   });
 
-  test('a unique intention wins over later answers', () {
+  test('emotion bucket alone selects its crystal', () {
     expect(
       assignCrystal(
         _answers({
-          8: [QuizOptionIds.q8Harmony],
-          1: [QuizOptionIds.q1ReducePuffiness],
-          7: [QuizOptionIds.q7Sculpted],
+          7: [QuizOptionIds.q7ReturnHarmony],
         }),
       ),
       Crystal.jade,
@@ -74,68 +43,52 @@ void main() {
     expect(
       assignCrystal(
         _answers({
-          8: [QuizOptionIds.q8Clarity],
-        }),
-      ),
-      Crystal.whiteQuartz,
-    );
-    expect(
-      assignCrystal(
-        _answers({
-          8: [QuizOptionIds.q8Expansion],
-        }),
-      ),
-      Crystal.whiteQuartz,
-    );
-    expect(
-      assignCrystal(
-        _answers({
-          8: [QuizOptionIds.q8SelfLove],
-        }),
-      ),
-      Crystal.jade,
-    );
-    expect(
-      assignCrystal(
-        _answers({
-          8: [QuizOptionIds.q8Vitality],
-        }),
-      ),
-      Crystal.redJasper,
-    );
-    expect(
-      assignCrystal(
-        _answers({
-          8: [QuizOptionIds.q8Grounding],
-        }),
-      ),
-      Crystal.redJasper,
-    );
-    expect(
-      assignCrystal(
-        _answers({
-          8: [QuizOptionIds.q8Protection],
+          8: [QuizOptionIds.q8SelfAware],
         }),
       ),
       Crystal.obsidian,
     );
-  });
-
-  test('Renewal stays tied until a later tier picks one crystal', () {
     expect(
       assignCrystal(
         _answers({
-          8: [QuizOptionIds.q8Renewal],
-          6: [QuizOptionIds.q6RedOrIrritated],
-          1: [QuizOptionIds.q1ReducePuffiness],
+          3: [QuizOptionIds.q3MentallyBusy],
         }),
       ),
-      Crystal.jade,
+      Crystal.whiteQuartz,
     );
+  });
+
+  test('weights favor emotion over skin; Q9 does not score', () {
+    final answers = _answers({
+      7: [QuizOptionIds.q7UnderstandBeneath], // Obsidian emotion
+      1: [QuizOptionIds.q1RadianceVitality], // Quartz skin
+      9: [QuizOptionIds.q9TenMinutes], // stored only
+    });
+
+    final scores = scoreCrystals(answers);
+    final weightSum = emotionWeight + skinWeight;
+    expect(scores[Crystal.obsidian], closeTo(emotionWeight / weightSum, 1e-9));
+    expect(scores[Crystal.whiteQuartz], closeTo(skinWeight / weightSum, 1e-9));
+    expect(scores.containsKey(Crystal.redJasper), isFalse);
+    expect(assignCrystal(answers), Crystal.obsidian);
+  });
+
+  test('empty emotion renormalizes to skin only', () {
+    final answers = _answers({
+      1: [QuizOptionIds.q1RadianceVitality],
+      9: [QuizOptionIds.q9ThreeMinutes],
+    });
+
+    final scores = scoreCrystals(answers);
+    expect(scores[Crystal.whiteQuartz], closeTo(1.0, 1e-9));
+    expect(scores.length, 1);
+    expect(assignCrystal(answers), Crystal.whiteQuartz);
+  });
+
+  test('skin bucket chooses when emotion answers are absent', () {
     expect(
       assignCrystal(
         _answers({
-          8: [QuizOptionIds.q8Renewal],
           2: [QuizOptionIds.q2Sensitive],
         }),
       ),
@@ -144,186 +97,54 @@ void main() {
     expect(
       assignCrystal(
         _answers({
-          8: [QuizOptionIds.q8Renewal],
-          1: [QuizOptionIds.q1ReducePuffiness],
-          7: [QuizOptionIds.q7Relaxed],
-        }),
-      ),
-      Crystal.obsidian,
-    );
-    expect(
-      assignCrystal(
-        _answers({
-          8: [QuizOptionIds.q8Renewal],
-          7: [QuizOptionIds.q7Sculpted],
-        }),
-      ),
-      Crystal.obsidian,
-    );
-    expect(
-      assignCrystal(
-        _answers({
-          8: [QuizOptionIds.q8Renewal],
-          7: [QuizOptionIds.q7LessPuffy],
-        }),
-      ),
-      Crystal.obsidian,
-    );
-  });
-
-  test('Renewal alone selects Obsidian', () {
-    expect(
-      assignCrystal(
-        _answers({
-          8: [QuizOptionIds.q8Renewal],
-        }),
-      ),
-      Crystal.obsidian,
-    );
-    expect(
-      assignCrystal(
-        _answers({
-          8: [QuizOptionIds.q8Renewal],
-          3: [QuizOptionIds.q3Morning],
-          9: [QuizOptionIds.q9Reset],
-          10: [QuizOptionIds.q10FirstRitual],
-        }),
-      ),
-      Crystal.obsidian,
-    );
-  });
-
-  test('Renewal with sensitive, irritated, or stress signals selects Jade', () {
-    expect(
-      assignCrystal(
-        _answers({
-          8: [QuizOptionIds.q8Renewal],
-          6: [QuizOptionIds.q6SlightlySensitive],
-        }),
-      ),
-      Crystal.jade,
-    );
-    expect(
-      assignCrystal(
-        _answers({
-          8: [QuizOptionIds.q8Renewal],
-          4: [QuizOptionIds.q4Jaw],
-        }),
-      ),
-      Crystal.jade,
-    );
-    expect(
-      assignCrystal(
-        _answers({
-          8: [QuizOptionIds.q8Renewal],
-          1: [QuizOptionIds.q1ReducePuffiness, QuizOptionIds.q1ReduceRedness],
-        }),
-      ),
-      Crystal.jade,
-    );
-  });
-
-  test('skin sensitivity outranks physical needs and post-ritual emotion', () {
-    expect(
-      assignCrystal(
-        _answers({
-          6: [QuizOptionIds.q6SlightlySensitive],
-          1: [QuizOptionIds.q1RestoreGlow],
-          7: [QuizOptionIds.q7Grounded],
-        }),
-      ),
-      Crystal.jade,
-    );
-    expect(
-      assignCrystal(
-        _answers({
-          4: [QuizOptionIds.q4Jaw],
-          7: [QuizOptionIds.q7Radiant],
-        }),
-      ),
-      Crystal.jade,
-    );
-    expect(
-      assignCrystal(
-        _answers({
-          1: [QuizOptionIds.q1RestoreGlow],
-        }),
-      ),
-      Crystal.whiteQuartz,
-    );
-    expect(
-      assignCrystal(
-        _answers({
-          7: [QuizOptionIds.q7Restored],
+          5: [QuizOptionIds.q5FirmnessVitality],
         }),
       ),
       Crystal.redJasper,
     );
-    expect(
-      assignCrystal(
-        _answers({
-          7: [QuizOptionIds.q7Connected],
-        }),
-      ),
-      Crystal.whiteQuartz,
-    );
   });
 
-  test(
-    'several physical signals stay tied until a later tier or the order',
-    () {
-      expect(
-        assignCrystal(
-          _answers({
-            1: [QuizOptionIds.q1ReducePuffiness, QuizOptionIds.q1ReduceRedness],
-            7: [QuizOptionIds.q7Sculpted],
-          }),
-        ),
-        Crystal.obsidian,
-      );
-      expect(
-        assignCrystal(
-          _answers({
-            1: [QuizOptionIds.q1ReducePuffiness, QuizOptionIds.q1ReduceRedness],
-          }),
-        ),
-        Crystal.jade,
-      );
-    },
-  );
+  test('safety answers do not affect crystal scores', () {
+    final withSafety = _answers({
+      7: [QuizOptionIds.q7GreaterClarity],
+      10: [QuizOptionIds.q10OpenBroken, QuizOptionIds.q10ActiveIrritation],
+    });
+    final withoutSafety = _answers({
+      7: [QuizOptionIds.q7GreaterClarity],
+    });
 
-  test('unmapped answers do not choose a crystal on their own', () {
+    expect(scoreCrystals(withSafety), scoreCrystals(withoutSafety));
+    expect(assignCrystal(withSafety), Crystal.whiteQuartz);
+  });
+
+  test('tie-break prefers Jade when scores match', () {
     expect(
       assignCrystal(
         _answers({
-          1: [
-            QuizOptionIds.q1DefineContours,
-            QuizOptionIds.q1SmoothFineLines,
-            QuizOptionIds.q1DeeplyHydrate,
-            QuizOptionIds.q1EvenSkinTone,
-            QuizOptionIds.q1CalmBlemishes,
-          ],
-          2: [QuizOptionIds.q2Dry],
-          4: [QuizOptionIds.q4Forehead],
-          5: [QuizOptionIds.q5Jawline],
-          6: [QuizOptionIds.q6Breakout],
+          7: [QuizOptionIds.q7ReturnHarmony],
+          8: [QuizOptionIds.q8ClearRefreshed],
         }),
       ),
       Crystal.jade,
     );
+  });
+
+  test('empty answers fall back to Jade', () {
     expect(assignCrystal(const QuizAnswers()), Crystal.jade);
+    expect(scoreCrystals(const QuizAnswers()), isEmpty);
   });
 
   test('answers round-trip through json', () {
     const original = QuizAnswers({
-      1: {QuizOptionIds.q1ReducePuffiness, QuizOptionIds.q1RestoreGlow},
-      8: {QuizOptionIds.q8Harmony},
+      1: {QuizOptionIds.q1CalmComfort},
+      8: {QuizOptionIds.q8CalmNurtured},
+      10: {QuizOptionIds.q10None},
     });
 
     final restored = QuizAnswers.fromJson(original.toJson());
 
     expect(restored.selectedIds(1), original.selectedIds(1));
-    expect(restored.selectedIds(8), {QuizOptionIds.q8Harmony});
-    expect(QuizAnswers.fromJson({'nope': 'x', '2': []}).selections, isEmpty);
+    expect(restored.selectedIds(8), {QuizOptionIds.q8CalmNurtured});
+    expect(restored.selectedIds(10), {QuizOptionIds.q10None});
   });
 }
