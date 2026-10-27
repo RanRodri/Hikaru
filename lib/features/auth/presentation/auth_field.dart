@@ -29,6 +29,7 @@ class AuthField extends StatefulWidget {
     this.errorText,
     this.onSubmitted,
     this.onTap,
+    this.surfaceAlpha = 0.4,
   });
 
   final TextEditingController controller;
@@ -44,6 +45,7 @@ class AuthField extends StatefulWidget {
   final String? errorText;
   final ValueChanged<String>? onSubmitted;
   final VoidCallback? onTap;
+  final double surfaceAlpha;
 
   @override
   State<AuthField> createState() => _AuthFieldState();
@@ -110,7 +112,9 @@ class _AuthFieldState extends State<AuthField> {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
               child: ColoredBox(
-                color: AppColors.darkIndigoBlue.withValues(alpha: 0.4),
+                color: AppColors.darkIndigoBlue.withValues(
+                  alpha: widget.surfaceAlpha,
+                ),
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(
                     AppSpacing.s6,
@@ -218,6 +222,7 @@ class AuthPillButton extends StatelessWidget {
     required this.foregroundColor,
     required this.onPressed,
     this.glow = false,
+    this.busy = false,
   });
 
   final String label;
@@ -225,6 +230,7 @@ class AuthPillButton extends StatelessWidget {
   final Color foregroundColor;
   final VoidCallback onPressed;
   final bool glow;
+  final bool busy;
 
   @override
   Widget build(BuildContext context) {
@@ -244,21 +250,35 @@ class AuthPillButton extends StatelessWidget {
             )
           : null,
       child: FilledButton(
-        onPressed: onPressed,
+        onPressed: busy ? null : onPressed,
         style: FilledButton.styleFrom(
           backgroundColor: backgroundColor,
+          disabledBackgroundColor: backgroundColor,
           foregroundColor: foregroundColor,
+          disabledForegroundColor: foregroundColor,
           shape: const StadiumBorder(),
           elevation: 0,
         ),
-        child: Text(
-          label,
-          style: AppTypography.subheadline.copyWith(
-            color: foregroundColor,
-            fontSize: AppFontSizes.s11,
-            letterSpacing: 1.1,
-          ),
-        ),
+        child: busy
+            ? Semantics(
+                label: label,
+                child: SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: foregroundColor,
+                  ),
+                ),
+              )
+            : Text(
+                label,
+                style: AppTypography.subheadline.copyWith(
+                  color: foregroundColor,
+                  fontSize: AppFontSizes.s11,
+                  letterSpacing: 1.1,
+                ),
+              ),
       ),
     );
   }

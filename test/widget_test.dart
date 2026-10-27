@@ -79,7 +79,7 @@ void main() {
     await tester.tap(find.text('BEGIN MY DISCOVERY'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Your Sanctuary Is\nAlmost Ready'), findsOneWidget);
+    expect(find.text('Your Sanctuary\nAwaits'), findsOneWidget);
     expect(find.text('CHOOSE YOUR PATH'), findsOneWidget);
     expect(find.text('DISCOVER HIKARU'), findsOneWidget);
     expect(find.text('BEGIN MY RITUAL'), findsOneWidget);
@@ -96,7 +96,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Create Your\nSanctuary'), findsOneWidget);
-    expect(find.text('CONTINUE'), findsOneWidget);
+    expect(find.text('BEGIN YOUR JOURNEY'), findsOneWidget);
 
     await tester.ensureVisible(find.text('Log in'));
     await tester.tap(find.text('Log in'));
@@ -124,10 +124,10 @@ void main() {
     expect(find.text('The\nListening Room'), findsOneWidget);
     expect(
       find.text(
-        "Share what's on your mind\n"
-        'so we can guide you with a\n'
-        'personalized ritual for your skin,\n'
-        'your body, and your energy.',
+        'Take a moment to connect with yourself.\n'
+        'Share your needs and intentions so we can\n'
+        'help you to create a personalized ritual\n'
+        'for your skin, body and energy.',
       ),
       findsOneWidget,
     );
@@ -168,7 +168,7 @@ void main() {
 
     expect(find.text('THE MIRROR GARDEN'), findsOneWidget);
     expect(
-      find.text('Add A Photo Of Your Face For Personal Tracking'),
+      find.text('Capture your beginning.'),
       findsOneWidget,
     );
     expect(find.text('CONTINUE'), findsOneWidget);

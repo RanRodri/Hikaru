@@ -12,6 +12,7 @@ class HikaruFaceIdButton extends StatelessWidget {
     required this.onPressed,
     required this.label,
     this.fingerprint = false,
+    this.busy = false,
   });
 
   static const String _iconAsset = 'assets/images/face_id.svg';
@@ -24,6 +25,7 @@ class HikaruFaceIdButton extends StatelessWidget {
   final VoidCallback onPressed;
   final String label;
   final bool fingerprint;
+  final bool busy;
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +34,7 @@ class HikaruFaceIdButton extends StatelessWidget {
       label: label,
       excludeSemantics: true,
       child: InkWell(
-        onTap: onPressed,
+        onTap: busy ? null : onPressed,
         borderRadius: BorderRadius.circular(AppRadii.r16),
         child: Padding(
           padding: const EdgeInsets.symmetric(
@@ -54,7 +56,16 @@ class HikaruFaceIdButton extends StatelessWidget {
                     width: AppSpacing.s0_75,
                   ),
                 ),
-                child: fingerprint
+                child: busy
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.champagneGold,
+                        ),
+                      )
+                    : fingerprint
                     ? const Icon(
                         Icons.fingerprint,
                         size: _iconSize,

@@ -8,6 +8,7 @@ import '../../../core/design_system/tokens/app_font_sizes.dart';
 import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/router/app_routes.dart';
+import '../../splash/presentation/splash_controller.dart';
 import '../../../l10n/app_localizations.dart';
 import '../data/auth_gateway.dart';
 import 'auth_background.dart';
@@ -166,7 +167,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           );
       if (!mounted) return;
       if (outcome == AuthSignUpOutcome.signedIn) {
-        context.go(AppRoutes.listeningRoom);
+        final route = await routeForOpenSession(ref);
+        if (!mounted) return;
+        context.go(route);
         return;
       }
       context.push(
@@ -189,7 +192,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     return Scaffold(
       backgroundColor: AppColors.darkIndigoBlue,
       body: AuthBackground(
-        overlay: AuthBackground.loginOverlay,
+        overlay: AuthBackground.registerOverlay,
         child: SafeArea(
           child: SingleChildScrollView(
             padding: EdgeInsets.fromLTRB(
@@ -216,7 +219,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   l10n.registerSubtitle,
                   textAlign: TextAlign.center,
                   style: AppTypography.body.copyWith(
-                    color: AppColors.fog.withValues(alpha: 0.85),
+                    color: AppColors.fog,
                     fontSize: AppFontSizes.s12,
                     height: 1.5,
                     letterSpacing: 0.3,
@@ -225,6 +228,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
                 const SizedBox(height: AppSpacing.s18),
                 AuthField(
+                  surfaceAlpha: 0.62,
                   controller: _usernameController,
                   label: l10n.registerUsernameLabel,
                   hint: l10n.registerUsernameHint,
@@ -239,6 +243,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
                 const SizedBox(height: AppSpacing.s10),
                 AuthField(
+                  surfaceAlpha: 0.62,
                   controller: _nameController,
                   label: l10n.registerFullNameLabel,
                   hint: l10n.registerFullNameHint,
@@ -250,6 +255,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
                 const SizedBox(height: AppSpacing.s10),
                 AuthField(
+                  surfaceAlpha: 0.62,
                   controller: _emailController,
                   label: l10n.authEmailLabel,
                   hint: l10n.authEmailHintExample,
@@ -262,6 +268,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
                 const SizedBox(height: AppSpacing.s10),
                 AuthField(
+                  surfaceAlpha: 0.62,
                   controller: _passwordController,
                   label: l10n.authPasswordLabel,
                   hint: '••••••••',
@@ -274,6 +281,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
                 const SizedBox(height: AppSpacing.s10),
                 AuthField(
+                  surfaceAlpha: 0.62,
                   controller: _birthdayController,
                   label: l10n.registerBirthdayLabel,
                   hint: l10n.registerBirthdayHint,
@@ -289,6 +297,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   backgroundColor: AppColors.champagneGold,
                   foregroundColor: AppColors.darkIndigoBlue,
                   glow: true,
+                  busy: _busy,
                   onPressed: _handleContinue,
                 ),
                 if (_formError != null) ...[
@@ -311,13 +320,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     Text(
                       l10n.registerHaveAccount,
                       style: AppTypography.body.copyWith(
-                        color: AppColors.fog.withValues(alpha: 0.55),
+                        color: AppColors.fog,
+                        shadows: authTextShadow,
                         fontSize: AppFontSizes.s12,
                         letterSpacing: 0,
                       ),
                     ),
                     TextButton(
-                      onPressed: _handleBack,
+                      onPressed: _busy ? null : _handleBack,
                       style: TextButton.styleFrom(
                         foregroundColor: AppColors.champagneGold,
                         minimumSize: const Size(44, 36),

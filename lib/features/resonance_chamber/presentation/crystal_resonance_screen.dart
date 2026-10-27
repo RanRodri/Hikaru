@@ -67,6 +67,7 @@ class _CrystalResonanceScreenState
   bool _projecting = false;
   bool _controlsVisible = false;
   bool _followPlayerPause = false;
+  bool _choosing = false;
   int _playbackToken = 0;
   CymaticEnvelope? _envelope;
 
@@ -230,14 +231,22 @@ class _CrystalResonanceScreenState
   /// Updates the active crystal for Home / sound. Does not rewrite the
   /// Listening Garden skin-care protocol stored in journey recommendation.
   Future<void> _handleChooseCrystal() async {
-    await ref.read(selectedCrystalProvider.notifier).select(_crystal);
-    if (!mounted) return;
-    final l10n = AppLocalizations.of(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(l10n.crystalChosenSnackbar(_crystal.localizedName(l10n))),
-      ),
-    );
+    if (_choosing) return;
+    setState(() => _choosing = true);
+    try {
+      await ref.read(selectedCrystalProvider.notifier).select(_crystal);
+      if (!mounted) return;
+      final l10n = AppLocalizations.of(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            l10n.crystalChosenSnackbar(_crystal.localizedName(l10n)),
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _choosing = false);
+    }
   }
 
   void _handleBackPressed() {
@@ -365,6 +374,7 @@ class _CrystalResonanceScreenState
                         ? _YourCrystalBadge(crystal: _crystal)
                         : HikaruPillButton(
                             label: l10n.crystalChoose,
+                            busy: _choosing,
                             onPressed: _handleChooseCrystal,
                           ),
                   ),

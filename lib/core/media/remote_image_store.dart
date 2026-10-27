@@ -1,8 +1,8 @@
+import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 
 import 'package:amplify_flutter/amplify_flutter.dart';
-import 'package:amplify_storage_s3/amplify_storage_s3.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -20,8 +20,9 @@ class DirectoryRemoteFileStore implements RemoteFileStore {
     try {
       final file = await _file(fileName);
       if (!await file.exists()) return null;
-      final bytes = await file.readAsBytes();
-      return bytes.isEmpty ? null : bytes;
+      final length = await file.length();
+      if (length <= 0) return null;
+      return const [1];
     } catch (error, stackTrace) {
       _report(error, stackTrace);
       return null;
@@ -67,15 +68,23 @@ final remoteImageCacheProvider = Provider<RemoteFileCache>(
   (ref) => RemoteFileCache(
     storagePrefix: 'crystal-images',
     canFetch: _signedIn,
-    signedUrl: _amplifySignedUrl,
-    readUrl: _downloadUrl,
+    download: _amplifyDownload,
     store: DirectoryRemoteFileStore(),
   ),
 );
 
-final remoteImagePathProvider = FutureProvider.family<String?, String>(
-  (ref, fileName) => ref.watch(remoteImageCacheProvider).resolve(fileName),
-);
+final remoteImagePathProvider = FutureProvider.family<String?, String>((
+  ref,
+  fileName,
+) async {
+  final cache = ref.watch(remoteImageCacheProvider);
+  final first = await cache.resolve(fileName);
+  if (first != null) return first;
+  // The first attempt can run before the identity credentials are ready.
+  await Future<void>.delayed(const Duration(milliseconds: 600));
+  if (!ref.mounted) return null;
+  return cache.resolve(fileName);
+});
 
 Future<bool> _signedIn() async {
   if (!Amplify.isConfigured) return false;
@@ -87,31 +96,39 @@ Future<bool> _signedIn() async {
   }
 }
 
-Future<Uri?> _amplifySignedUrl(String storagePath) async {
-  final result = await Amplify.Storage.getUrl(
-    path: StoragePath.fromString(storagePath),
-    options: const StorageGetUrlOptions(
-      pluginOptions: S3GetUrlPluginOptions(
-        validateObjectExistence: true,
-        expiresIn: Duration(minutes: 15),
-      ),
-    ),
-  ).result;
-  return result.url;
+/// Reads the object with the signed-in role. A presigned URL plus a raw
+/// HTTP GET fails for these KMS objects and the screen stays blank.
+Future<List<int>?> _amplifyDownload(String storagePath) async {
+  try {
+    final result = await Amplify.Storage.downloadData(
+      path: StoragePath.fromString(storagePath),
+    ).result;
+    if (result.bytes.isEmpty) return null;
+    return result.bytes;
+  } on AmplifyException catch (error, stackTrace) {
+    log(
+      'Remote image $storagePath',
+      name: 'hikaru.media',
+      error: error,
+      stackTrace: stackTrace,
+    );
+    return null;
+  }
 }
 
-Future<List<int>?> _downloadUrl(Uri url) async {
-  final client = HttpClient();
+/// Puts the Listening Room and quiz photos on the device before those
+/// screens open, so the first frame is not a blank background.
+Future<void> prepareListeningRoomImages(RemoteFileCache cache) async {
+  final heroes = [
+    cache.resolve('listening_room.png'),
+    cache.resolve('listening_room_quiz.png'),
+  ];
+  cache.resolve('ritual_ready.png');
+  cache.resolve('mirror_garden.png');
   try {
-    final request = await client.getUrl(url);
-    final response = await request.close();
-    if (response.statusCode != HttpStatus.ok) return null;
-    return response.fold<List<int>>(
-      <int>[],
-      (bytes, chunk) => bytes..addAll(chunk),
-    );
-  } finally {
-    client.close();
+    await Future.wait(heroes).timeout(const Duration(seconds: 6));
+  } on TimeoutException {
+    // Open the screen anyway. The photo appears if the download catches up.
   }
 }
 

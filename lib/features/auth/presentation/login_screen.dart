@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
@@ -8,7 +9,9 @@ import '../../../core/design_system/tokens/app_radii.dart';
 import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/design_system/widgets/hikaru_face_id_button.dart';
+import '../../../core/design_system/widgets/hikaru_pill_button.dart';
 import '../../../core/router/app_routes.dart';
+import '../../splash/presentation/splash_controller.dart';
 import '../../../l10n/app_localizations.dart';
 import '../application/biometric_login_controller.dart';
 import '../data/auth_gateway.dart';
@@ -72,27 +75,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final method = _biometricLabel(l10n, kind);
     final accepted = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.darkIndigoBlue,
-        title: Text(
-          l10n.biometricOfferTitle(method),
-          style: AppTypography.headline.copyWith(color: AppColors.white),
-        ),
-        content: Text(
-          l10n.biometricOfferBody(method),
-          style: AppTypography.body.copyWith(color: AppColors.fog, height: 1.4),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(l10n.biometricOfferDecline),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(l10n.biometricOfferAccept(method)),
-          ),
-        ],
-      ),
+      barrierDismissible: false,
+      barrierColor: AppColors.scrim70,
+      builder: (context) => _BiometricOffer(kind: kind, method: method),
     );
     if (!mounted) return;
     if (accepted == true) {
@@ -118,7 +103,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           .read(biometricLoginControllerProvider.notifier)
           .signIn(reason: l10n.biometricSignInReason);
       if (!mounted || !signedIn) return;
-      context.go(AppRoutes.listeningRoom);
+      final route = await routeForOpenSession(ref);
+      if (!mounted) return;
+      context.go(route);
     } on AuthRequestException catch (error) {
       if (!mounted) return;
       setState(() => _formError = error.message);
@@ -157,7 +144,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (!mounted) return;
       await _offerBiometric(identity, password);
       if (!mounted) return;
-      context.go(AppRoutes.listeningRoom);
+      final route = await routeForOpenSession(ref);
+      if (!mounted) return;
+      context.go(route);
     } on AuthRequestException catch (error) {
       if (!mounted) return;
       if (error.message == 'confirmation-required') {
@@ -260,8 +249,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             child: Align(
                               alignment: Alignment.centerRight,
                               child: TextButton(
-                                onPressed: () =>
-                                    context.push(AppRoutes.resetPassword),
+                                onPressed: _busy
+                                    ? null
+                                    : () => context.push(
+                                        AppRoutes.resetPassword,
+                                      ),
                                 style: TextButton.styleFrom(
                                   foregroundColor: AppColors.champagneGold,
                                   minimumSize: const Size(44, 44),
@@ -295,6 +287,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         backgroundColor: AppColors.champagneGold,
                         foregroundColor: AppColors.darkIndigoBlue,
                         glow: true,
+                        busy: _busy,
                         onPressed: _handleSignIn,
                       ),
                       if (_formError != null) ...[
@@ -323,6 +316,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         HikaruFaceIdButton(
                           label: _biometricLabel(l10n, sensorKind),
                           fingerprint: sensorKind != BiometricKind.face,
+                          busy: _busy,
                           onPressed: _handleBiometricSignIn,
                         ),
                       ],
@@ -340,7 +334,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ),
                           ),
                           TextButton(
-                            onPressed: () => context.push(AppRoutes.register),
+                            onPressed: _busy
+                                ? null
+                                : () => context.push(AppRoutes.register),
                             style: TextButton.styleFrom(
                               foregroundColor: AppColors.champagneGold,
                               minimumSize: const Size(44, 36),
@@ -427,6 +423,111 @@ class _RememberMe extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BiometricOffer extends StatelessWidget {
+  const _BiometricOffer({required this.kind, required this.method});
+
+  static const String _faceAsset = 'assets/images/face_id.svg';
+
+  final BiometricKind kind;
+  final String method;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final face = kind == BiometricKind.face;
+    return Dialog(
+      backgroundColor: AppColors.darkIndigoBlue,
+      surfaceTintColor: AppColors.darkIndigoBlue,
+      insetPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.s24),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadii.r28),
+        side: BorderSide(
+          color: AppColors.champagneGold.withValues(alpha: 0.45),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.s24,
+          AppSpacing.s32,
+          AppSpacing.s24,
+          AppSpacing.s12,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.champagneGold.withValues(alpha: 0.12),
+                border: Border.all(color: AppColors.champagneGold, width: 1),
+              ),
+              child: face
+                  ? SvgPicture.asset(
+                      _faceAsset,
+                      width: 32,
+                      height: 32,
+                      colorFilter: const ColorFilter.mode(
+                        AppColors.champagneGold,
+                        BlendMode.srcIn,
+                      ),
+                    )
+                  : const Icon(
+                      Icons.fingerprint,
+                      size: 36,
+                      color: AppColors.champagneGold,
+                    ),
+            ),
+            const SizedBox(height: AppSpacing.s20),
+            Text(
+              l10n.biometricOfferTitle(method),
+              textAlign: TextAlign.center,
+              style: AppTypography.subtitle.copyWith(
+                color: AppColors.white,
+                fontSize: AppFontSizes.s22,
+                fontWeight: FontWeight.w500,
+                height: 1.2,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.s10),
+            Text(
+              l10n.biometricOfferBody(method),
+              textAlign: TextAlign.center,
+              style: AppTypography.body.copyWith(
+                color: AppColors.fog,
+                fontSize: AppFontSizes.s14,
+                height: 1.45,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.s24),
+            HikaruPillButton(
+              label: l10n.biometricOfferAccept(method).toUpperCase(),
+              onPressed: () => Navigator.of(context).pop(true),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.champagneGold,
+                minimumSize: const Size(44, 44),
+              ),
+              child: Text(
+                l10n.biometricOfferDecline,
+                style: AppTypography.subheadline.copyWith(
+                  color: AppColors.champagneGold,
+                  fontSize: AppFontSizes.s11,
+                  letterSpacing: 1.6,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

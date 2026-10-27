@@ -64,11 +64,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get discoveryFooter => 'BEAUTY MEETS FREQUENCY';
 
   @override
-  String get ritualHeadline => 'Your Sanctuary Is\nAlmost Ready';
+  String get ritualHeadline => 'Your Sanctuary\nAwaits';
 
   @override
   String get ritualSubtitle =>
-      'A sacred tool will elevate your ritual\nand guide you to visible transformation.';
+      'Discover a new ritual; where beauty, intention and longevity come together.';
 
   @override
   String get ritualChoosePath => 'CHOOSE YOUR PATH';
@@ -192,7 +192,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get registerSubtitle =>
-      'Let\'s begin with essentials to\npersonalize your experience.';
+      'Your journey to beauty, balance and longevity begins here.';
 
   @override
   String get registerFullNameLabel => 'Full Name';
@@ -216,7 +216,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get registerErrorBirthdayRequired => 'Select your birthday';
 
   @override
-  String get registerContinue => 'CONTINUE';
+  String get registerContinue => 'BEGIN YOUR JOURNEY';
 
   @override
   String get registerHaveAccount => 'Already have an account? ';
@@ -296,11 +296,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get listeningRoomTitle => 'The\nListening Room';
 
   @override
-  String get listeningRoomTagline => 'A  SPACE  TO  BE  HEARD';
+  String get listeningRoomTagline => 'A  SPACE  TO  LISTEN  WITHIN';
 
   @override
   String get listeningRoomDescription =>
-      'Share what\'s on your mind\nso we can guide you with a\npersonalized ritual for your skin,\nyour body, and your energy.';
+      'Take a moment to connect with yourself.\nShare your needs and intentions so we can\nhelp you to create a personalized ritual\nfor your skin, body and energy.';
 
   @override
   String get listeningRoomBegin => 'BEGIN';
@@ -309,10 +309,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get listeningRoomFooter => 'LISTEN   ·   ALIGN   ·   RECEIVE';
 
   @override
-  String get quizHeader => 'THE LISTENING GARDEN';
+  String get quizHeader => 'THE LISTENING ROOM';
 
   @override
-  String get quizTagline => 'A SPACE TO BE HEARD';
+  String get quizTagline => 'A  SPACE  TO  BE  HEARD';
 
   @override
   String quizProgressSemantics(int number, int total) {
@@ -327,7 +327,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ritualReadyBody =>
-      'Your personalized Hikaru Ritual has been thoughtfully prepared, bringing together the techniques, crystal, frequencies, and intention that best support your skin and your energy today.';
+      'Inspired by your unique needs and intentions, your Hikaru Lift Ritual brings together: mindful touch, crystal energy, and frequencies to guide you toward beauty, balance and inner harmony.';
 
   @override
   String get ritualReadyEnter => 'ENTER YOUR RITUAL';
@@ -505,8 +505,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mirrorGardenEyebrow => 'THE MIRROR GARDEN';
 
   @override
-  String get mirrorGardenTitle =>
-      'Add A Photo Of Your Face For Personal Tracking';
+  String get mirrorGardenTitle => 'Capture your beginning.';
 
   @override
   String get mirrorGardenSkip => 'SKIP FOR NOW';
@@ -519,7 +518,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mirrorGardenHint =>
-      'A photo helps you celebrate your progress over time and compare your results throughout your Hikaru journey.';
+      'Take a photo to create a personal record of your 30-day Hikaru journey and observe your skin\'s evolution over time.\nEvery moment begins with a moment of awareness.\nYour photo is for your personal reflection.';
 
   @override
   String get mirrorTakePhoto => 'TAKE A PHOTO';
@@ -967,32 +966,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeGardenSubtitle => 'Your Journey Begins Within';
 
   @override
-  String get homeTourGardenTitle => 'YOUR SANCTUARY';
+  String get homeTourGardenTitle => 'Your sanctuary';
 
   @override
   String get homeTourGardenBody =>
-      'This is your sanctuary. The numbers mark the order of the day.';
+      'These circles are today\'s ritual. The numbers show the order.';
 
   @override
-  String get homeTourOrderTitle => 'THE ORDER';
+  String get homeTourOrderTitle => 'One, then two, then three';
 
   @override
   String get homeTourOrderBody =>
-      'Merkaba is 1. Face and body are 2. Your crystal is 3. Each circle opens on its own.';
+      'Merkaba comes first. Face and body are next. Your crystal is last.';
 
   @override
-  String get homeTourBeginTitle => 'BEGIN TODAY';
+  String get homeTourBeginTitle => 'Begin here';
 
   @override
   String get homeTourBeginBody =>
-      'The center symbol starts today\'s ritual in that order. The circles open each part on its own.';
+      'Tap the center symbol to start today\'s ritual in that order.';
 
   @override
-  String get homeTourBarTitle => 'THE BAR';
+  String get homeTourBarTitle => 'The rest of Hikaru';
 
   @override
   String get homeTourBarBody =>
-      'Journey keeps your day, streak, and photos. Settings keeps your account, language, and reminders.';
+      'Journey keeps your day, streak, and photos. Settings keeps your account.';
 
   @override
   String get homeTourSkip => 'SKIP';
@@ -1641,17 +1640,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String biometricOfferTitle(String method) {
-    return 'Sign in with $method';
+    return 'Enable $method';
   }
 
   @override
   String biometricOfferBody(String method) {
-    return 'Next time Hikaru can open with $method. The password stays on this phone.';
+    return 'Open Hikaru next time with $method. Your password stays on this phone.';
   }
 
   @override
   String biometricOfferAccept(String method) {
-    return 'USE $method';
+    return 'Enable $method';
   }
 
   @override

@@ -65,11 +65,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get discoveryFooter => 'LA BELLEZA ENCUENTRA LA FRECUENCIA';
 
   @override
-  String get ritualHeadline => 'Tu santuario está\ncasi listo';
+  String get ritualHeadline => 'Tu santuario\nte espera';
 
   @override
   String get ritualSubtitle =>
-      'Una herramienta sagrada elevará tu ritual\ny te guiará hacia una transformación visible.';
+      'Descubre un ritual nuevo; donde la belleza, la intención y la longevidad se encuentran.';
 
   @override
   String get ritualChoosePath => 'ELIGE TU CAMINO';
@@ -193,7 +193,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get registerSubtitle =>
-      'Comencemos con lo esencial para\npersonalizar tu experiencia.';
+      'Tu camino hacia la belleza, el equilibrio y la longevidad empieza aquí.';
 
   @override
   String get registerFullNameLabel => 'Nombre completo';
@@ -218,7 +218,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'Selecciona tu fecha de nacimiento';
 
   @override
-  String get registerContinue => 'CONTINUAR';
+  String get registerContinue => 'COMIENZA TU VIAJE';
 
   @override
   String get registerHaveAccount => '¿Ya tienes una cuenta? ';
@@ -298,11 +298,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get listeningRoomTitle => 'La Sala\nde la Escucha';
 
   @override
-  String get listeningRoomTagline => 'UN  ESPACIO  QUE  TE  ESCUCHA';
+  String get listeningRoomTagline => 'UN  ESPACIO  PARA  ESCUCHARTE';
 
   @override
   String get listeningRoomDescription =>
-      'Cuéntanos qué tienes en mente\npara guiarte con un ritual\npersonalizado para tu piel,\ntu cuerpo y tu energía.';
+      'Tómate un momento para conectar contigo.\nComparte tus necesidades e intenciones\npara que podamos ayudarte a crear\nun ritual personalizado para tu piel, cuerpo y energía.';
 
   @override
   String get listeningRoomBegin => 'COMENZAR';
@@ -311,10 +311,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get listeningRoomFooter => 'ESCUCHA   ·   ALINEA   ·   RECIBE';
 
   @override
-  String get quizHeader => 'EL JARDÍN DE LA ESCUCHA';
+  String get quizHeader => 'LA SALA DE LA ESCUCHA';
 
   @override
-  String get quizTagline => 'UN ESPACIO QUE TE ESCUCHA';
+  String get quizTagline => 'UN  ESPACIO  QUE  TE  ESCUCHA';
 
   @override
   String quizProgressSemantics(int number, int total) {
@@ -329,7 +329,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get ritualReadyBody =>
-      'Tu ritual Hikaru personalizado ha sido preparado con esmero, reuniendo las técnicas, el cristal, las frecuencias y la intención que mejor apoyan tu piel y tu energía hoy.';
+      'Inspirado en tus necesidades e intenciones, tu ritual Hikaru Lift reúne el toque consciente, la energía del cristal y las frecuencias para guiarte hacia la belleza, el equilibrio y la armonía interior.';
 
   @override
   String get ritualReadyEnter => 'ENTRA A TU RITUAL';
@@ -509,8 +509,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get mirrorGardenEyebrow => 'EL JARDÍN DEL ESPEJO';
 
   @override
-  String get mirrorGardenTitle =>
-      'Agrega una foto de tu rostro para tu seguimiento personal';
+  String get mirrorGardenTitle => 'Captura tu comienzo.';
 
   @override
   String get mirrorGardenSkip => 'OMITIR POR AHORA';
@@ -523,7 +522,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get mirrorGardenHint =>
-      'Una foto te ayuda a celebrar tu progreso y a comparar tus resultados a lo largo de tu viaje con Hikaru.';
+      'Toma una foto para crear un registro personal de tu viaje Hikaru de 30 días y observar la evolución de tu piel con el tiempo.\nCada momento comienza con un instante de conciencia.\nTu foto es para tu reflexión personal.';
 
   @override
   String get mirrorTakePhoto => 'TOMAR UNA FOTO';
@@ -982,32 +981,32 @@ class AppLocalizationsEs extends AppLocalizations {
   String get homeGardenSubtitle => 'Tu viaje comienza en tu interior';
 
   @override
-  String get homeTourGardenTitle => 'TU SANTUARIO';
+  String get homeTourGardenTitle => 'Tu santuario';
 
   @override
   String get homeTourGardenBody =>
-      'Este es tu santuario. Los números marcan el orden del día.';
+      'Estos círculos son el ritual de hoy. Los números muestran el orden.';
 
   @override
-  String get homeTourOrderTitle => 'EL ORDEN';
+  String get homeTourOrderTitle => 'Uno, luego dos, luego tres';
 
   @override
   String get homeTourOrderBody =>
-      'Merkaba es el 1. Rostro y cuerpo son el 2. Tu cristal es el 3. Cada círculo se abre por separado.';
+      'Merkaba va primero. Rostro y cuerpo van después. Tu cristal es el último.';
 
   @override
-  String get homeTourBeginTitle => 'EMPIEZA HOY';
+  String get homeTourBeginTitle => 'Empieza aquí';
 
   @override
   String get homeTourBeginBody =>
-      'El símbolo del centro empieza el ritual de hoy en ese orden. Los círculos abren cada parte por separado.';
+      'Toca el símbolo del centro para iniciar el ritual de hoy en ese orden.';
 
   @override
-  String get homeTourBarTitle => 'LA BARRA';
+  String get homeTourBarTitle => 'El resto de Hikaru';
 
   @override
   String get homeTourBarBody =>
-      'Viaje guarda el día, la racha y las fotos. Ajustes guarda la cuenta, el idioma y los recordatorios.';
+      'Viaje guarda el día, la racha y las fotos. Ajustes guarda tu cuenta.';
 
   @override
   String get homeTourSkip => 'OMITIR';
@@ -1659,17 +1658,17 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String biometricOfferTitle(String method) {
-    return 'Entra con $method';
+    return 'Activa $method';
   }
 
   @override
   String biometricOfferBody(String method) {
-    return 'La próxima vez Hikaru puede abrirse con $method. La contraseña se queda en este teléfono.';
+    return 'Abre Hikaru la próxima vez con $method. La contraseña se queda en este teléfono.';
   }
 
   @override
   String biometricOfferAccept(String method) {
-    return 'USAR $method';
+    return 'Activar $method';
   }
 
   @override

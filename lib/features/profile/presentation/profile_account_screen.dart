@@ -224,7 +224,8 @@ class _ProfileAccountScreenState extends ConsumerState<ProfileAccountScreen> {
                 const SizedBox(height: AppSpacing.s28),
                 HikaruPillButton(
                   label: l10n.profileAccountSave,
-                  onPressed: _saving ? () {} : _handleSave,
+                  busy: _saving,
+                  onPressed: _handleSave,
                 ),
               ],
             ),

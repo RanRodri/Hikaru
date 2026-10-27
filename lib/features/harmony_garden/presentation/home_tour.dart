@@ -81,7 +81,8 @@ class _HomeTourState extends ConsumerState<HomeTour> {
     final copy = _copy(l10n, _step);
     final last = _step == _HomeTourStep.bar;
     final anchors = ref.watch(homeTourAnchorsProvider);
-    final hole = _holeFor(context, anchors, _step);
+    final spots = _spotsFor(context, anchors, _step);
+    final index = _HomeTourStep.values.indexOf(_step);
 
     return SizedBox.expand(
       child: Stack(
@@ -90,8 +91,13 @@ class _HomeTourState extends ConsumerState<HomeTour> {
             child: GestureDetector(
               onTap: () {},
               behavior: HitTestBehavior.opaque,
-              child: CustomPaint(painter: _TourScrimPainter(hole: hole)),
+              child: CustomPaint(painter: _TourScrimPainter(spots: spots)),
             ),
+          ),
+          Positioned(
+            top: MediaQuery.paddingOf(context).top + AppSpacing.s8,
+            right: AppSpacing.s8,
+            child: _TourTextButton(label: l10n.homeTourSkip, onPressed: _finish),
           ),
           Positioned(
             left: AppSpacing.s20,
@@ -99,15 +105,13 @@ class _HomeTourState extends ConsumerState<HomeTour> {
             bottom:
                 HikaruNavigationBar.height +
                 MediaQuery.paddingOf(context).bottom +
-                AppSpacing.s12,
+                AppSpacing.s16,
             child: _TourCard(
               title: copy.title,
               body: copy.body,
-              step: _HomeTourStep.values.indexOf(_step),
+              step: index,
               count: _HomeTourStep.values.length,
-              skipLabel: l10n.homeTourSkip,
               advanceLabel: last ? l10n.homeTourDone : l10n.homeTourNext,
-              onSkip: _finish,
               onAdvance: _handleNext,
             ),
           ),
@@ -142,32 +146,38 @@ _TourCopy _copy(AppLocalizations l10n, _HomeTourStep step) {
   };
 }
 
-Rect? _holeFor(
+List<RRect> _spotsFor(
   BuildContext context,
   HomeTourAnchors anchors,
   _HomeTourStep step,
 ) {
   final overlay = context.findRenderObject();
-  if (overlay is! RenderBox || !overlay.hasSize) return null;
-  final keys = switch (step) {
-    _HomeTourStep.garden => [
-      anchors.merkaba,
-      anchors.face,
-      anchors.body,
-      anchors.crystal,
-      anchors.library,
-      anchors.title,
+  if (overlay is! RenderBox || !overlay.hasSize) return const [];
+  Rect? rectOf(GlobalKey key) => _rectOf(key, overlay);
+  final ritual = [
+    rectOf(anchors.merkaba),
+    rectOf(anchors.face),
+    rectOf(anchors.body),
+    rectOf(anchors.crystal),
+    rectOf(anchors.library),
+  ].nonNulls.toList();
+
+  return switch (step) {
+    _HomeTourStep.garden => [if (_orbit(ritual) case final orbit?) orbit],
+    _HomeTourStep.order =>
+      [
+        rectOf(anchors.merkaba),
+        rectOf(anchors.face),
+        rectOf(anchors.body),
+        rectOf(anchors.crystal),
+      ].nonNulls.map(_disc).toList(),
+    _HomeTourStep.begin => [
+      if (rectOf(anchors.sanctuary) case final spot?) _disc(spot),
     ],
-    _HomeTourStep.order => [
-      anchors.merkaba,
-      anchors.face,
-      anchors.body,
-      anchors.crystal,
+    _HomeTourStep.bar => [
+      if (rectOf(anchors.bar) case final bar?) _stadium(bar),
     ],
-    _HomeTourStep.begin => [anchors.sanctuary],
-    _HomeTourStep.bar => [anchors.bar],
   };
-  return _union(keys.map((key) => _rectOf(key, overlay)));
 }
 
 Rect? _rectOf(GlobalKey key, RenderBox ancestor) {
@@ -177,62 +187,78 @@ Rect? _rectOf(GlobalKey key, RenderBox ancestor) {
   return topLeft & box.size;
 }
 
-Rect? _union(Iterable<Rect?> rects) {
-  Rect? hole;
+/// One calm circle around the whole orbit, not a box around every widget.
+RRect? _orbit(List<Rect> rects) {
+  if (rects.isEmpty) return null;
+  var center = Offset.zero;
   for (final rect in rects) {
-    if (rect == null) continue;
-    hole = hole == null ? rect : hole.expandToInclude(rect);
+    center += rect.center;
   }
-  return hole;
+  center = center / rects.length.toDouble();
+  var radius = 0.0;
+  for (final rect in rects) {
+    final reach =
+        (rect.center - center).distance + math.max(rect.width, rect.height) / 2;
+    if (reach > radius) radius = reach;
+  }
+  radius += 16;
+  return RRect.fromRectAndRadius(
+    Rect.fromCircle(center: center, radius: radius),
+    Radius.circular(radius),
+  );
+}
+
+RRect _disc(Rect rect) {
+  final radius = math.max(rect.width, rect.height) / 2 + 12;
+  return RRect.fromRectAndRadius(
+    Rect.fromCircle(center: rect.center, radius: radius),
+    Radius.circular(radius),
+  );
+}
+
+RRect _stadium(Rect rect) {
+  final padded = rect.inflate(6);
+  return RRect.fromRectAndRadius(
+    padded,
+    Radius.circular(padded.height / 2),
+  );
 }
 
 class _TourScrimPainter extends CustomPainter {
-  const _TourScrimPainter({required this.hole});
+  const _TourScrimPainter({required this.spots});
 
-  final Rect? hole;
+  final List<RRect> spots;
 
   @override
   void paint(Canvas canvas, Size size) {
     final veil = Path()..addRect(Offset.zero & size);
-    final spot = hole;
-    if (spot != null) {
-      veil.addRRect(_spotShape(spot));
+    for (final spot in spots) {
+      veil.addRRect(spot);
     }
     veil.fillType = PathFillType.evenOdd;
-    canvas.drawPath(
-      veil,
-      Paint()..color = AppColors.darkIndigoBlue.withValues(alpha: 0.72),
-    );
-    if (spot == null) return;
-    final shape = _spotShape(spot);
-    canvas.drawRRect(
-      shape,
-      Paint()
-        ..color = AppColors.goldGlow.withValues(alpha: 0.28)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
-    );
-    canvas.drawRRect(
-      shape,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.2
-        ..color = AppColors.champagneGold,
-    );
-  }
-
-  RRect _spotShape(Rect spot) {
-    final padded = spot.inflate(AppSpacing.s8);
-    final round =
-        math.min(padded.width, padded.height) /
-            math.max(padded.width, padded.height) >
-        0.8;
-    final radius = round ? math.min(padded.width, padded.height) / 2 : 22.0;
-    return RRect.fromRectAndRadius(padded, Radius.circular(radius));
+    canvas.drawPath(veil, Paint()..color = const Color(0xA6080A14));
+    for (final spot in spots) {
+      canvas.drawRRect(
+        spot,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 8
+          ..color = AppColors.goldGlow.withValues(alpha: 0.16)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
+      );
+      canvas.drawRRect(
+        spot,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.2
+          ..color = AppColors.champagneGold.withValues(alpha: 0.92),
+      );
+    }
   }
 
   @override
   bool shouldRepaint(covariant _TourScrimPainter oldDelegate) =>
-      oldDelegate.hole != hole;
+      oldDelegate.spots != spots;
 }
 
 class _TourCard extends StatelessWidget {
@@ -241,9 +267,7 @@ class _TourCard extends StatelessWidget {
     required this.body,
     required this.step,
     required this.count,
-    required this.skipLabel,
     required this.advanceLabel,
-    required this.onSkip,
     required this.onAdvance,
   });
 
@@ -251,64 +275,79 @@ class _TourCard extends StatelessWidget {
   final String body;
   final int step;
   final int count;
-  final String skipLabel;
   final String advanceLabel;
-  final VoidCallback onSkip;
   final VoidCallback onAdvance;
 
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: AppColors.darkIndigoBlue.withValues(alpha: 0.94),
-        borderRadius: BorderRadius.circular(AppRadii.r16),
+        color: const Color(0xF210121C),
+        borderRadius: BorderRadius.circular(AppRadii.r28),
         border: Border.all(
-          color: AppColors.champagneGold.withValues(alpha: 0.7),
+          color: AppColors.champagneGold.withValues(alpha: 0.28),
         ),
         boxShadow: const [
-          BoxShadow(color: AppColors.mirrorGold, blurRadius: 18),
+          BoxShadow(
+            color: AppColors.scrim80,
+            blurRadius: 28,
+            offset: Offset(0, 14),
+          ),
         ],
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(
+          AppSpacing.s24,
+          AppSpacing.s20,
+          AppSpacing.s24,
           AppSpacing.s16,
-          AppSpacing.s14,
-          AppSpacing.s16,
-          AppSpacing.s12,
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              title,
-              style: AppTypography.subheadline.copyWith(
-                color: AppColors.champagneGold,
-                fontSize: AppFontSizes.s11,
-                letterSpacing: 1.6,
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 220),
+          child: Column(
+            key: ValueKey(step),
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '${step + 1}  /  $count',
+                style: AppTypography.subheadline.copyWith(
+                  color: AppColors.champagneGold,
+                  fontSize: AppFontSizes.s11,
+                  letterSpacing: 2.2,
+                ),
               ),
-            ),
-            const SizedBox(height: AppSpacing.s8),
-            Text(
-              body,
-              style: AppTypography.body.copyWith(
-                color: AppColors.fog,
-                fontSize: AppFontSizes.s13,
-                height: 1.45,
-                letterSpacing: 0.2,
+              const SizedBox(height: AppSpacing.s8),
+              Text(
+                title,
+                style: AppTypography.subtitle.copyWith(
+                  color: AppColors.white,
+                  fontSize: AppFontSizes.s22,
+                  fontWeight: FontWeight.w500,
+                  height: 1.15,
+                  letterSpacing: 0,
+                ),
               ),
-            ),
-            const SizedBox(height: AppSpacing.s12),
-            Row(
-              children: [
-                _TourTextButton(label: skipLabel, onPressed: onSkip),
-                const Spacer(),
-                _TourDots(step: step, count: count),
-                const SizedBox(width: AppSpacing.s12),
-                _TourAdvanceButton(label: advanceLabel, onPressed: onAdvance),
-              ],
-            ),
-          ],
+              const SizedBox(height: AppSpacing.s8),
+              Text(
+                body,
+                style: AppTypography.body.copyWith(
+                  color: AppColors.fog.withValues(alpha: 0.88),
+                  fontSize: AppFontSizes.s14,
+                  height: 1.45,
+                  letterSpacing: 0,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.s20),
+              Row(
+                children: [
+                  _TourDots(step: step, count: count),
+                  const Spacer(),
+                  _TourAdvanceButton(label: advanceLabel, onPressed: onAdvance),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

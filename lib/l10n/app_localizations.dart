@@ -203,13 +203,13 @@ abstract class AppLocalizations {
   /// No description provided for @ritualHeadline.
   ///
   /// In en, this message translates to:
-  /// **'Your Sanctuary Is\nAlmost Ready'**
+  /// **'Your Sanctuary\nAwaits'**
   String get ritualHeadline;
 
   /// No description provided for @ritualSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'A sacred tool will elevate your ritual\nand guide you to visible transformation.'**
+  /// **'Discover a new ritual; where beauty, intention and longevity come together.'**
   String get ritualSubtitle;
 
   /// No description provided for @ritualChoosePath.
@@ -449,7 +449,7 @@ abstract class AppLocalizations {
   /// No description provided for @registerSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Let\'s begin with essentials to\npersonalize your experience.'**
+  /// **'Your journey to beauty, balance and longevity begins here.'**
   String get registerSubtitle;
 
   /// No description provided for @registerFullNameLabel.
@@ -497,7 +497,7 @@ abstract class AppLocalizations {
   /// No description provided for @registerContinue.
   ///
   /// In en, this message translates to:
-  /// **'CONTINUE'**
+  /// **'BEGIN YOUR JOURNEY'**
   String get registerContinue;
 
   /// No description provided for @registerHaveAccount.
@@ -653,13 +653,13 @@ abstract class AppLocalizations {
   /// No description provided for @listeningRoomTagline.
   ///
   /// In en, this message translates to:
-  /// **'A  SPACE  TO  BE  HEARD'**
+  /// **'A  SPACE  TO  LISTEN  WITHIN'**
   String get listeningRoomTagline;
 
   /// No description provided for @listeningRoomDescription.
   ///
   /// In en, this message translates to:
-  /// **'Share what\'s on your mind\nso we can guide you with a\npersonalized ritual for your skin,\nyour body, and your energy.'**
+  /// **'Take a moment to connect with yourself.\nShare your needs and intentions so we can\nhelp you to create a personalized ritual\nfor your skin, body and energy.'**
   String get listeningRoomDescription;
 
   /// No description provided for @listeningRoomBegin.
@@ -677,13 +677,13 @@ abstract class AppLocalizations {
   /// No description provided for @quizHeader.
   ///
   /// In en, this message translates to:
-  /// **'THE LISTENING GARDEN'**
+  /// **'THE LISTENING ROOM'**
   String get quizHeader;
 
   /// Second header line of the quiz. Its letters are tracked by the style, so words use single spaces.
   ///
   /// In en, this message translates to:
-  /// **'A SPACE TO BE HEARD'**
+  /// **'A  SPACE  TO  BE  HEARD'**
   String get quizTagline;
 
   /// No description provided for @quizProgressSemantics.
@@ -707,7 +707,7 @@ abstract class AppLocalizations {
   /// No description provided for @ritualReadyBody.
   ///
   /// In en, this message translates to:
-  /// **'Your personalized Hikaru Ritual has been thoughtfully prepared, bringing together the techniques, crystal, frequencies, and intention that best support your skin and your energy today.'**
+  /// **'Inspired by your unique needs and intentions, your Hikaru Lift Ritual brings together: mindful touch, crystal energy, and frequencies to guide you toward beauty, balance and inner harmony.'**
   String get ritualReadyBody;
 
   /// No description provided for @ritualReadyEnter.
@@ -1049,7 +1049,7 @@ abstract class AppLocalizations {
   /// No description provided for @mirrorGardenTitle.
   ///
   /// In en, this message translates to:
-  /// **'Add A Photo Of Your Face For Personal Tracking'**
+  /// **'Capture your beginning.'**
   String get mirrorGardenTitle;
 
   /// No description provided for @mirrorGardenSkip.
@@ -1073,7 +1073,7 @@ abstract class AppLocalizations {
   /// No description provided for @mirrorGardenHint.
   ///
   /// In en, this message translates to:
-  /// **'A photo helps you celebrate your progress over time and compare your results throughout your Hikaru journey.'**
+  /// **'Take a photo to create a personal record of your 30-day Hikaru journey and observe your skin\'s evolution over time.\nEvery moment begins with a moment of awareness.\nYour photo is for your personal reflection.'**
   String get mirrorGardenHint;
 
   /// No description provided for @mirrorTakePhoto.
@@ -1589,49 +1589,49 @@ abstract class AppLocalizations {
   /// No description provided for @homeTourGardenTitle.
   ///
   /// In en, this message translates to:
-  /// **'YOUR SANCTUARY'**
+  /// **'Your sanctuary'**
   String get homeTourGardenTitle;
 
   /// No description provided for @homeTourGardenBody.
   ///
   /// In en, this message translates to:
-  /// **'This is your sanctuary. The numbers mark the order of the day.'**
+  /// **'These circles are today\'s ritual. The numbers show the order.'**
   String get homeTourGardenBody;
 
   /// No description provided for @homeTourOrderTitle.
   ///
   /// In en, this message translates to:
-  /// **'THE ORDER'**
+  /// **'One, then two, then three'**
   String get homeTourOrderTitle;
 
   /// No description provided for @homeTourOrderBody.
   ///
   /// In en, this message translates to:
-  /// **'Merkaba is 1. Face and body are 2. Your crystal is 3. Each circle opens on its own.'**
+  /// **'Merkaba comes first. Face and body are next. Your crystal is last.'**
   String get homeTourOrderBody;
 
   /// No description provided for @homeTourBeginTitle.
   ///
   /// In en, this message translates to:
-  /// **'BEGIN TODAY'**
+  /// **'Begin here'**
   String get homeTourBeginTitle;
 
   /// No description provided for @homeTourBeginBody.
   ///
   /// In en, this message translates to:
-  /// **'The center symbol starts today\'s ritual in that order. The circles open each part on its own.'**
+  /// **'Tap the center symbol to start today\'s ritual in that order.'**
   String get homeTourBeginBody;
 
   /// No description provided for @homeTourBarTitle.
   ///
   /// In en, this message translates to:
-  /// **'THE BAR'**
+  /// **'The rest of Hikaru'**
   String get homeTourBarTitle;
 
   /// No description provided for @homeTourBarBody.
   ///
   /// In en, this message translates to:
-  /// **'Journey keeps your day, streak, and photos. Settings keeps your account, language, and reminders.'**
+  /// **'Journey keeps your day, streak, and photos. Settings keeps your account.'**
   String get homeTourBarBody;
 
   /// No description provided for @homeTourSkip.
@@ -2711,19 +2711,19 @@ abstract class AppLocalizations {
   /// No description provided for @biometricOfferTitle.
   ///
   /// In en, this message translates to:
-  /// **'Sign in with {method}'**
+  /// **'Enable {method}'**
   String biometricOfferTitle(String method);
 
   /// No description provided for @biometricOfferBody.
   ///
   /// In en, this message translates to:
-  /// **'Next time Hikaru can open with {method}. The password stays on this phone.'**
+  /// **'Open Hikaru next time with {method}. Your password stays on this phone.'**
   String biometricOfferBody(String method);
 
   /// No description provided for @biometricOfferAccept.
   ///
   /// In en, this message translates to:
-  /// **'USE {method}'**
+  /// **'Enable {method}'**
   String biometricOfferAccept(String method);
 
   /// No description provided for @biometricOfferDecline.

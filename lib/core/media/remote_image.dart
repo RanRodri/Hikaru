@@ -38,15 +38,21 @@ class RemoteImage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final path = ref.watch(remoteImagePathProvider(fileName)).asData?.value;
+    final remembered = ref.watch(remoteImageCacheProvider).cachedPath(fileName);
+    final path =
+        remembered ??
+        ref.watch(remoteImagePathProvider(fileName)).asData?.value;
     final Widget image = path == null
         ? const SizedBox.expand()
-        : Image.file(
-            File(path),
-            fit: fit,
-            excludeFromSemantics: true,
-            gaplessPlayback: true,
-            errorBuilder: (_, _, _) => const SizedBox.expand(),
+        : SizedBox.expand(
+            child: Image.file(
+              File(path),
+              fit: fit,
+              alignment: Alignment.center,
+              excludeFromSemantics: true,
+              gaplessPlayback: true,
+              errorBuilder: (_, _, _) => const SizedBox.expand(),
+            ),
           );
 
     if (excludeFromSemantics) return ExcludeSemantics(child: image);

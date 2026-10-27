@@ -22,34 +22,32 @@ void main() {
     await tester.pumpWidget(_home());
     await tester.pumpAndSettle();
 
-    expect(find.text('YOUR SANCTUARY'), findsOneWidget);
+    expect(find.text('Your sanctuary'), findsOneWidget);
+    expect(
+      find.text('These circles are today\'s ritual. The numbers show the order.'),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.text('NEXT'));
+    await tester.pumpAndSettle();
+    expect(find.text('One, then two, then three'), findsOneWidget);
     expect(
       find.text(
-        'This is your sanctuary. The numbers mark the order of the day.',
+        'Merkaba comes first. Face and body are next. Your crystal is last.',
       ),
       findsOneWidget,
     );
 
     await tester.tap(find.text('NEXT'));
     await tester.pumpAndSettle();
-    expect(find.text('THE ORDER'), findsOneWidget);
-    expect(
-      find.text(
-        'Merkaba is 1. Face and body are 2. Your crystal is 3. Each circle opens on its own.',
-      ),
-      findsOneWidget,
-    );
+    expect(find.text('Begin here'), findsOneWidget);
 
     await tester.tap(find.text('NEXT'));
     await tester.pumpAndSettle();
-    expect(find.text('BEGIN TODAY'), findsOneWidget);
-
-    await tester.tap(find.text('NEXT'));
-    await tester.pumpAndSettle();
-    expect(find.text('THE BAR'), findsOneWidget);
+    expect(find.text('The rest of Hikaru'), findsOneWidget);
     expect(
       find.text(
-        'Journey keeps your day, streak, and photos. Settings keeps your account, language, and reminders.',
+        'Journey keeps your day, streak, and photos. Settings keeps your account.',
       ),
       findsOneWidget,
     );
@@ -57,13 +55,13 @@ void main() {
     await tester.tap(find.text('DONE'));
     await tester.pumpAndSettle();
 
-    expect(find.text('YOUR SANCTUARY'), findsNothing);
+    expect(find.text('Your sanctuary'), findsNothing);
     expect(find.text('THE HARMONY GARDEN'), findsOneWidget);
     expect(await HomeTourStore().seen(), isTrue);
 
     await tester.pumpWidget(_home());
     await tester.pumpAndSettle();
-    expect(find.text('YOUR SANCTUARY'), findsNothing);
+    expect(find.text('Your sanctuary'), findsNothing);
   });
 
   testWidgets('skip closes the tour and does not show it again', (
@@ -82,7 +80,7 @@ void main() {
     await tester.tap(find.text('SKIP'));
     await tester.pumpAndSettle();
 
-    expect(find.text('YOUR SANCTUARY'), findsNothing);
+    expect(find.text('Your sanctuary'), findsNothing);
     expect(await HomeTourStore().seen(), isTrue);
   });
 }

@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
 import '../../../core/design_system/tokens/app_font_sizes.dart';
@@ -10,6 +11,7 @@ import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/design_system/widgets/hikaru_pill_button.dart';
 import '../../../core/router/app_routes.dart';
+import '../../splash/data/launch_gate.dart';
 import '../../crystals/application/selected_crystal_controller.dart';
 import '../../listening_room/application/journey_recommendation_controller.dart';
 import '../../../l10n/app_localizations.dart';
@@ -86,7 +88,7 @@ class ResonanceChamberScreen extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.s24),
                   HikaruPillButton(
                     label: l10n.resonanceEnterSanctuary,
-                    onPressed: () => context.go(AppRoutes.home),
+                    onPressed: () => _enterSanctuary(context),
                     buttonHeight: AppSpacing.s56,
                     blurRadius: 8,
                     shadowAlpha: 0.25,
@@ -101,6 +103,12 @@ class ResonanceChamberScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+Future<void> _enterSanctuary(BuildContext context) async {
+  await LaunchGate(SharedPreferencesAsync()).markCrystalRevealed();
+  if (!context.mounted) return;
+  context.go(AppRoutes.home);
 }
 
 JourneyRecommendation? _resolveRecommendation(WidgetRef ref) {

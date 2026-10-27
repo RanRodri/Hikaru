@@ -14,6 +14,7 @@ class HikaruPillButton extends StatelessWidget {
     this.shadowAlpha = 0.35,
     this.borderAlpha,
     this.labelStyle = AppTypography.pillLabel,
+    this.busy = false,
   });
 
   static const double height = AppSpacing.s52;
@@ -25,6 +26,7 @@ class HikaruPillButton extends StatelessWidget {
   final double shadowAlpha;
   final double? borderAlpha;
   final TextStyle labelStyle;
+  final bool busy;
 
   @override
   Widget build(BuildContext context) {
@@ -51,17 +53,31 @@ class HikaruPillButton extends StatelessWidget {
         width: double.infinity,
         height: buttonHeight,
         child: FilledButton(
-          onPressed: onPressed,
+          onPressed: busy ? null : onPressed,
           style: FilledButton.styleFrom(
             backgroundColor: AppColors.champagneGold,
+            disabledBackgroundColor: AppColors.champagneGold,
             foregroundColor: AppColors.darkIndigoBlue,
+            disabledForegroundColor: AppColors.darkIndigoBlue,
             shape: shape,
             elevation: 0,
           ),
-          child: Text(
-            label,
-            style: labelStyle.copyWith(color: AppColors.darkIndigoBlue),
-          ),
+          child: busy
+              ? Semantics(
+                  label: label,
+                  child: const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppColors.darkIndigoBlue,
+                    ),
+                  ),
+                )
+              : Text(
+                  label,
+                  style: labelStyle.copyWith(color: AppColors.darkIndigoBlue),
+                ),
         ),
       ),
     );

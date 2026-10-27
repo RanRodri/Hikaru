@@ -49,6 +49,7 @@ class MirrorGardenScreen extends ConsumerStatefulWidget {
 class _MirrorGardenScreenState extends ConsumerState<MirrorGardenScreen> {
   final ImagePicker _picker = ImagePicker();
   Uint8List? _preview;
+  var _saving = false;
 
   @override
   void initState() {
@@ -61,11 +62,24 @@ class _MirrorGardenScreenState extends ConsumerState<MirrorGardenScreen> {
   /// CONTINUE keeps this photo as day 1 of the cycle. Skip leaves no photo.
   /// Either way the crystal recommendation stays as the quiz left it.
   Future<void> _handleContinue() async {
+    if (_saving) return;
     final bytes = _preview;
-    if (bytes != null && bytes.isNotEmpty) {
-      await ref.read(reflectionPhotoControllerProvider.notifier).capture(bytes);
+    if (bytes == null || bytes.isEmpty) {
+      _openResonanceChamber();
+      return;
     }
-    if (!mounted) return;
+    setState(() => _saving = true);
+    try {
+      await ref.read(reflectionPhotoControllerProvider.notifier).capture(bytes);
+      if (!mounted) return;
+      _openResonanceChamber();
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  void _handleSkip() {
+    if (_saving) return;
     _openResonanceChamber();
   }
 
@@ -161,6 +175,18 @@ class _MirrorGardenScreenState extends ConsumerState<MirrorGardenScreen> {
                     shadows: _titleShadow,
                   ),
                 ),
+                const SizedBox(height: AppSpacing.s16),
+                Text(
+                  l10n.mirrorGardenHint,
+                  textAlign: TextAlign.center,
+                  style: AppTypography.body.copyWith(
+                    color: AppColors.white,
+                    fontSize: AppFontSizes.s13,
+                    height: 1.5,
+                    letterSpacing: 0.2,
+                    shadows: _bodyGlow,
+                  ),
+                ),
                 Expanded(
                   child: Center(
                     child: FittedBox(
@@ -175,12 +201,13 @@ class _MirrorGardenScreenState extends ConsumerState<MirrorGardenScreen> {
                 ),
                 HikaruPillButton(
                   label: l10n.commonContinue,
+                  busy: _saving,
                   onPressed: _handleContinue,
                 ),
                 const SizedBox(height: AppSpacing.s8),
                 _TextAction(
                   label: l10n.mirrorGardenSkip,
-                  onPressed: _openResonanceChamber,
+                  onPressed: _handleSkip,
                 ),
               ],
             ),
@@ -281,18 +308,6 @@ class _PhotoChoice extends StatelessWidget {
               fontSize: AppFontSizes.s16,
               height: 1.25,
               letterSpacing: 0,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.s4),
-          Text(
-            l10n.mirrorGardenHint,
-            textAlign: TextAlign.center,
-            style: AppTypography.body.copyWith(
-              color: AppColors.white,
-              fontSize: AppFontSizes.s11,
-              height: 1.7,
-              letterSpacing: 0.55,
-              shadows: _bodyGlow,
             ),
           ),
         ],

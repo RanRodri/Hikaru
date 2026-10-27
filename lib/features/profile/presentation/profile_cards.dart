@@ -414,13 +414,30 @@ class CycleCard extends ConsumerWidget {
   }
 }
 
-class _CompleteCycle extends ConsumerWidget {
+class _CompleteCycle extends ConsumerStatefulWidget {
   const _CompleteCycle({required this.cycleLength});
 
   final int cycleLength;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_CompleteCycle> createState() => _CompleteCycleState();
+}
+
+class _CompleteCycleState extends ConsumerState<_CompleteCycle> {
+  var _ending = false;
+
+  Future<void> _handleEndCycle() async {
+    if (_ending) return;
+    setState(() => _ending = true);
+    try {
+      await ref.read(ritualCycleControllerProvider.notifier).endCycle();
+    } finally {
+      if (mounted) setState(() => _ending = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -431,7 +448,7 @@ class _CompleteCycle extends ConsumerWidget {
         ),
         const SizedBox(height: AppSpacing.s6),
         Text(
-          l10n.profileCycleUnlock(cycleLength),
+          l10n.profileCycleUnlock(widget.cycleLength),
           style: _cardText.copyWith(
             color: AppColors.fog,
             fontSize: AppFontSizes.s11,
@@ -442,22 +459,34 @@ class _CompleteCycle extends ConsumerWidget {
         Align(
           alignment: Alignment.centerLeft,
           child: TextButton(
-            onPressed: () =>
-                ref.read(ritualCycleControllerProvider.notifier).endCycle(),
+            onPressed: _ending ? null : _handleEndCycle,
             style: TextButton.styleFrom(
               foregroundColor: _accent,
+              disabledForegroundColor: _accent,
               padding: EdgeInsets.zero,
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
-            child: Text(
-              l10n.profileCycleEnd,
-              style: _cardText.copyWith(
-                color: _accent,
-                fontSize: AppFontSizes.s11,
-                letterSpacing: 1.4,
-              ),
-            ),
+            child: _ending
+                ? Semantics(
+                    label: l10n.profileCycleEnd,
+                    child: const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: _accent,
+                      ),
+                    ),
+                  )
+                : Text(
+                    l10n.profileCycleEnd,
+                    style: _cardText.copyWith(
+                      color: _accent,
+                      fontSize: AppFontSizes.s11,
+                      letterSpacing: 1.4,
+                    ),
+                  ),
           ),
         ),
       ],

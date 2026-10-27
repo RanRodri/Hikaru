@@ -28,6 +28,22 @@ class AuthBackground extends StatelessWidget {
     stops: const [0, 0.1, 0.25, 0.4, 0.5, 0.6, 0.72, 0.84, 0.94, 1],
   );
 
+  /// Darker through the form, with the photo still visible at the top.
+  static LinearGradient get registerOverlay => LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [
+      AppColors.darkIndigoBlue.withValues(alpha: 0.22),
+      AppColors.darkIndigoBlue.withValues(alpha: 0.34),
+      AppColors.darkIndigoBlue.withValues(alpha: 0.52),
+      AppColors.darkIndigoBlue.withValues(alpha: 0.64),
+      AppColors.darkIndigoBlue.withValues(alpha: 0.72),
+      AppColors.darkIndigoBlue.withValues(alpha: 0.8),
+      AppColors.darkIndigoBlue.withValues(alpha: 0.86),
+    ],
+    stops: const [0, 0.14, 0.3, 0.46, 0.62, 0.8, 1],
+  );
+
   static LinearGradient get resetOverlay => LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,

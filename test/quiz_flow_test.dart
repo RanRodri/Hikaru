@@ -288,7 +288,7 @@ void main() {
     );
   });
 
-  testWidgets('options sit on the photo and fit small and large phones', (
+  testWidgets('options sit in a centered panel on small and large phones', (
     tester,
   ) async {
     addTearDown(tester.view.resetPhysicalSize);
@@ -330,26 +330,23 @@ void main() {
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
 
-      final options = tester.getRect(find.byType(SingleChildScrollView).first);
-      expect(options.left, greaterThanOrEqualTo(24));
-      expect(options.right, lessThanOrEqualTo(size.width - 24));
-
-      // The options start to the right of the photo's window, as designed,
-      // and the text never leaves the screen.
-      final label = tester.getRect(find.text('Calm and comfort'));
-      expect(label.left, greaterThan(size.width * 0.3));
-      expect(label.right, lessThan(size.width));
-
-      // They sit straight on the photo: no dark panel behind them.
-      expect(
+      final panel = tester.getRect(
         find.byWidgetPredicate((widget) {
           if (widget is! DecoratedBox) return false;
           final decoration = widget.decoration;
           return decoration is BoxDecoration &&
-              decoration.color == AppColors.scrim60;
+              decoration.color == AppColors.scrim60 &&
+              decoration.borderRadius == BorderRadius.circular(16);
         }),
-        findsNothing,
       );
+      expect(panel.width, lessThanOrEqualTo(280));
+      expect(panel.left, greaterThanOrEqualTo(16));
+      expect(panel.right, lessThanOrEqualTo(size.width - 16));
+      expect((panel.center.dx - size.width / 2).abs(), lessThan(8));
+
+      final label = tester.getRect(find.text('Calm and comfort'));
+      expect(label.left, greaterThan(panel.left));
+      expect(label.right, lessThan(panel.right));
 
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pumpAndSettle();

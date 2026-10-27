@@ -256,12 +256,13 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                   label: _codeSent ? l10n.resetButton : l10n.resetSendCode,
                   backgroundColor: AppColors.champagneGold,
                   foregroundColor: AppColors.darkIndigoBlue,
+                  busy: _busy,
                   onPressed: _handleReset,
                 ),
                 if (_codeSent) ...[
                   const SizedBox(height: AppSpacing.s8),
                   TextButton(
-                    onPressed: _handleSendCode,
+                    onPressed: _busy ? null : _handleSendCode,
                     style: TextButton.styleFrom(
                       foregroundColor: AppColors.champagneGold,
                       minimumSize: const Size(44, 36),

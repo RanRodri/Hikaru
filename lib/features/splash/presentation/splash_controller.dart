@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../core/media/remote_image_store.dart';
 import '../../../core/router/app_routes.dart';
 import '../../auth/data/auth_gateway.dart';
+import '../../listening_room/application/journey_recommendation_controller.dart';
 import '../data/launch_gate.dart';
 import 'splash_logo.dart';
 
@@ -41,8 +43,43 @@ Future<String> splashDestination(Ref ref) async {
     await gate.markIntroSeen();
     return AppRoutes.sanctuary;
   }
-  return routeAfterSplash(
-    introSeen: true,
-    sessionOpen: await ref.read(authGatewayProvider).hasSession(),
+  final sessionOpen = await ref.read(authGatewayProvider).hasSession();
+  if (!ref.mounted) return AppRoutes.sanctuary;
+  if (!sessionOpen) {
+    return routeAfterSplash(
+      introSeen: true,
+      sessionOpen: false,
+      crystalAssigned: false,
+      crystalRevealed: false,
+    );
+  }
+  final recommendation = await ref.read(
+    journeyRecommendationControllerProvider.future,
   );
+  if (!ref.mounted) return AppRoutes.sanctuary;
+  final route = routeForMember(
+    crystalAssigned: recommendation != null,
+    crystalRevealed: await gate.crystalRevealed(),
+  );
+  if (route == AppRoutes.listeningRoom && ref.mounted) {
+    await prepareListeningRoomImages(ref.read(remoteImageCacheProvider));
+  }
+  return route;
+}
+
+/// Home only after the Listening Room has assigned a crystal and the member
+/// has opened that reveal. Otherwise the questions, or the reveal, continue.
+Future<String> routeForOpenSession(WidgetRef ref) async {
+  final recommendation = await ref.read(
+    journeyRecommendationControllerProvider.future,
+  );
+  final revealed = await LaunchGate(SharedPreferencesAsync()).crystalRevealed();
+  final route = routeForMember(
+    crystalAssigned: recommendation != null,
+    crystalRevealed: revealed,
+  );
+  if (route == AppRoutes.listeningRoom) {
+    await prepareListeningRoomImages(ref.read(remoteImageCacheProvider));
+  }
+  return route;
 }

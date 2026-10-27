@@ -24,8 +24,8 @@
   "discoveryBegin": "BEGIN MY DISCOVERY",
   "discoveryFooter": "BEAUTY MEETS FREQUENCY",
 
-  "ritualHeadline": "Your Sanctuary Is\nAlmost Ready",
-  "ritualSubtitle": "A sacred tool will elevate your ritual\nand guide you to visible transformation.",
+  "ritualHeadline": "Your Sanctuary\nAwaits",
+  "ritualSubtitle": "Discover a new ritual; where beauty, intention and longevity come together.",
   "ritualChoosePath": "CHOOSE YOUR PATH",
   "ritualPathNoHikaruTitle": "I DON'T HAVE\nMY HIKARU YET",
   "ritualPathNoHikaruAction": "DISCOVER HIKARU",
@@ -68,7 +68,7 @@
   "loginCreateOne": "Create one",
 
   "registerTitle": "Create Your\nSanctuary",
-  "registerSubtitle": "Let's begin with essentials to\npersonalize your experience.",
+  "registerSubtitle": "Your journey to beauty, balance and longevity begins here.",
   "registerFullNameLabel": "Full Name",
   "registerFullNameHint": "Your full name",
   "registerBirthdayLabel": "Birthday",
@@ -79,7 +79,7 @@
   },
   "registerErrorNameRequired": "Enter your full name",
   "registerErrorBirthdayRequired": "Select your birthday",
-  "registerContinue": "CONTINUE",
+  "registerContinue": "BEGIN YOUR JOURNEY",
   "registerHaveAccount": "Already have an account? ",
   "registerLogIn": "Log in",
 
@@ -108,15 +108,15 @@
   "crystalDisclaimer": "Your crystal recommendation is symbolic and is not a medical diagnosis or a scientifically proven treatment for skin conditions.",
 
   "listeningRoomTitle": "The\nListening Room",
-  "listeningRoomTagline": "A  SPACE  TO  BE  HEARD",
-  "listeningRoomDescription": "Share what's on your mind\nso we can guide you with a\npersonalized ritual for your skin,\nyour body, and your energy.",
+  "listeningRoomTagline": "A  SPACE  TO  LISTEN  WITHIN",
+  "listeningRoomDescription": "Take a moment to connect with yourself.\nShare your needs and intentions so we can\nhelp you to create a personalized ritual\nfor your skin, body and energy.",
   "listeningRoomBegin": "BEGIN",
   "listeningRoomFooter": "LISTEN   ·   ALIGN   ·   RECEIVE",
 
-  "quizHeader": "THE LISTENING GARDEN",
-  "quizTagline": "A SPACE TO BE HEARD",
+  "quizHeader": "THE LISTENING ROOM",
+  "quizTagline": "A  SPACE  TO  BE  HEARD",
   "@quizTagline": {
-    "description": "Second header line of the quiz. Its letters are tracked by the style, so words use single spaces."
+    "description": "Second header line of the quiz. Extra spaces separate the words under the tracked style."
   },
   "quizProgressSemantics": "Question {number} of {total}",
   "@quizProgressSemantics": {
@@ -128,7 +128,7 @@
   "quizSelectOption": "Select an option.",
 
   "ritualReadyTitle": "Your\nRitual Is Ready",
-  "ritualReadyBody": "Your personalized Hikaru Ritual has been thoughtfully prepared, bringing together the techniques, crystal, frequencies, and intention that best support your skin and your energy today.",
+  "ritualReadyBody": "Inspired by your unique needs and intentions, your Hikaru Lift Ritual brings together: mindful touch, crystal energy, and frequencies to guide you toward beauty, balance and inner harmony.",
   "ritualReadyEnter": "ENTER YOUR RITUAL",
 
   "quizQ1Prompt": "What is your skin asking for today?",
@@ -189,11 +189,11 @@
   "commonExit": "Exit",
 
   "mirrorGardenEyebrow": "THE MIRROR GARDEN",
-  "mirrorGardenTitle": "Add A Photo Of Your Face For Personal Tracking",
+  "mirrorGardenTitle": "Capture your beginning.",
   "mirrorGardenSkip": "SKIP FOR NOW",
   "mirrorGardenUpload": "UPLOAD A PHOTO",
   "mirrorGardenOptional": "(Optional)",
-  "mirrorGardenHint": "A photo helps you celebrate your progress over time and compare your results throughout your Hikaru journey.",
+  "mirrorGardenHint": "Take a photo to create a personal record of your 30-day Hikaru journey and observe your skin's evolution over time.\nEvery moment begins with a moment of awareness.\nYour photo is for your personal reflection.",
   "mirrorTakePhoto": "TAKE A PHOTO",
   "mirrorTakePhotoSemantics": "Take a photo",
   "mirrorPhotoPreviewSemantics": "Your face photo preview",
@@ -323,14 +323,14 @@
 
   "homeGardenTitle": "THE HARMONY GARDEN",
   "homeGardenSubtitle": "Your Journey Begins Within",
-  "homeTourGardenTitle": "YOUR SANCTUARY",
-  "homeTourGardenBody": "This is your sanctuary. The numbers mark the order of the day.",
-  "homeTourOrderTitle": "THE ORDER",
-  "homeTourOrderBody": "Merkaba is 1. Face and body are 2. Your crystal is 3. Each circle opens on its own.",
-  "homeTourBeginTitle": "BEGIN TODAY",
-  "homeTourBeginBody": "The center symbol starts today's ritual in that order. The circles open each part on its own.",
-  "homeTourBarTitle": "THE BAR",
-  "homeTourBarBody": "Journey keeps your day, streak, and photos. Settings keeps your account, language, and reminders.",
+  "homeTourGardenTitle": "Your sanctuary",
+  "homeTourGardenBody": "These circles are today's ritual. The numbers show the order.",
+  "homeTourOrderTitle": "One, then two, then three",
+  "homeTourOrderBody": "Merkaba comes first. Face and body are next. Your crystal is last.",
+  "homeTourBeginTitle": "Begin here",
+  "homeTourBeginBody": "Tap the center symbol to start today's ritual in that order.",
+  "homeTourBarTitle": "The rest of Hikaru",
+  "homeTourBarBody": "Journey keeps your day, streak, and photos. Settings keeps your account.",
   "homeTourSkip": "SKIP",
   "homeTourNext": "NEXT",
   "homeTourDone": "DONE",
@@ -613,19 +613,19 @@
   "biometricFaceId": "Face ID",
   "biometricTouchId": "Touch ID",
   "biometricFingerprint": "Fingerprint",
-  "biometricOfferTitle": "Sign in with {method}",
+  "biometricOfferTitle": "Enable {method}",
   "@biometricOfferTitle": {
     "placeholders": {
       "method": {"type": "String"}
     }
   },
-  "biometricOfferBody": "Next time Hikaru can open with {method}. The password stays on this phone.",
+  "biometricOfferBody": "Open Hikaru next time with {method}. Your password stays on this phone.",
   "@biometricOfferBody": {
     "placeholders": {
       "method": {"type": "String"}
     }
   },
-  "biometricOfferAccept": "USE {method}",
+  "biometricOfferAccept": "Enable {method}",
   "@biometricOfferAccept": {
     "placeholders": {
       "method": {"type": "String"}

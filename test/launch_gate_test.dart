@@ -11,17 +11,50 @@ void main() {
         InMemorySharedPreferencesAsync.empty();
   });
 
-  test('intro plays once, then splash leads to login or home', () {
+  test('intro plays once, then splash leads to login, questions, or home', () {
     expect(
-      routeAfterSplash(introSeen: false, sessionOpen: false),
+      routeAfterSplash(
+        introSeen: false,
+        sessionOpen: false,
+        crystalAssigned: false,
+        crystalRevealed: false,
+      ),
       AppRoutes.sanctuary,
     );
     expect(
-      routeAfterSplash(introSeen: true, sessionOpen: false),
+      routeAfterSplash(
+        introSeen: true,
+        sessionOpen: false,
+        crystalAssigned: false,
+        crystalRevealed: false,
+      ),
       AppRoutes.login,
     );
     expect(
-      routeAfterSplash(introSeen: true, sessionOpen: true),
+      routeAfterSplash(
+        introSeen: true,
+        sessionOpen: true,
+        crystalAssigned: false,
+        crystalRevealed: false,
+      ),
+      AppRoutes.listeningRoom,
+    );
+    expect(
+      routeAfterSplash(
+        introSeen: true,
+        sessionOpen: true,
+        crystalAssigned: true,
+        crystalRevealed: false,
+      ),
+      AppRoutes.resonanceChamber,
+    );
+    expect(
+      routeAfterSplash(
+        introSeen: true,
+        sessionOpen: true,
+        crystalAssigned: true,
+        crystalRevealed: true,
+      ),
       AppRoutes.home,
     );
   });

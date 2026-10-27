@@ -7,6 +7,7 @@ import '../../../core/design_system/tokens/app_font_sizes.dart';
 import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/router/app_routes.dart';
+import '../../splash/presentation/splash_controller.dart';
 import '../../../l10n/app_localizations.dart';
 import '../data/auth_gateway.dart';
 import 'auth_background.dart';
@@ -57,7 +58,9 @@ class _ConfirmSignUpScreenState extends ConsumerState<ConfirmSignUpScreen> {
         password: widget.pending.password,
       );
       if (!mounted) return;
-      context.go(AppRoutes.listeningRoom);
+      final route = await routeForOpenSession(ref);
+      if (!mounted) return;
+      context.go(route);
     } on AuthRequestException catch (error) {
       if (!mounted) return;
       setState(() => _formError = error.message);
@@ -88,13 +91,15 @@ class _ConfirmSignUpScreenState extends ConsumerState<ConfirmSignUpScreen> {
                 Align(
                   alignment: Alignment.centerLeft,
                   child: TextButton(
-                    onPressed: () {
-                      if (context.canPop()) {
-                        context.pop();
-                        return;
-                      }
-                      context.go(AppRoutes.login);
-                    },
+                    onPressed: _busy
+                        ? null
+                        : () {
+                            if (context.canPop()) {
+                              context.pop();
+                              return;
+                            }
+                            context.go(AppRoutes.login);
+                          },
                     child: Text(
                       l10n.commonBack,
                       style: AppTypography.subheadline.copyWith(
@@ -148,6 +153,7 @@ class _ConfirmSignUpScreenState extends ConsumerState<ConfirmSignUpScreen> {
                   backgroundColor: AppColors.champagneGold,
                   foregroundColor: AppColors.darkIndigoBlue,
                   glow: true,
+                  busy: _busy,
                   onPressed: _handleConfirm,
                 ),
                 if (_formError != null) ...[
