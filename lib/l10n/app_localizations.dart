@@ -653,13 +653,13 @@ abstract class AppLocalizations {
   /// No description provided for @listeningRoomTagline.
   ///
   /// In en, this message translates to:
-  /// **'A  SPACE  TO  BE  HEARD'**
+  /// **'A  space  to  listen  within'**
   String get listeningRoomTagline;
 
   /// No description provided for @listeningRoomDescription.
   ///
   /// In en, this message translates to:
-  /// **'Share what\'s on your mind\nso we can guide you with a\npersonalized ritual for your skin,\nyour body, and your energy.'**
+  /// **'Take a moment to connect with yourself. Share your needs and intentions so we can help you create a personalized ritual for your skin, body and energy.'**
   String get listeningRoomDescription;
 
   /// No description provided for @listeningRoomBegin.
@@ -683,7 +683,7 @@ abstract class AppLocalizations {
   /// Second header line of the quiz. Its letters are tracked by the style, so words use single spaces.
   ///
   /// In en, this message translates to:
-  /// **'A SPACE TO BE HEARD'**
+  /// **'A space to listen within'**
   String get quizTagline;
 
   /// No description provided for @quizProgressSemantics.

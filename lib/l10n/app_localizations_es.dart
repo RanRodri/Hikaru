@@ -298,11 +298,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get listeningRoomTitle => 'La Sala\nde la Escucha';
 
   @override
-  String get listeningRoomTagline => 'UN  ESPACIO  QUE  TE  ESCUCHA';
+  String get listeningRoomTagline =>
+      'Un  espacio  para  escuchar  en  tu  interior';
 
   @override
   String get listeningRoomDescription =>
-      'Cuéntanos qué tienes en mente\npara guiarte con un ritual\npersonalizado para tu piel,\ntu cuerpo y tu energía.';
+      'Tómate un momento para conectar contigo. Comparte tus necesidades e intenciones para que podamos ayudarte a crear un ritual personalizado para tu piel, tu cuerpo y tu energía.';
 
   @override
   String get listeningRoomBegin => 'COMENZAR';
@@ -314,7 +315,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get quizHeader => 'EL JARDÍN DE LA ESCUCHA';
 
   @override
-  String get quizTagline => 'UN ESPACIO QUE TE ESCUCHA';
+  String get quizTagline => 'Un espacio para escuchar en tu interior';
 
   @override
   String quizProgressSemantics(int number, int total) {

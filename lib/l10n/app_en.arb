@@ -108,13 +108,13 @@
   "crystalDisclaimer": "Your crystal recommendation is symbolic and is not a medical diagnosis or a scientifically proven treatment for skin conditions.",
 
   "listeningRoomTitle": "The\nListening Room",
-  "listeningRoomTagline": "A  SPACE  TO  BE  HEARD",
-  "listeningRoomDescription": "Share what's on your mind\nso we can guide you with a\npersonalized ritual for your skin,\nyour body, and your energy.",
+  "listeningRoomTagline": "A  space  to  listen  within",
+  "listeningRoomDescription": "Take a moment to connect with yourself. Share your needs and intentions so we can help you create a personalized ritual for your skin, body and energy.",
   "listeningRoomBegin": "BEGIN",
   "listeningRoomFooter": "LISTEN   ·   ALIGN   ·   RECEIVE",
 
   "quizHeader": "THE LISTENING GARDEN",
-  "quizTagline": "A SPACE TO BE HEARD",
+  "quizTagline": "A space to listen within",
   "@quizTagline": {
     "description": "Second header line of the quiz. Its letters are tracked by the style, so words use single spaces."
   },

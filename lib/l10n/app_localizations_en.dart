@@ -296,11 +296,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get listeningRoomTitle => 'The\nListening Room';
 
   @override
-  String get listeningRoomTagline => 'A  SPACE  TO  BE  HEARD';
+  String get listeningRoomTagline => 'A  space  to  listen  within';
 
   @override
   String get listeningRoomDescription =>
-      'Share what\'s on your mind\nso we can guide you with a\npersonalized ritual for your skin,\nyour body, and your energy.';
+      'Take a moment to connect with yourself. Share your needs and intentions so we can help you create a personalized ritual for your skin, body and energy.';
 
   @override
   String get listeningRoomBegin => 'BEGIN';
@@ -312,7 +312,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get quizHeader => 'THE LISTENING GARDEN';
 
   @override
-  String get quizTagline => 'A SPACE TO BE HEARD';
+  String get quizTagline => 'A space to listen within';
 
   @override
   String quizProgressSemantics(int number, int total) {
