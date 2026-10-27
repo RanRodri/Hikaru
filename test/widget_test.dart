@@ -124,10 +124,7 @@ void main() {
     expect(find.text('The\nListening Room'), findsOneWidget);
     expect(
       find.text(
-        "Share what's on your mind\n"
-        'so we can guide you with a\n'
-        'personalized ritual for your skin,\n'
-        'your body, and your energy.',
+        'Take a moment to connect with yourself. Share your needs and intentions so we can help you create a personalized ritual for your skin, body and energy.',
       ),
       findsOneWidget,
     );
