@@ -34,8 +34,7 @@ void main() {
     final recommendation = buildJourneyRecommendation(
       Crystal.obsidian,
       const QuizAnswers({
-        1: {QuizOptionIds.q1HydrationSoftness},
-        7: {QuizOptionIds.q7UnderstandBeneath},
+        2: {QuizOptionIds.q2Dry},
         9: {QuizOptionIds.q9FiveMinutes},
       }),
     );

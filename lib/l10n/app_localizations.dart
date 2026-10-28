@@ -653,13 +653,13 @@ abstract class AppLocalizations {
   /// No description provided for @listeningRoomTagline.
   ///
   /// In en, this message translates to:
-  /// **'A  SPACE  TO  BE  HEARD'**
+  /// **'A  SPACE  TO  LISTEN  WITHIN'**
   String get listeningRoomTagline;
 
   /// No description provided for @listeningRoomDescription.
   ///
   /// In en, this message translates to:
-  /// **'Share what\'s on your mind\nso we can guide you with a\npersonalized ritual for your skin,\nyour body, and your energy.'**
+  /// **'Take a moment to connect with yourself. Share your needs and intentions so we can help you create a personalized ritual for your skin, body and energy.'**
   String get listeningRoomDescription;
 
   /// No description provided for @listeningRoomBegin.
@@ -677,13 +677,13 @@ abstract class AppLocalizations {
   /// No description provided for @quizHeader.
   ///
   /// In en, this message translates to:
-  /// **'THE LISTENING GARDEN'**
+  /// **'THE LISTENING ROOM'**
   String get quizHeader;
 
   /// Second header line of the quiz. Its letters are tracked by the style, so words use single spaces.
   ///
   /// In en, this message translates to:
-  /// **'A SPACE TO BE HEARD'**
+  /// **'A SPACE TO LISTEN WITHIN'**
   String get quizTagline;
 
   /// No description provided for @quizProgressSemantics.
@@ -719,260 +719,362 @@ abstract class AppLocalizations {
   /// No description provided for @quizQ1Prompt.
   ///
   /// In en, this message translates to:
-  /// **'What is your skin asking for today?'**
+  /// **'What would you like to see reflected in the mirror today?'**
   String get quizQ1Prompt;
+
+  /// No description provided for @quizQ1Instruction.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all that resonate with you'**
+  String get quizQ1Instruction;
 
   /// No description provided for @quizQ2Prompt.
   ///
   /// In en, this message translates to:
-  /// **'How does your skin feel right now?'**
+  /// **'How does your skin feel today?'**
   String get quizQ2Prompt;
+
+  /// No description provided for @quizQ2Instruction.
+  ///
+  /// In en, this message translates to:
+  /// **'Listen to what your skin is telling you'**
+  String get quizQ2Instruction;
 
   /// No description provided for @quizQ3Prompt.
   ///
   /// In en, this message translates to:
-  /// **'How has your inner world been feeling lately?'**
+  /// **'When does your skin need the most support?'**
   String get quizQ3Prompt;
 
   /// No description provided for @quizQ4Prompt.
   ///
   /// In en, this message translates to:
-  /// **'What would you most like to release?'**
+  /// **'Where do you notice the most facial tension?'**
   String get quizQ4Prompt;
+
+  /// No description provided for @quizQ4Instruction.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the area you notice most'**
+  String get quizQ4Instruction;
 
   /// No description provided for @quizQ5Prompt.
   ///
   /// In en, this message translates to:
-  /// **'When you look in the mirror, what do you notice first?'**
+  /// **'Which area would you like to focus on?'**
   String get quizQ5Prompt;
 
   /// No description provided for @quizQ6Prompt.
   ///
   /// In en, this message translates to:
-  /// **'What does your body need more of today?'**
+  /// **'How is your skin responding today?'**
   String get quizQ6Prompt;
 
   /// No description provided for @quizQ7Prompt.
   ///
   /// In en, this message translates to:
-  /// **'Which intention resonates with you?'**
+  /// **'What intention would you like to set for today\'s ritual?'**
   String get quizQ7Prompt;
 
   /// No description provided for @quizQ8Prompt.
   ///
   /// In en, this message translates to:
-  /// **'How would you like to feel after your ritual?'**
+  /// **'What would you like to cultivate over the next 20 days?'**
   String get quizQ8Prompt;
 
   /// No description provided for @quizQ9Prompt.
   ///
   /// In en, this message translates to:
-  /// **'How much time would you like to dedicate to yourself?'**
+  /// **'How much time would you like to give yourself today?'**
   String get quizQ9Prompt;
 
   /// No description provided for @quizQ10Prompt.
   ///
   /// In en, this message translates to:
-  /// **'Is your skin currently experiencing any of these?'**
+  /// **'How familiar are you with facial sculpting rituals?'**
   String get quizQ10Prompt;
 
-  /// No description provided for @quizQ10Instruction.
+  /// No description provided for @quizOptionQ1ReducePuffiness.
   ///
   /// In en, this message translates to:
-  /// **'Select all that apply'**
-  String get quizQ10Instruction;
+  /// **'Reduce puffiness'**
+  String get quizOptionQ1ReducePuffiness;
 
-  /// No description provided for @quizOptionQ1CalmComfort.
+  /// No description provided for @quizOptionQ1DefineContours.
   ///
   /// In en, this message translates to:
-  /// **'Calm and comfort'**
-  String get quizOptionQ1CalmComfort;
+  /// **'Define facial contours'**
+  String get quizOptionQ1DefineContours;
 
-  /// No description provided for @quizOptionQ1LiftedFirm.
+  /// No description provided for @quizOptionQ1SmoothLines.
   ///
   /// In en, this message translates to:
-  /// **'A more lifted, firm appearance'**
-  String get quizOptionQ1LiftedFirm;
+  /// **'Smooth fine lines'**
+  String get quizOptionQ1SmoothLines;
 
-  /// No description provided for @quizOptionQ1HydrationSoftness.
+  /// No description provided for @quizOptionQ1RestoreGlow.
   ///
   /// In en, this message translates to:
-  /// **'Hydration and softness'**
-  String get quizOptionQ1HydrationSoftness;
+  /// **'Restore glow/radiance'**
+  String get quizOptionQ1RestoreGlow;
 
-  /// No description provided for @quizOptionQ1RadianceVitality.
+  /// No description provided for @quizOptionQ1DeeplyHydrate.
   ///
   /// In en, this message translates to:
-  /// **'Radiance and renewed vitality'**
-  String get quizOptionQ1RadianceVitality;
+  /// **'Deeply hydrate'**
+  String get quizOptionQ1DeeplyHydrate;
+
+  /// No description provided for @quizOptionQ1EvenTone.
+  ///
+  /// In en, this message translates to:
+  /// **'Even skin tone'**
+  String get quizOptionQ1EvenTone;
+
+  /// No description provided for @quizOptionQ1CalmBlemish.
+  ///
+  /// In en, this message translates to:
+  /// **'Calm blemish-prone skin'**
+  String get quizOptionQ1CalmBlemish;
+
+  /// No description provided for @quizOptionQ1ReduceRedness.
+  ///
+  /// In en, this message translates to:
+  /// **'Reduce visible redness'**
+  String get quizOptionQ1ReduceRedness;
+
+  /// No description provided for @quizOptionQ2Comfortable.
+  ///
+  /// In en, this message translates to:
+  /// **'Comfortable and balanced'**
+  String get quizOptionQ2Comfortable;
+
+  /// No description provided for @quizOptionQ2Tight.
+  ///
+  /// In en, this message translates to:
+  /// **'Tight'**
+  String get quizOptionQ2Tight;
+
+  /// No description provided for @quizOptionQ2Dry.
+  ///
+  /// In en, this message translates to:
+  /// **'Dry'**
+  String get quizOptionQ2Dry;
+
+  /// No description provided for @quizOptionQ2Oily.
+  ///
+  /// In en, this message translates to:
+  /// **'Oily'**
+  String get quizOptionQ2Oily;
 
   /// No description provided for @quizOptionQ2Sensitive.
   ///
   /// In en, this message translates to:
-  /// **'Sensitive or easily irritated'**
+  /// **'Sensitive'**
   String get quizOptionQ2Sensitive;
 
-  /// No description provided for @quizOptionQ2TightDry.
+  /// No description provided for @quizOptionQ2Changes.
   ///
   /// In en, this message translates to:
-  /// **'Tight or dry'**
-  String get quizOptionQ2TightDry;
+  /// **'It changes throughout the day'**
+  String get quizOptionQ2Changes;
 
-  /// No description provided for @quizOptionQ2PuffyTired.
+  /// No description provided for @quizOptionQ3Morning.
   ///
   /// In en, this message translates to:
-  /// **'Puffy or tired'**
-  String get quizOptionQ2PuffyTired;
+  /// **'In the morning'**
+  String get quizOptionQ3Morning;
 
-  /// No description provided for @quizOptionQ2ComfortableLackingRadiance.
+  /// No description provided for @quizOptionQ3Travel.
   ///
   /// In en, this message translates to:
-  /// **'Comfortable, but lacking radiance'**
-  String get quizOptionQ2ComfortableLackingRadiance;
+  /// **'After travel'**
+  String get quizOptionQ3Travel;
 
-  /// No description provided for @quizOptionQ3EmotionallyOverwhelmed.
+  /// No description provided for @quizOptionQ3Workdays.
   ///
   /// In en, this message translates to:
-  /// **'Emotionally overwhelmed'**
-  String get quizOptionQ3EmotionallyOverwhelmed;
+  /// **'After long workdays'**
+  String get quizOptionQ3Workdays;
 
-  /// No description provided for @quizOptionQ3MentallyBusy.
+  /// No description provided for @quizOptionQ3Hormonal.
   ///
   /// In en, this message translates to:
-  /// **'Mentally busy or distracted'**
-  String get quizOptionQ3MentallyBusy;
+  /// **'During hormonal changes'**
+  String get quizOptionQ3Hormonal;
 
-  /// No description provided for @quizOptionQ3DisconnectedBody.
+  /// No description provided for @quizOptionQ3RestlessNight.
   ///
   /// In en, this message translates to:
-  /// **'Disconnected from my body'**
-  String get quizOptionQ3DisconnectedBody;
+  /// **'After a restless night'**
+  String get quizOptionQ3RestlessNight;
 
-  /// No description provided for @quizOptionQ3CalmBalanced.
+  /// No description provided for @quizOptionQ3UsuallyBalanced.
   ///
   /// In en, this message translates to:
-  /// **'Calm and balanced'**
-  String get quizOptionQ3CalmBalanced;
+  /// **'Usually balanced'**
+  String get quizOptionQ3UsuallyBalanced;
 
-  /// No description provided for @quizOptionQ4UncertaintyTension.
+  /// No description provided for @quizOptionQ4Jaw.
   ///
   /// In en, this message translates to:
-  /// **'Uncertainty or hidden tension'**
-  String get quizOptionQ4UncertaintyTension;
+  /// **'Jaw'**
+  String get quizOptionQ4Jaw;
 
-  /// No description provided for @quizOptionQ4MentalNoise.
+  /// No description provided for @quizOptionQ4Cheeks.
   ///
   /// In en, this message translates to:
-  /// **'Mental noise and overthinking'**
-  String get quizOptionQ4MentalNoise;
+  /// **'Cheeks'**
+  String get quizOptionQ4Cheeks;
 
-  /// No description provided for @quizOptionQ4StressPressure.
+  /// No description provided for @quizOptionQ4Brows.
   ///
   /// In en, this message translates to:
-  /// **'Stress and emotional pressure'**
-  String get quizOptionQ4StressPressure;
+  /// **'Between eyebrows'**
+  String get quizOptionQ4Brows;
 
-  /// No description provided for @quizOptionQ4FatigueHeaviness.
+  /// No description provided for @quizOptionQ4Forehead.
   ///
   /// In en, this message translates to:
-  /// **'Fatigue and heaviness'**
-  String get quizOptionQ4FatigueHeaviness;
+  /// **'Forehead'**
+  String get quizOptionQ4Forehead;
 
-  /// No description provided for @quizOptionQ5ChangesUnknown.
+  /// No description provided for @quizOptionQ4Neck.
   ///
   /// In en, this message translates to:
-  /// **'Changes I don\'t fully understand'**
-  String get quizOptionQ5ChangesUnknown;
+  /// **'Neck'**
+  String get quizOptionQ4Neck;
 
-  /// No description provided for @quizOptionQ5LossBrightness.
+  /// No description provided for @quizOptionQ4Unsure.
   ///
   /// In en, this message translates to:
-  /// **'A loss of brightness'**
-  String get quizOptionQ5LossBrightness;
+  /// **'I\'m not sure'**
+  String get quizOptionQ4Unsure;
 
-  /// No description provided for @quizOptionQ5StressTension.
+  /// No description provided for @quizOptionQ5Jawline.
   ///
   /// In en, this message translates to:
-  /// **'Signs of stress or tension'**
-  String get quizOptionQ5StressTension;
+  /// **'Jawline'**
+  String get quizOptionQ5Jawline;
 
-  /// No description provided for @quizOptionQ5FirmnessVitality.
+  /// No description provided for @quizOptionQ5Cheekbones.
   ///
   /// In en, this message translates to:
-  /// **'Changes in firmness or vitality'**
-  String get quizOptionQ5FirmnessVitality;
+  /// **'Cheekbones'**
+  String get quizOptionQ5Cheekbones;
 
-  /// No description provided for @quizOptionQ6SpaceReflect.
+  /// No description provided for @quizOptionQ5Neck.
   ///
   /// In en, this message translates to:
-  /// **'Space to reflect'**
-  String get quizOptionQ6SpaceReflect;
+  /// **'Neck'**
+  String get quizOptionQ5Neck;
 
-  /// No description provided for @quizOptionQ6MomentClarity.
+  /// No description provided for @quizOptionQ5EyeArea.
   ///
   /// In en, this message translates to:
-  /// **'A moment of clarity'**
-  String get quizOptionQ6MomentClarity;
+  /// **'Eye area'**
+  String get quizOptionQ5EyeArea;
 
-  /// No description provided for @quizOptionQ6GentlenessBalance.
+  /// No description provided for @quizOptionQ5Harmony.
   ///
   /// In en, this message translates to:
-  /// **'Gentleness and balance'**
-  String get quizOptionQ6GentlenessBalance;
+  /// **'Overall facial harmony'**
+  String get quizOptionQ5Harmony;
 
-  /// No description provided for @quizOptionQ6GroundingStrength.
+  /// No description provided for @quizOptionQ6Calm.
   ///
   /// In en, this message translates to:
-  /// **'Grounding and strength'**
-  String get quizOptionQ6GroundingStrength;
+  /// **'Calm'**
+  String get quizOptionQ6Calm;
 
-  /// No description provided for @quizOptionQ7UnderstandBeneath.
+  /// No description provided for @quizOptionQ6SlightlySensitive.
   ///
   /// In en, this message translates to:
-  /// **'Understand what lies beneath the surface'**
-  String get quizOptionQ7UnderstandBeneath;
+  /// **'Slightly sensitive'**
+  String get quizOptionQ6SlightlySensitive;
 
-  /// No description provided for @quizOptionQ7GreaterClarity.
+  /// No description provided for @quizOptionQ6RedIrritated.
   ///
   /// In en, this message translates to:
-  /// **'See myself with greater clarity'**
-  String get quizOptionQ7GreaterClarity;
+  /// **'Red or irritated'**
+  String get quizOptionQ6RedIrritated;
 
-  /// No description provided for @quizOptionQ7ReturnHarmony.
+  /// No description provided for @quizOptionQ6Breakout.
   ///
   /// In en, this message translates to:
-  /// **'Return to harmony'**
-  String get quizOptionQ7ReturnHarmony;
+  /// **'Experiencing an active breakout'**
+  String get quizOptionQ6Breakout;
 
-  /// No description provided for @quizOptionQ7InnerStrength.
+  /// No description provided for @quizOptionQ6Recovering.
   ///
   /// In en, this message translates to:
-  /// **'Reconnect with my inner strength'**
-  String get quizOptionQ7InnerStrength;
+  /// **'Recovering from a cosmetic treatment'**
+  String get quizOptionQ6Recovering;
 
-  /// No description provided for @quizOptionQ8SelfAware.
+  /// No description provided for @quizOptionQ7Sculpted.
   ///
   /// In en, this message translates to:
-  /// **'More self-aware'**
-  String get quizOptionQ8SelfAware;
+  /// **'More sculpted'**
+  String get quizOptionQ7Sculpted;
 
-  /// No description provided for @quizOptionQ8ClearRefreshed.
+  /// No description provided for @quizOptionQ7Radiant.
   ///
   /// In en, this message translates to:
-  /// **'Clear and refreshed'**
-  String get quizOptionQ8ClearRefreshed;
+  /// **'More radiant'**
+  String get quizOptionQ7Radiant;
 
-  /// No description provided for @quizOptionQ8CalmNurtured.
+  /// No description provided for @quizOptionQ7Refreshed.
   ///
   /// In en, this message translates to:
-  /// **'Calm and nurtured'**
-  String get quizOptionQ8CalmNurtured;
+  /// **'Refreshed'**
+  String get quizOptionQ7Refreshed;
 
-  /// No description provided for @quizOptionQ8GroundedEnergized.
+  /// No description provided for @quizOptionQ7Relaxed.
   ///
   /// In en, this message translates to:
-  /// **'Grounded and energized'**
-  String get quizOptionQ8GroundedEnergized;
+  /// **'Deeply relaxed'**
+  String get quizOptionQ7Relaxed;
+
+  /// No description provided for @quizOptionQ7Grounded.
+  ///
+  /// In en, this message translates to:
+  /// **'Grounded'**
+  String get quizOptionQ7Grounded;
+
+  /// No description provided for @quizOptionQ7Connected.
+  ///
+  /// In en, this message translates to:
+  /// **'More connected with myself'**
+  String get quizOptionQ7Connected;
+
+  /// No description provided for @quizOptionQ7Restored.
+  ///
+  /// In en, this message translates to:
+  /// **'Restored'**
+  String get quizOptionQ7Restored;
+
+  /// No description provided for @quizOptionQ8ClarityRenewal.
+  ///
+  /// In en, this message translates to:
+  /// **'Clarity and renewal'**
+  String get quizOptionQ8ClarityRenewal;
+
+  /// No description provided for @quizOptionQ8BalanceHarmony.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance and harmony'**
+  String get quizOptionQ8BalanceHarmony;
+
+  /// No description provided for @quizOptionQ8GroundingProtection.
+  ///
+  /// In en, this message translates to:
+  /// **'Grounding and protection'**
+  String get quizOptionQ8GroundingProtection;
+
+  /// No description provided for @quizOptionQ8VitalityConfidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Vitality and confidence'**
+  String get quizOptionQ8VitalityConfidence;
 
   /// No description provided for @quizOptionQ9ThreeMinutes.
   ///
@@ -980,11 +1082,23 @@ abstract class AppLocalizations {
   /// **'3 minutes'**
   String get quizOptionQ9ThreeMinutes;
 
+  /// No description provided for @quizOptionQ9ThreeDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get quizOptionQ9ThreeDetail;
+
   /// No description provided for @quizOptionQ9FiveMinutes.
   ///
   /// In en, this message translates to:
   /// **'5 minutes'**
   String get quizOptionQ9FiveMinutes;
+
+  /// No description provided for @quizOptionQ9FiveDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Ritual'**
+  String get quizOptionQ9FiveDetail;
 
   /// No description provided for @quizOptionQ9TenMinutes.
   ///
@@ -992,29 +1106,41 @@ abstract class AppLocalizations {
   /// **'10 minutes'**
   String get quizOptionQ9TenMinutes;
 
-  /// No description provided for @quizOptionQ10OpenBroken.
+  /// No description provided for @quizOptionQ9TenDetail.
   ///
   /// In en, this message translates to:
-  /// **'Open or broken skin'**
-  String get quizOptionQ10OpenBroken;
+  /// **'Lift & Sculpt'**
+  String get quizOptionQ9TenDetail;
 
-  /// No description provided for @quizOptionQ10ActiveIrritation.
+  /// No description provided for @quizOptionQ9FifteenMinutes.
   ///
   /// In en, this message translates to:
-  /// **'Active irritation or painful inflammation'**
-  String get quizOptionQ10ActiveIrritation;
+  /// **'15 minutes'**
+  String get quizOptionQ9FifteenMinutes;
 
-  /// No description provided for @quizOptionQ10UnexplainedChange.
+  /// No description provided for @quizOptionQ9FifteenDetail.
   ///
   /// In en, this message translates to:
-  /// **'A new or unexplained skin change'**
-  String get quizOptionQ10UnexplainedChange;
+  /// **'Full Sanctuary Journey'**
+  String get quizOptionQ9FifteenDetail;
 
-  /// No description provided for @quizOptionQ10None.
+  /// No description provided for @quizOptionQ10FirstRitual.
   ///
   /// In en, this message translates to:
-  /// **'None of the above'**
-  String get quizOptionQ10None;
+  /// **'Today is my very first ritual'**
+  String get quizOptionQ10FirstRitual;
+
+  /// No description provided for @quizOptionQ10Explored.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'ve explored it a few times'**
+  String get quizOptionQ10Explored;
+
+  /// No description provided for @quizOptionQ10Routine.
+  ///
+  /// In en, this message translates to:
+  /// **'It is part of my regular routine'**
+  String get quizOptionQ10Routine;
 
   /// No description provided for @commonContinue.
   ///

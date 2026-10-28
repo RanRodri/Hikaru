@@ -124,10 +124,9 @@ void main() {
     expect(find.text('The\nListening Room'), findsOneWidget);
     expect(
       find.text(
-        "Share what's on your mind\n"
-        'so we can guide you with a\n'
-        'personalized ritual for your skin,\n'
-        'your body, and your energy.',
+        'Take a moment to connect with yourself. Share your needs and '
+        'intentions so we can help you create a personalized ritual for '
+        'your skin, body and energy.',
       ),
       findsOneWidget,
     );
@@ -139,20 +138,23 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('01 / 10'), findsOneWidget);
-    expect(find.text('What is your skin asking for today?'), findsOneWidget);
+    expect(
+      find.text('What would you like to see reflected in the mirror today?'),
+      findsOneWidget,
+    );
     expect(find.text('NEXT'), findsOneWidget);
 
     const quizAnswers = [
-      'Calm and comfort',
-      'Sensitive or easily irritated',
-      'Emotionally overwhelmed',
-      'Stress and emotional pressure',
-      'Signs of stress or tension',
-      'Gentleness and balance',
-      'Return to harmony',
-      'Calm and nurtured',
+      'Reduce puffiness',
+      'Sensitive',
+      'In the morning',
+      'Jaw',
+      'Jawline',
+      'Calm',
+      'Refreshed',
+      'Balance and harmony',
       '5 minutes',
-      'None of the above',
+      'It is part of my regular routine',
     ];
     for (final answer in quizAnswers) {
       await tapQuizChoice(tester, answer);

@@ -9,18 +9,19 @@ QuizAnswers _answers(Map<int, List<String>> selected) => QuizAnswers({
 });
 
 void main() {
-  test('quiz has the 10 briefing questions and 39 options', () {
+  test('quiz has the 10 Figma questions and 54 options', () {
     expect(discoveryQuiz, hasLength(10));
     expect(
       discoveryQuiz.fold<int>(
         0,
         (count, question) => count + question.options.length,
       ),
-      39,
+      54,
     );
-    expect(discoveryQuiz.first.selection, QuizSelection.single);
-    expect(discoveryQuiz.last.selection, QuizSelection.multiple);
-    expect(discoveryQuiz.last.exclusiveOptionId, QuizOptionIds.q10None);
+    expect(discoveryQuiz.first.selection, QuizSelection.multiple);
+    expect(discoveryQuiz.first.exclusiveOptionId, isNull);
+    expect(discoveryQuiz.last.selection, QuizSelection.single);
+    expect(discoveryQuiz.last.exclusiveOptionId, isNull);
   });
 
   test('every crystal signal points at a real quiz option', () {
@@ -31,11 +32,11 @@ void main() {
     expect(quizCrystalSignals.keys, everyElement(isIn(ids)));
   });
 
-  test('emotion bucket alone selects its crystal', () {
+  test('Q8 intention selects the crystal named for that option', () {
     expect(
       assignCrystal(
         _answers({
-          7: [QuizOptionIds.q7ReturnHarmony],
+          8: [QuizOptionIds.q8BalanceHarmony],
         }),
       ),
       Crystal.jade,
@@ -43,7 +44,7 @@ void main() {
     expect(
       assignCrystal(
         _answers({
-          8: [QuizOptionIds.q8SelfAware],
+          8: [QuizOptionIds.q8GroundingProtection],
         }),
       ),
       Crystal.obsidian,
@@ -51,78 +52,64 @@ void main() {
     expect(
       assignCrystal(
         _answers({
-          3: [QuizOptionIds.q3MentallyBusy],
+          8: [QuizOptionIds.q8ClarityRenewal],
         }),
       ),
       Crystal.whiteQuartz,
     );
-  });
-
-  test('weights favor emotion over skin; Q9 does not score', () {
-    final answers = _answers({
-      7: [QuizOptionIds.q7UnderstandBeneath], // Obsidian emotion
-      1: [QuizOptionIds.q1RadianceVitality], // Quartz skin
-      9: [QuizOptionIds.q9TenMinutes], // stored only
-    });
-
-    final scores = scoreCrystals(answers);
-    final weightSum = emotionWeight + skinWeight;
-    expect(scores[Crystal.obsidian], closeTo(emotionWeight / weightSum, 1e-9));
-    expect(scores[Crystal.whiteQuartz], closeTo(skinWeight / weightSum, 1e-9));
-    expect(scores.containsKey(Crystal.redJasper), isFalse);
-    expect(assignCrystal(answers), Crystal.obsidian);
-  });
-
-  test('empty emotion renormalizes to skin only', () {
-    final answers = _answers({
-      1: [QuizOptionIds.q1RadianceVitality],
-      9: [QuizOptionIds.q9ThreeMinutes],
-    });
-
-    final scores = scoreCrystals(answers);
-    expect(scores[Crystal.whiteQuartz], closeTo(1.0, 1e-9));
-    expect(scores.length, 1);
-    expect(assignCrystal(answers), Crystal.whiteQuartz);
-  });
-
-  test('skin bucket chooses when emotion answers are absent', () {
     expect(
       assignCrystal(
         _answers({
-          2: [QuizOptionIds.q2Sensitive],
-        }),
-      ),
-      Crystal.jade,
-    );
-    expect(
-      assignCrystal(
-        _answers({
-          5: [QuizOptionIds.q5FirmnessVitality],
+          8: [QuizOptionIds.q8VitalityConfidence],
         }),
       ),
       Crystal.redJasper,
     );
   });
 
-  test('safety answers do not affect crystal scores', () {
-    final withSafety = _answers({
-      7: [QuizOptionIds.q7GreaterClarity],
-      10: [QuizOptionIds.q10OpenBroken, QuizOptionIds.q10ActiveIrritation],
-    });
-    final withoutSafety = _answers({
-      7: [QuizOptionIds.q7GreaterClarity],
+  test('weights favor emotion over skin; Q9 and Q10 do not score', () {
+    final answers = _answers({
+      8: [QuizOptionIds.q8GroundingProtection],
+      2: [QuizOptionIds.q2Sensitive],
+      9: [QuizOptionIds.q9TenMinutes],
+      10: [QuizOptionIds.q10Routine],
     });
 
-    expect(scoreCrystals(withSafety), scoreCrystals(withoutSafety));
-    expect(assignCrystal(withSafety), Crystal.whiteQuartz);
+    final scores = scoreCrystals(answers);
+    final weightSum = emotionWeight + skinWeight;
+    expect(scores[Crystal.obsidian], closeTo(emotionWeight / weightSum, 1e-9));
+    expect(scores[Crystal.jade], closeTo(skinWeight / weightSum, 1e-9));
+    expect(scores.containsKey(Crystal.whiteQuartz), isFalse);
+    expect(assignCrystal(answers), Crystal.obsidian);
   });
 
-  test('tie-break prefers Jade when scores match', () {
+  test('empty emotion renormalizes to skin only', () {
+    final answers = _answers({
+      2: [QuizOptionIds.q2Dry],
+      9: [QuizOptionIds.q9ThreeMinutes],
+    });
+
+    final scores = scoreCrystals(answers);
+    expect(scores[Crystal.jade], closeTo(1.0, 1e-9));
+    expect(scores.length, 1);
+    expect(assignCrystal(answers), Crystal.jade);
+  });
+
+  test('unmapped answers do not vote', () {
+    final answers = _answers({
+      1: [QuizOptionIds.q1ReducePuffiness, QuizOptionIds.q1DeeplyHydrate],
+      6: [QuizOptionIds.q6Calm],
+    });
+
+    expect(scoreCrystals(answers), isEmpty);
+    expect(assignCrystal(answers), Crystal.jade);
+  });
+
+  test('tie-break prefers Jade when emotion votes split evenly', () {
     expect(
       assignCrystal(
         _answers({
-          7: [QuizOptionIds.q7ReturnHarmony],
-          8: [QuizOptionIds.q8ClearRefreshed],
+          8: [QuizOptionIds.q8BalanceHarmony, QuizOptionIds.q8ClarityRenewal],
         }),
       ),
       Crystal.jade,
@@ -136,15 +123,15 @@ void main() {
 
   test('answers round-trip through json', () {
     const original = QuizAnswers({
-      1: {QuizOptionIds.q1CalmComfort},
-      8: {QuizOptionIds.q8CalmNurtured},
-      10: {QuizOptionIds.q10None},
+      1: {QuizOptionIds.q1ReducePuffiness},
+      8: {QuizOptionIds.q8BalanceHarmony},
+      10: {QuizOptionIds.q10Routine},
     });
 
     final restored = QuizAnswers.fromJson(original.toJson());
 
     expect(restored.selectedIds(1), original.selectedIds(1));
-    expect(restored.selectedIds(8), {QuizOptionIds.q8CalmNurtured});
-    expect(restored.selectedIds(10), {QuizOptionIds.q10None});
+    expect(restored.selectedIds(8), {QuizOptionIds.q8BalanceHarmony});
+    expect(restored.selectedIds(10), {QuizOptionIds.q10Routine});
   });
 }

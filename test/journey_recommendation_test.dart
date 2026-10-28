@@ -22,8 +22,7 @@ void main() {
     final recommendation = buildJourneyRecommendation(
       Crystal.obsidian,
       _answers({
-        1: [QuizOptionIds.q1HydrationSoftness],
-        7: [QuizOptionIds.q7UnderstandBeneath],
+        2: [QuizOptionIds.q2Dry],
         9: [QuizOptionIds.q9FiveMinutes],
       }),
     );
@@ -40,7 +39,6 @@ void main() {
     final recommendation = buildJourneyRecommendation(
       Crystal.jade,
       _answers({
-        1: [QuizOptionIds.q1RadianceVitality],
         2: [QuizOptionIds.q2Sensitive],
         9: [QuizOptionIds.q9ThreeMinutes],
       }),
@@ -51,12 +49,12 @@ void main() {
   });
 
   test('persists recommendation for profile reuse', () async {
-    final repository = JourneyRecommendationRepository(SharedPreferencesAsync());
+    final repository = JourneyRecommendationRepository(
+      SharedPreferencesAsync(),
+    );
     final original = buildJourneyRecommendation(
       Crystal.whiteQuartz,
       _answers({
-        1: [QuizOptionIds.q1RadianceVitality],
-        7: [QuizOptionIds.q7GreaterClarity],
         9: [QuizOptionIds.q9TenMinutes],
       }),
     );
@@ -66,8 +64,8 @@ void main() {
 
     expect(restored, isNotNull);
     expect(restored!.crystal, Crystal.whiteQuartz);
-    expect(restored.facialRitual, 'Radiance Protocol');
+    expect(restored.facialRitual, 'Hydration Protocol');
     expect(restored.durationMinutes, 10);
-    expect(restored.intention, 'Clarity and inner illumination');
+    expect(restored.intention, 'Mental clarity and radiance');
   });
 }

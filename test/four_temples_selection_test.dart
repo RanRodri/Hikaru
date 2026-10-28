@@ -33,7 +33,7 @@ void main() {
       final recommendation = buildJourneyRecommendation(
         Crystal.jade,
         const QuizAnswers({
-          1: {QuizOptionIds.q1CalmComfort},
+          2: {QuizOptionIds.q2Sensitive},
           9: {QuizOptionIds.q9FiveMinutes},
         }),
       );
@@ -60,9 +60,7 @@ void main() {
       expect(find.text('RECOMMENDED'), findsOneWidget);
       expect(find.text('SELECTED'), findsOneWidget);
       expect(
-        find.bySemanticsLabel(
-          'JADE, Temple of Harmony, recommended for you',
-        ),
+        find.bySemanticsLabel('JADE, Temple of Harmony, recommended for you'),
         findsOneWidget,
       );
       expect(

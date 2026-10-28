@@ -5,9 +5,12 @@ import 'crystal.dart';
 /// Proposed personalization weights (not scientific or diagnostic).
 ///
 /// Emotional / intention answers carry 60% and skin / cosmetic outcome 30%.
-/// Ritual time preference (Q9) is stored for the journey but does not score
-/// crystals, so active buckets are renormalized to sum to 1.0. Q10 is
-/// informative screening only and never votes.
+/// Ritual time (Q9) and sculpting familiarity (Q10) are stored for the
+/// journey but do not score crystals, so active buckets are renormalized to
+/// sum to 1.0. Options without an entry below are stored and never vote:
+/// Figma does not assign them a crystal. Q2 keeps the crystal of the skin
+/// options that survived ("Sensitive", and "Tight" / "Dry" split from
+/// "Tight or dry"). Q8 carries the four intentions Fernanda named.
 const double emotionWeight = 0.60;
 const double skinWeight = 0.30;
 
@@ -23,41 +26,16 @@ const List<Crystal> crystalTieBreakOrder = [
 
 /// Option id → crystal signal for scoring.
 const Map<String, Crystal> quizCrystalSignals = {
-  // Skin / cosmetic outcome (30%)
-  QuizOptionIds.q1CalmComfort: Crystal.jade,
-  QuizOptionIds.q1LiftedFirm: Crystal.redJasper,
-  QuizOptionIds.q1HydrationSoftness: Crystal.jade,
-  QuizOptionIds.q1RadianceVitality: Crystal.whiteQuartz,
+  // Skin options that kept their previous crystal (30% bucket, Q2).
   QuizOptionIds.q2Sensitive: Crystal.jade,
-  QuizOptionIds.q2TightDry: Crystal.jade,
-  QuizOptionIds.q2PuffyTired: Crystal.redJasper,
-  QuizOptionIds.q2ComfortableLackingRadiance: Crystal.whiteQuartz,
-  QuizOptionIds.q5ChangesUnknown: Crystal.obsidian,
-  QuizOptionIds.q5LossBrightness: Crystal.whiteQuartz,
-  QuizOptionIds.q5StressTension: Crystal.jade,
-  QuizOptionIds.q5FirmnessVitality: Crystal.redJasper,
+  QuizOptionIds.q2Tight: Crystal.jade,
+  QuizOptionIds.q2Dry: Crystal.jade,
 
-  // Emotional state / intention (60%)
-  QuizOptionIds.q3EmotionallyOverwhelmed: Crystal.obsidian,
-  QuizOptionIds.q3MentallyBusy: Crystal.whiteQuartz,
-  QuizOptionIds.q3DisconnectedBody: Crystal.redJasper,
-  QuizOptionIds.q3CalmBalanced: Crystal.jade,
-  QuizOptionIds.q4UncertaintyTension: Crystal.obsidian,
-  QuizOptionIds.q4MentalNoise: Crystal.whiteQuartz,
-  QuizOptionIds.q4StressPressure: Crystal.jade,
-  QuizOptionIds.q4FatigueHeaviness: Crystal.redJasper,
-  QuizOptionIds.q6SpaceReflect: Crystal.obsidian,
-  QuizOptionIds.q6MomentClarity: Crystal.whiteQuartz,
-  QuizOptionIds.q6GentlenessBalance: Crystal.jade,
-  QuizOptionIds.q6GroundingStrength: Crystal.redJasper,
-  QuizOptionIds.q7UnderstandBeneath: Crystal.obsidian,
-  QuizOptionIds.q7GreaterClarity: Crystal.whiteQuartz,
-  QuizOptionIds.q7ReturnHarmony: Crystal.jade,
-  QuizOptionIds.q7InnerStrength: Crystal.redJasper,
-  QuizOptionIds.q8SelfAware: Crystal.obsidian,
-  QuizOptionIds.q8ClearRefreshed: Crystal.whiteQuartz,
-  QuizOptionIds.q8CalmNurtured: Crystal.jade,
-  QuizOptionIds.q8GroundedEnergized: Crystal.redJasper,
+  // Intention options named with a crystal (60% bucket, Q8).
+  QuizOptionIds.q8ClarityRenewal: Crystal.whiteQuartz,
+  QuizOptionIds.q8BalanceHarmony: Crystal.jade,
+  QuizOptionIds.q8GroundingProtection: Crystal.obsidian,
+  QuizOptionIds.q8VitalityConfidence: Crystal.redJasper,
 };
 
 Map<Crystal, double> _bucketScores(QuizAnswers answers, List<int> questions) {
