@@ -453,11 +453,12 @@ class _RitualStep extends StatelessWidget {
           child: Text.rich(
             TextSpan(
               children: [
-                TextSpan(text: '$name\n'),
-                TextSpan(
-                  text: subtitle,
-                  style: const TextStyle(color: AppColors.fog),
-                ),
+                TextSpan(text: name),
+                if (subtitle.isNotEmpty)
+                  TextSpan(
+                    text: '\n$subtitle',
+                    style: const TextStyle(color: AppColors.fog),
+                  ),
               ],
             ),
             style: _chamberText.copyWith(

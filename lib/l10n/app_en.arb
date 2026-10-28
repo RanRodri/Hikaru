@@ -128,7 +128,7 @@
   "quizSelectOption": "Select an option.",
 
   "ritualReadyTitle": "Your\nRitual Is Ready",
-  "ritualReadyBody": "Your personalized Hikaru Ritual has been thoughtfully prepared, bringing together the techniques, crystal, frequencies, and intention that best support your skin and your energy today.",
+  "ritualReadyBody": "Inspired by your unique needs and intentions, your Hikaru Lift Ritual brings together mindful touch, crystal energy, and frequencies to guide you toward beauty, balance and inner harmony.",
   "ritualReadyEnter": "ENTER YOUR RITUAL",
 
   "quizQ1Prompt": "What would you like to see reflected in the mirror today?",
@@ -210,11 +210,11 @@
   "commonExit": "Exit",
 
   "mirrorGardenEyebrow": "THE MIRROR GARDEN",
-  "mirrorGardenTitle": "Add A Photo Of Your Face For Personal Tracking",
+  "mirrorGardenTitle": "Capture your beginning.",
   "mirrorGardenSkip": "SKIP FOR NOW",
   "mirrorGardenUpload": "UPLOAD A PHOTO",
   "mirrorGardenOptional": "(Optional)",
-  "mirrorGardenHint": "A photo helps you celebrate your progress over time and compare your results throughout your Hikaru journey.",
+  "mirrorGardenHint": "Take a photo to create a personal record of your 30-day Hikaru journey and observe your skin's evolution over time.",
   "mirrorTakePhoto": "TAKE A PHOTO",
   "mirrorTakePhotoSemantics": "Take a photo",
   "mirrorPhotoPreviewSemantics": "Your face photo preview",
@@ -224,10 +224,15 @@
   "mirrorCameraCloseSemantics": "Close camera",
 
   "resonanceChamberTitle": "THE RESONANCE CHAMBER",
-  "resonanceRevealTitle": "YOUR HIKARU JOURNEY",
-  "resonanceRevealSubtitle": "HAS BEEN REVEALED",
+  "resonanceRevealTitle": "Your 30 Day Journey begins here.",
+  "resonanceRevealSubtitle": "Your personalized journey brings together crystal symbolism, mindful touch, music, and intention to accompany you through 30 days of beauty, balance, and self-discovery.",
   "resonanceMissingCrystal": "Complete the Listening Garden to receive your crystal and personalized protocol.",
-  "resonanceYourCrystal": "YOUR CRYSTAL",
+  "resonanceYourCrystal": "Your recommended crystal for the next 30 days protocol is: {crystal}",
+  "@resonanceYourCrystal": {
+    "placeholders": {
+      "crystal": {"type": "String"}
+    }
+  },
   "resonanceAssignedCrystalSemantics": "Assigned crystal {crystal}",
   "@resonanceAssignedCrystalSemantics": {
     "placeholders": {
@@ -243,16 +248,16 @@
   "resonanceProtocolTemple": "Temple",
   "resonanceEnterSanctuary": "ENTER MY HIKARU SANCTUARY",
 
-  "resonanceYourFrequency": "YOUR FREQUENCY",
+  "resonanceYourFrequency": "Your sound frequency",
   "resonanceYourCymaticSignature": "YOUR CYMATIC\nSIGNATURE",
   "resonanceCymaticSignatureSemantics": "Your cymatic signature",
-  "resonanceYourRitual": "YOUR RITUAL",
-  "resonanceStepRegulationName": "Regulation",
-  "resonanceStepRegulationSubtitle": "The Merkaba Room",
-  "resonanceStepGuaShaName": "Gua Sha",
-  "resonanceStepGuaShaSubtitle": "Physical Massage",
-  "resonanceStepIntegrationName": "Frequency & Cymatics Integration",
-  "resonanceStepIntegrationSubtitle": "Closing Integration",
+  "resonanceYourRitual": "Your personalized ritual",
+  "resonanceStepRegulationName": "Merkaba activation",
+  "resonanceStepRegulationSubtitle": "",
+  "resonanceStepGuaShaName": "Hikaru sculpting ritual",
+  "resonanceStepGuaShaSubtitle": "",
+  "resonanceStepIntegrationName": "Sound and cymatic integration",
+  "resonanceStepIntegrationSubtitle": "",
 
   "crystalSceneSemanticsDefault": "Your crystal in the garden",
   "crystalSceneSemantics": "{crystal} crystal",

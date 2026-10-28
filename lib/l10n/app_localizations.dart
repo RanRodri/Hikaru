@@ -707,7 +707,7 @@ abstract class AppLocalizations {
   /// No description provided for @ritualReadyBody.
   ///
   /// In en, this message translates to:
-  /// **'Your personalized Hikaru Ritual has been thoughtfully prepared, bringing together the techniques, crystal, frequencies, and intention that best support your skin and your energy today.'**
+  /// **'Inspired by your unique needs and intentions, your Hikaru Lift Ritual brings together mindful touch, crystal energy, and frequencies to guide you toward beauty, balance and inner harmony.'**
   String get ritualReadyBody;
 
   /// No description provided for @ritualReadyEnter.
@@ -1175,7 +1175,7 @@ abstract class AppLocalizations {
   /// No description provided for @mirrorGardenTitle.
   ///
   /// In en, this message translates to:
-  /// **'Add A Photo Of Your Face For Personal Tracking'**
+  /// **'Capture your beginning.'**
   String get mirrorGardenTitle;
 
   /// No description provided for @mirrorGardenSkip.
@@ -1199,7 +1199,7 @@ abstract class AppLocalizations {
   /// No description provided for @mirrorGardenHint.
   ///
   /// In en, this message translates to:
-  /// **'A photo helps you celebrate your progress over time and compare your results throughout your Hikaru journey.'**
+  /// **'Take a photo to create a personal record of your 30-day Hikaru journey and observe your skin\'s evolution over time.'**
   String get mirrorGardenHint;
 
   /// No description provided for @mirrorTakePhoto.
@@ -1253,13 +1253,13 @@ abstract class AppLocalizations {
   /// No description provided for @resonanceRevealTitle.
   ///
   /// In en, this message translates to:
-  /// **'YOUR HIKARU JOURNEY'**
+  /// **'Your 30 Day Journey begins here.'**
   String get resonanceRevealTitle;
 
   /// No description provided for @resonanceRevealSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'HAS BEEN REVEALED'**
+  /// **'Your personalized journey brings together crystal symbolism, mindful touch, music, and intention to accompany you through 30 days of beauty, balance, and self-discovery.'**
   String get resonanceRevealSubtitle;
 
   /// No description provided for @resonanceMissingCrystal.
@@ -1271,8 +1271,8 @@ abstract class AppLocalizations {
   /// No description provided for @resonanceYourCrystal.
   ///
   /// In en, this message translates to:
-  /// **'YOUR CRYSTAL'**
-  String get resonanceYourCrystal;
+  /// **'Your recommended crystal for the next 30 days protocol is: {crystal}'**
+  String resonanceYourCrystal(String crystal);
 
   /// No description provided for @resonanceAssignedCrystalSemantics.
   ///
@@ -1331,7 +1331,7 @@ abstract class AppLocalizations {
   /// No description provided for @resonanceYourFrequency.
   ///
   /// In en, this message translates to:
-  /// **'YOUR FREQUENCY'**
+  /// **'Your sound frequency'**
   String get resonanceYourFrequency;
 
   /// No description provided for @resonanceYourCymaticSignature.
@@ -1349,43 +1349,43 @@ abstract class AppLocalizations {
   /// No description provided for @resonanceYourRitual.
   ///
   /// In en, this message translates to:
-  /// **'YOUR RITUAL'**
+  /// **'Your personalized ritual'**
   String get resonanceYourRitual;
 
   /// No description provided for @resonanceStepRegulationName.
   ///
   /// In en, this message translates to:
-  /// **'Regulation'**
+  /// **'Merkaba activation'**
   String get resonanceStepRegulationName;
 
   /// No description provided for @resonanceStepRegulationSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'The Merkaba Room'**
+  /// **''**
   String get resonanceStepRegulationSubtitle;
 
   /// No description provided for @resonanceStepGuaShaName.
   ///
   /// In en, this message translates to:
-  /// **'Gua Sha'**
+  /// **'Hikaru sculpting ritual'**
   String get resonanceStepGuaShaName;
 
   /// No description provided for @resonanceStepGuaShaSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Physical Massage'**
+  /// **''**
   String get resonanceStepGuaShaSubtitle;
 
   /// No description provided for @resonanceStepIntegrationName.
   ///
   /// In en, this message translates to:
-  /// **'Frequency & Cymatics Integration'**
+  /// **'Sound and cymatic integration'**
   String get resonanceStepIntegrationName;
 
   /// No description provided for @resonanceStepIntegrationSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Closing Integration'**
+  /// **''**
   String get resonanceStepIntegrationSubtitle;
 
   /// No description provided for @crystalSceneSemanticsDefault.

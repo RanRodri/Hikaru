@@ -169,18 +169,22 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('THE MIRROR GARDEN'), findsOneWidget);
-    expect(
-      find.text('Add A Photo Of Your Face For Personal Tracking'),
-      findsOneWidget,
-    );
+    expect(find.text('Capture your beginning.'), findsOneWidget);
     expect(find.text('CONTINUE'), findsOneWidget);
 
     await tester.ensureVisible(find.text('CONTINUE'));
     await tester.tap(find.text('CONTINUE'));
     await tester.pumpAndSettle();
 
-    expect(find.text('YOUR HIKARU JOURNEY'), findsOneWidget);
-    expect(find.text('HAS BEEN REVEALED'), findsOneWidget);
+    expect(find.text('Your 30 Day Journey begins here.'), findsOneWidget);
+    expect(
+      find.text(
+        'Your personalized journey brings together crystal symbolism, mindful '
+        'touch, music, and intention to accompany you through 30 days of '
+        'beauty, balance, and self-discovery.',
+      ),
+      findsOneWidget,
+    );
     expect(find.bySemanticsLabel('Assigned crystal JADE'), findsOneWidget);
     expect(find.text('YOUR RECOMMENDED PROTOCOL'), findsOneWidget);
     expect(find.text('ENTER MY HIKARU SANCTUARY'), findsOneWidget);

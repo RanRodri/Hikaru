@@ -120,26 +120,26 @@ class _RevealTitle extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return Column(
       children: [
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(
-            l10n.resonanceRevealTitle,
-            maxLines: 1,
-            style: AppTypography.headline.copyWith(
-              color: AppColors.white,
-              fontSize: AppFontSizes.s14_5,
-              letterSpacing: 3.2,
-            ),
+        Text(
+          l10n.resonanceRevealTitle,
+          textAlign: TextAlign.center,
+          style: AppTypography.headline.copyWith(
+            color: AppColors.white,
+            fontSize: AppFontSizes.s22,
+            fontWeight: FontWeight.w700,
+            height: 1.2,
+            letterSpacing: 0,
           ),
         ),
-        const SizedBox(height: AppSpacing.s6),
+        const SizedBox(height: AppSpacing.s8),
         Text(
           l10n.resonanceRevealSubtitle,
           textAlign: TextAlign.center,
           style: AppTypography.headline.copyWith(
-            color: AppColors.champagneGold,
-            fontSize: AppFontSizes.s12,
-            letterSpacing: 2.4,
+            color: AppColors.white,
+            fontSize: AppFontSizes.s13,
+            height: 1.5,
+            letterSpacing: 0.2,
           ),
         ),
       ],
@@ -178,12 +178,13 @@ class _CrystalReveal extends StatelessWidget {
     return Column(
       children: [
         Text(
-          l10n.resonanceYourCrystal,
+          l10n.resonanceYourCrystal(crystal.localizedName(l10n)),
           textAlign: TextAlign.center,
-          style: AppTypography.subheadline.copyWith(
+          style: AppTypography.headline.copyWith(
             color: AppColors.fog,
-            fontSize: AppFontSizes.s10,
-            letterSpacing: 2.2,
+            fontSize: AppFontSizes.s13,
+            height: 1.45,
+            letterSpacing: 0.2,
           ),
         ),
         const SizedBox(height: AppSpacing.s8),

@@ -327,7 +327,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ritualReadyBody =>
-      'Your personalized Hikaru Ritual has been thoughtfully prepared, bringing together the techniques, crystal, frequencies, and intention that best support your skin and your energy today.';
+      'Inspired by your unique needs and intentions, your Hikaru Lift Ritual brings together mindful touch, crystal energy, and frequencies to guide you toward beauty, balance and inner harmony.';
 
   @override
   String get ritualReadyEnter => 'ENTER YOUR RITUAL';
@@ -566,8 +566,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mirrorGardenEyebrow => 'THE MIRROR GARDEN';
 
   @override
-  String get mirrorGardenTitle =>
-      'Add A Photo Of Your Face For Personal Tracking';
+  String get mirrorGardenTitle => 'Capture your beginning.';
 
   @override
   String get mirrorGardenSkip => 'SKIP FOR NOW';
@@ -580,7 +579,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mirrorGardenHint =>
-      'A photo helps you celebrate your progress over time and compare your results throughout your Hikaru journey.';
+      'Take a photo to create a personal record of your 30-day Hikaru journey and observe your skin\'s evolution over time.';
 
   @override
   String get mirrorTakePhoto => 'TAKE A PHOTO';
@@ -608,17 +607,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resonanceChamberTitle => 'THE RESONANCE CHAMBER';
 
   @override
-  String get resonanceRevealTitle => 'YOUR HIKARU JOURNEY';
+  String get resonanceRevealTitle => 'Your 30 Day Journey begins here.';
 
   @override
-  String get resonanceRevealSubtitle => 'HAS BEEN REVEALED';
+  String get resonanceRevealSubtitle =>
+      'Your personalized journey brings together crystal symbolism, mindful touch, music, and intention to accompany you through 30 days of beauty, balance, and self-discovery.';
 
   @override
   String get resonanceMissingCrystal =>
       'Complete the Listening Garden to receive your crystal and personalized protocol.';
 
   @override
-  String get resonanceYourCrystal => 'YOUR CRYSTAL';
+  String resonanceYourCrystal(String crystal) {
+    return 'Your recommended crystal for the next 30 days protocol is: $crystal';
+  }
 
   @override
   String resonanceAssignedCrystalSemantics(String crystal) {
@@ -650,7 +652,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resonanceEnterSanctuary => 'ENTER MY HIKARU SANCTUARY';
 
   @override
-  String get resonanceYourFrequency => 'YOUR FREQUENCY';
+  String get resonanceYourFrequency => 'Your sound frequency';
 
   @override
   String get resonanceYourCymaticSignature => 'YOUR CYMATIC\nSIGNATURE';
@@ -659,25 +661,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resonanceCymaticSignatureSemantics => 'Your cymatic signature';
 
   @override
-  String get resonanceYourRitual => 'YOUR RITUAL';
+  String get resonanceYourRitual => 'Your personalized ritual';
 
   @override
-  String get resonanceStepRegulationName => 'Regulation';
+  String get resonanceStepRegulationName => 'Merkaba activation';
 
   @override
-  String get resonanceStepRegulationSubtitle => 'The Merkaba Room';
+  String get resonanceStepRegulationSubtitle => '';
 
   @override
-  String get resonanceStepGuaShaName => 'Gua Sha';
+  String get resonanceStepGuaShaName => 'Hikaru sculpting ritual';
 
   @override
-  String get resonanceStepGuaShaSubtitle => 'Physical Massage';
+  String get resonanceStepGuaShaSubtitle => '';
 
   @override
-  String get resonanceStepIntegrationName => 'Frequency & Cymatics Integration';
+  String get resonanceStepIntegrationName => 'Sound and cymatic integration';
 
   @override
-  String get resonanceStepIntegrationSubtitle => 'Closing Integration';
+  String get resonanceStepIntegrationSubtitle => '';
 
   @override
   String get crystalSceneSemanticsDefault => 'Your crystal in the garden';

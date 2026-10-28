@@ -50,7 +50,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('THE HARMONY GARDEN'), findsOneWidget);
-      expect(find.text('YOUR HIKARU JOURNEY'), findsNothing);
+      expect(find.text('Your 30 Day Journey begins here.'), findsNothing);
       expect(router.canPop(), isFalse);
 
       // The center kanji starts the full cycle at the Merkaba.
@@ -114,7 +114,7 @@ void main() {
       router.pop();
       await tester.pumpAndSettle();
       expect(find.text('THE HARMONY GARDEN'), findsOneWidget);
-      expect(find.text('YOUR HIKARU JOURNEY'), findsNothing);
+      expect(find.text('Your 30 Day Journey begins here.'), findsNothing);
       expect(router.canPop(), isFalse);
     },
   );
@@ -155,6 +155,6 @@ void main() {
     router.pop();
     await tester.pumpAndSettle();
     expect(find.text('JOURNEY'), findsOneWidget);
-    expect(find.text('YOUR HIKARU JOURNEY'), findsNothing);
+    expect(find.text('Your 30 Day Journey begins here.'), findsNothing);
   });
 }
