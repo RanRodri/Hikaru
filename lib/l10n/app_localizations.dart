@@ -2912,35 +2912,137 @@ abstract class AppLocalizations {
   /// **'Headphones recommended'**
   String get headphonesDialogSemanticsLabel;
 
-  /// Small overline above the headphones dialog title.
+  /// Headphones note title.
   ///
   /// In en, this message translates to:
-  /// **'FOR THE FULL HIKARU FREQUENCY EXPERIENCE'**
+  /// **'AWAKEN YOUR SENSES'**
   String get headphonesDialogEyebrow;
 
-  /// Main title of the headphones recommendation dialog.
+  /// Headphones note subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Headphones recommended'**
+  /// **'Your sensory journey begins now.'**
   String get headphonesDialogTitle;
 
-  /// Body copy of the headphones dialog, including the comfortable-volume reminder.
+  /// Headphones note body. Shown before playback, never during.
   ///
   /// In en, this message translates to:
-  /// **'For a more immersive experience, we recommend headphones. Find a comfortable space, set a comfortable volume, and let the sound surround you.'**
+  /// **'Put on your headphones for a deeper sound experience. Gently massage your face with your crystal, following the movements you have learned. Allow the sound, movement, and Cymatics to guide you into a moment of harmony and inner balance.'**
   String get headphonesDialogBody;
 
-  /// Primary button: continue with headphones ready.
+  /// Primary button that starts the crystal frequency.
   ///
   /// In en, this message translates to:
-  /// **'I\'M READY'**
+  /// **'ACTIVATE MY FREQUENCY'**
   String get headphonesDialogReady;
 
-  /// Secondary button: continue without headphones.
+  /// No description provided for @crystalAwakenLine.
   ///
   /// In en, this message translates to:
-  /// **'CONTINUE WITHOUT HEADPHONES'**
-  String get headphonesDialogContinueWithout;
+  /// **'Awaken your senses. Enter the resonance.'**
+  String get crystalAwakenLine;
+
+  /// No description provided for @crystalLearnRitual.
+  ///
+  /// In en, this message translates to:
+  /// **'LEARN YOUR CRYSTAL RITUAL'**
+  String get crystalLearnRitual;
+
+  /// No description provided for @crystalEnterFrequency.
+  ///
+  /// In en, this message translates to:
+  /// **'ENTER THE FREQUENCY'**
+  String get crystalEnterFrequency;
+
+  /// No description provided for @crystalLibrarySemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the crystal library'**
+  String get crystalLibrarySemantics;
+
+  /// No description provided for @crystalTutorialReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Your crystal ritual is ready. Now enter the frequency.'**
+  String get crystalTutorialReady;
+
+  /// No description provided for @crystalContinueResonance.
+  ///
+  /// In en, this message translates to:
+  /// **'CONTINUE TO RESONANCE'**
+  String get crystalContinueResonance;
+
+  /// No description provided for @crystalTutorialPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause tutorial'**
+  String get crystalTutorialPause;
+
+  /// No description provided for @crystalTutorialPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Play tutorial'**
+  String get crystalTutorialPlay;
+
+  /// No description provided for @crystalTutorialRepeat.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat tutorial'**
+  String get crystalTutorialRepeat;
+
+  /// No description provided for @crystalTutorialContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue tutorial'**
+  String get crystalTutorialContinue;
+
+  /// No description provided for @crystalReturnCoherence.
+  ///
+  /// In en, this message translates to:
+  /// **'RETURN TO COHERENCE'**
+  String get crystalReturnCoherence;
+
+  /// No description provided for @crystalCarryHarmony.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry this moment of harmony with you.'**
+  String get crystalCarryHarmony;
+
+  /// No description provided for @crystalCompleteRitual.
+  ///
+  /// In en, this message translates to:
+  /// **'COMPLETE MY RITUAL'**
+  String get crystalCompleteRitual;
+
+  /// No description provided for @crystalExploreTemple.
+  ///
+  /// In en, this message translates to:
+  /// **'EXPLORE ANOTHER TEMPLE'**
+  String get crystalExploreTemple;
+
+  /// No description provided for @crystalReplayTutorial.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the tutorial again'**
+  String get crystalReplayTutorial;
+
+  /// No description provided for @crystalStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get crystalStop;
+
+  /// No description provided for @crystalVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Volume'**
+  String get crystalVolume;
+
+  /// No description provided for @crystalProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Frequency progress'**
+  String get crystalProgress;
 }
 
 class _AppLocalizationsDelegate

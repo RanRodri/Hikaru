@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hikaru/core/design_system/theme/app_theme.dart';
 import 'package:hikaru/core/media/remote_image.dart';
+import 'package:hikaru/core/router/app_routes.dart';
 import 'package:hikaru/features/crystals/domain/crystal.dart';
 import 'package:hikaru/features/resonance_chamber/data/cymatic_headphones_prompts.dart';
 import 'package:hikaru/features/resonance_chamber/presentation/crystal_resonance_screen.dart';
+import 'package:hikaru/features/resonance_chamber/presentation/crystal_temple_pages.dart';
 import 'package:hikaru/features/resonance_chamber/presentation/cymatic_signature.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
@@ -54,23 +57,24 @@ void main() {
     expect(find.bySemanticsLabel('Cymatic'), findsNothing);
     expect(find.bySemanticsLabel('Exit'), findsNothing);
 
-    await tester.ensureVisible(find.bySemanticsLabel('Play frequency'));
-    await tester.tap(find.bySemanticsLabel('Play frequency'));
+    await tester.ensureVisible(find.text('ENTER THE FREQUENCY'));
+    await tester.tap(find.text('ENTER THE FREQUENCY'));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('immersive experience'), findsOneWidget);
-    expect(find.text("I'M READY"), findsOneWidget);
-    expect(find.text('CONTINUE WITHOUT HEADPHONES'), findsOneWidget);
+    expect(find.text('AWAKEN YOUR SENSES'), findsOneWidget);
+    expect(find.text('ACTIVATE MY FREQUENCY'), findsOneWidget);
+    expect(find.text('CONTINUE WITHOUT HEADPHONES'), findsNothing);
     expect(find.byIcon(Icons.headphones_outlined), findsOneWidget);
     expect(find.bySemanticsLabel('Cymatic'), findsNothing);
 
-    await tester.tap(find.text("I'M READY"));
+    await tester.tap(find.text('ACTIVATE MY FREQUENCY'));
     await _pumpUntil(tester, find.bySemanticsLabel('Cymatic'));
 
-    expect(find.textContaining('immersive experience'), findsNothing);
+    expect(find.text('AWAKEN YOUR SENSES'), findsNothing);
+    await tester.pump(const Duration(milliseconds: 800));
     expect(_remoteImage('jade.png'), findsNothing);
-    expect(find.bySemanticsLabel('Exit'), findsNothing);
-    expect(find.bySemanticsLabel('Pause'), findsNothing);
+    expect(find.bySemanticsLabel('Pause'), findsOneWidget);
+    expect(find.bySemanticsLabel('Stop'), findsOneWidget);
     expect(_assetImage('assets/images/merkaba_starry_night.jpg'), findsNothing);
     expect(orientations.last, [
       'DeviceOrientation.portraitUp',
@@ -95,32 +99,18 @@ void main() {
 
     expect(tester.getSize(find.byType(CymaticSignature)), const Size(844, 390));
 
-    await tester.tap(find.bySemanticsLabel('Cymatic'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-
-    expect(find.bySemanticsLabel('Pause'), findsOneWidget);
-    expect(find.bySemanticsLabel('Exit'), findsOneWidget);
-    expect(find.text('JADE'), findsOneWidget);
-    expect(find.text('${Crystal.jade.hertz} Hz'), findsOneWidget);
-    expect(
-      tester.getCenter(find.bySemanticsLabel('Exit')).dx,
-      greaterThan(tester.getCenter(find.byType(CymaticSignature)).dx),
-    );
-
     await tester.tap(find.bySemanticsLabel('Pause'));
     await tester.pump();
     expect(find.bySemanticsLabel('Play'), findsOneWidget);
     expect(find.bySemanticsLabel('Cymatic'), findsOneWidget);
 
-    await tester.tap(find.bySemanticsLabel('Exit'));
+    await tester.tap(find.bySemanticsLabel('Stop'));
     tester.view.physicalSize = const Size(390, 844);
-    await _pumpUntil(tester, find.bySemanticsLabel('Play frequency'));
+    await _pumpUntil(tester, find.text('RETURN TO COHERENCE'));
 
     expect(find.bySemanticsLabel('Cymatic'), findsNothing);
-    expect(find.bySemanticsLabel('Exit'), findsNothing);
-    expect(_remoteImage('jade.png'), findsOneWidget);
-    expect(find.text('JADE'), findsWidgets);
+    expect(find.text('Carry this moment of harmony with you.'), findsOneWidget);
+    expect(find.text('COMPLETE MY RITUAL'), findsOneWidget);
     expect(orientations.last, ['DeviceOrientation.portraitUp']);
   });
 
@@ -138,15 +128,135 @@ void main() {
     );
     await _pumpCrystal(tester);
 
-    await tester.ensureVisible(find.bySemanticsLabel('Play frequency'));
-    await tester.tap(find.bySemanticsLabel('Play frequency'));
+    await tester.ensureVisible(find.text('ENTER THE FREQUENCY'));
+    await tester.tap(find.text('ENTER THE FREQUENCY'));
     await tester.pumpAndSettle();
 
-    expect(find.text("I'M READY"), findsOneWidget);
-    expect(find.text('CONTINUE WITHOUT HEADPHONES'), findsOneWidget);
+    expect(find.text('ACTIVATE MY FREQUENCY'), findsOneWidget);
+    expect(find.text('CONTINUE WITHOUT HEADPHONES'), findsNothing);
     expect(find.byIcon(Icons.headphones_outlined), findsOneWidget);
     expect(find.bySemanticsLabel('Cymatic'), findsNothing);
   });
+
+  testWidgets(
+    'the temple keeps only the short entry and a skippable tutorial',
+    (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final router = GoRouter(
+        initialLocation: AppRoutes.crystalResonanceFor('jade'),
+        routes: [
+          GoRoute(
+            path: AppRoutes.crystalResonance,
+            builder: (context, state) =>
+                const CrystalResonanceScreen(crystal: Crystal.jade),
+          ),
+          GoRoute(
+            path: AppRoutes.libraryTopic,
+            builder: (context, state) =>
+                Text('library:${state.pathParameters['topic']}'),
+          ),
+          GoRoute(
+            path: AppRoutes.home,
+            builder: (context, state) => const Text('sanctuary'),
+          ),
+          GoRoute(
+            path: AppRoutes.fourTemples,
+            builder: (context, state) => const Text('four temples'),
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp.router(
+            theme: AppTheme.dark,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text('JADE'), findsOneWidget);
+      expect(find.text('Temple of Harmony'), findsOneWidget);
+      expect(find.text('528 Hz'), findsOneWidget);
+      expect(
+        find.text('Awaken your senses. Enter the resonance.'),
+        findsOneWidget,
+      );
+      expect(find.text('LEARN YOUR CRYSTAL RITUAL'), findsOneWidget);
+      expect(find.text('ENTER THE FREQUENCY'), findsOneWidget);
+      expect(find.textContaining('Therapeutic'), findsNothing);
+      expect(find.textContaining('Illuminated'), findsNothing);
+      expect(find.textContaining('nervous system'), findsNothing);
+
+      await tester.tap(find.bySemanticsLabel('Open the crystal library'));
+      await tester.pumpAndSettle();
+      expect(find.text('library:jade'), findsOneWidget);
+
+      router.pop();
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('LEARN YOUR CRYSTAL RITUAL'));
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text(crystalTutorialAsset(Crystal.jade)), findsOneWidget);
+      expect(
+        find.text('Your crystal ritual is ready. Now enter the frequency.'),
+        findsOneWidget,
+      );
+      expect(find.bySemanticsLabel('Pause tutorial'), findsOneWidget);
+      expect(find.bySemanticsLabel('Repeat tutorial'), findsOneWidget);
+
+      await tester.tap(find.text('CONTINUE TO RESONANCE'));
+      await tester.pumpAndSettle();
+      expect(find.text('ACTIVATE MY FREQUENCY'), findsOneWidget);
+
+      await tester.tap(find.text('ACTIVATE MY FREQUENCY'));
+      await _pumpUntil(tester, find.bySemanticsLabel('Cymatic'));
+      await tester.pump(const Duration(milliseconds: 800));
+
+      await tester.tap(find.bySemanticsLabel('Watch the tutorial again'));
+      await tester.pump();
+      await tester.pump();
+      expect(find.bySemanticsLabel('Cymatic'), findsNothing);
+      expect(find.text('CONTINUE TO RESONANCE'), findsOneWidget);
+
+      await tester.tap(find.text('CONTINUE TO RESONANCE'));
+      await _pumpUntil(tester, find.bySemanticsLabel('Cymatic'));
+      expect(find.text('AWAKEN YOUR SENSES'), findsNothing);
+
+      await tester.tap(find.bySemanticsLabel('Stop'));
+      await _pumpUntil(tester, find.text('COMPLETE MY RITUAL'));
+      expect(
+        find.text('Carry this moment of harmony with you.'),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('EXPLORE ANOTHER TEMPLE'));
+      await tester.pumpAndSettle();
+      expect(find.text('four temples'), findsOneWidget);
+
+      router.go(AppRoutes.crystalResonanceFor('jade'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('ENTER THE FREQUENCY'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('ACTIVATE MY FREQUENCY'));
+      await _pumpUntil(tester, find.bySemanticsLabel('Cymatic'));
+      await tester.tap(find.bySemanticsLabel('Stop'));
+      await _pumpUntil(tester, find.text('COMPLETE MY RITUAL'));
+      await tester.tap(find.text('COMPLETE MY RITUAL'));
+      await tester.pumpAndSettle();
+      expect(find.text('sanctuary'), findsOneWidget);
+    },
+  );
 }
 
 Future<void> _pumpCrystal(WidgetTester tester) async {

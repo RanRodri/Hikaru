@@ -689,24 +689,38 @@
   "@headphonesDialogSemanticsLabel": {
     "description": "Accessibility label announcing the headphones note dialog."
   },
-  "headphonesDialogEyebrow": "FOR THE FULL HIKARU FREQUENCY EXPERIENCE",
+  "headphonesDialogEyebrow": "AWAKEN YOUR SENSES",
   "@headphonesDialogEyebrow": {
-    "description": "Small overline above the headphones dialog title."
+    "description": "Headphones note title."
   },
-  "headphonesDialogTitle": "Headphones recommended",
+  "headphonesDialogTitle": "Your sensory journey begins now.",
   "@headphonesDialogTitle": {
-    "description": "Main title of the headphones recommendation dialog."
+    "description": "Headphones note subtitle."
   },
-  "headphonesDialogBody": "For a more immersive experience, we recommend headphones. Find a comfortable space, set a comfortable volume, and let the sound surround you.",
+  "headphonesDialogBody": "Put on your headphones for a deeper sound experience. Gently massage your face with your crystal, following the movements you have learned. Allow the sound, movement, and Cymatics to guide you into a moment of harmony and inner balance.",
   "@headphonesDialogBody": {
-    "description": "Body copy of the headphones dialog, including the comfortable-volume reminder."
+    "description": "Headphones note body. Shown before playback, never during."
   },
-  "headphonesDialogReady": "I'M READY",
+  "headphonesDialogReady": "ACTIVATE MY FREQUENCY",
   "@headphonesDialogReady": {
-    "description": "Primary button: continue with headphones ready."
+    "description": "Primary button that starts the crystal frequency."
   },
-  "headphonesDialogContinueWithout": "CONTINUE WITHOUT HEADPHONES",
-  "@headphonesDialogContinueWithout": {
-    "description": "Secondary button: continue without headphones."
-  }
+  "crystalAwakenLine": "Awaken your senses. Enter the resonance.",
+  "crystalLearnRitual": "LEARN YOUR CRYSTAL RITUAL",
+  "crystalEnterFrequency": "ENTER THE FREQUENCY",
+  "crystalLibrarySemantics": "Open the crystal library",
+  "crystalTutorialReady": "Your crystal ritual is ready. Now enter the frequency.",
+  "crystalContinueResonance": "CONTINUE TO RESONANCE",
+  "crystalTutorialPause": "Pause tutorial",
+  "crystalTutorialPlay": "Play tutorial",
+  "crystalTutorialRepeat": "Repeat tutorial",
+  "crystalTutorialContinue": "Continue tutorial",
+  "crystalReturnCoherence": "RETURN TO COHERENCE",
+  "crystalCarryHarmony": "Carry this moment of harmony with you.",
+  "crystalCompleteRitual": "COMPLETE MY RITUAL",
+  "crystalExploreTemple": "EXPLORE ANOTHER TEMPLE",
+  "crystalReplayTutorial": "Watch the tutorial again",
+  "crystalStop": "Stop",
+  "crystalVolume": "Volume",
+  "crystalProgress": "Frequency progress"
 }

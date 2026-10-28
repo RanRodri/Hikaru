@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 import 'dart:ui' show ImageFilter;
 
 import 'package:audioplayers/audioplayers.dart';
@@ -15,18 +14,16 @@ import '../../../core/design_system/tokens/app_font_sizes.dart';
 import '../../../core/design_system/tokens/app_radii.dart';
 import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
-import '../../../core/design_system/widgets/hikaru_outline_button.dart';
 import '../../../core/design_system/widgets/hikaru_pill_button.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../crystals/application/selected_crystal_controller.dart';
 import '../../crystals/domain/crystal.dart';
-import '../../crystals/presentation/crystal_texts.dart';
 import '../../journey/application/ritual_cycle_controller.dart';
 import '../data/crystal_audio_store.dart';
 import '../data/cymatic_headphones_prompts.dart';
 import '../domain/cymatic_audio.dart';
 import 'crystal_scene_photo.dart';
+import 'crystal_temple_pages.dart';
 import 'cymatic_audio_loader.dart';
 import 'cymatic_kaleidoscope.dart';
 import 'cymatic_projection.dart';
@@ -38,6 +35,8 @@ final TextStyle _bodyStyle = AppTypography.headline.copyWith(
   height: 1.6,
   letterSpacing: 0.2,
 );
+
+enum _CrystalStage { temple, tutorial, resonance, closing }
 
 class CrystalResonanceScreen extends ConsumerStatefulWidget {
   const CrystalResonanceScreen({super.key, required this.crystal});
@@ -51,10 +50,6 @@ class CrystalResonanceScreen extends ConsumerStatefulWidget {
 
 class _CrystalResonanceScreenState
     extends ConsumerState<CrystalResonanceScreen> {
-  static const double _heroScreenRatio = 0.3;
-  static const double _minHeroHeight = 188;
-  static const double _maxHeroHeight = 280;
-
   final AudioPlayer _player = AudioPlayer();
   final ValueNotifier<Duration> _position = ValueNotifier(Duration.zero);
   final CymaticHeadphonesPrompts _prompts = CymaticHeadphonesPrompts(
@@ -64,11 +59,18 @@ class _CrystalResonanceScreenState
   late final StreamSubscription<Duration> _positionSubscription;
   bool _isPlaying = false;
   bool _isAudioUnavailable = false;
-  bool _projecting = false;
-  bool _controlsVisible = false;
   bool _followPlayerPause = false;
+  bool _cymaticVisible = false;
+  bool _showCrystal = true;
+  bool _resumeAfterTutorial = false;
+  bool _closing = false;
+  double _volume = 1;
   int _playbackToken = 0;
+  _CrystalStage _stage = _CrystalStage.temple;
+  Duration _audioDuration = Duration.zero;
   CymaticEnvelope? _envelope;
+  late final StreamSubscription<Duration> _durationSubscription;
+  late final StreamSubscription<void> _completeSubscription;
 
   Crystal get _crystal => widget.crystal;
 
@@ -81,6 +83,13 @@ class _CrystalResonanceScreenState
     _positionSubscription = _player.onPositionChanged.listen((position) {
       _position.value = position;
     });
+    _durationSubscription = _player.onDurationChanged.listen((duration) {
+      if (mounted) setState(() => _audioDuration = duration);
+    });
+    _completeSubscription = _player.onPlayerComplete.listen((_) {
+      if (!mounted || _stage != _CrystalStage.resonance) return;
+      unawaited(_openClosing());
+    });
     _loadEnvelope();
     unawaited(loadCymaticKaleidoscope());
   }
@@ -90,45 +99,65 @@ class _CrystalResonanceScreenState
     unawaited(_restorePortraitChrome());
     _playerStateSubscription.cancel();
     _positionSubscription.cancel();
+    _durationSubscription.cancel();
+    _completeSubscription.cancel();
     _position.dispose();
     _player.dispose();
     super.dispose();
   }
 
-  Future<void> _handlePlayProjection() async {
+  Future<void> _promptHeadphonesThenPlay() async {
     if (!mounted) return;
     final proceed = await _HeadphonesDialog.show(context);
     if (!mounted || proceed != true) return;
     await _prompts.recordShown();
-    await _enterProjection();
+    await _enterResonance();
   }
 
-  Future<void> _enterProjection() async {
+  Future<void> _enterResonance() async {
     final token = ++_playbackToken;
     _followPlayerPause = false;
+    _closing = false;
     setState(() {
-      _projecting = true;
-      _controlsVisible = false;
+      _stage = _CrystalStage.resonance;
+      _cymaticVisible = false;
+      _showCrystal = true;
       _isPlaying = true;
     });
     unawaited(ref.read(ritualCycleControllerProvider.notifier).markFrequency());
     await _allowRotationImmersive();
     if (!mounted || token != _playbackToken) return;
+    setState(() => _cymaticVisible = true);
+    await Future<void>.delayed(const Duration(milliseconds: 700));
+    if (!mounted || token != _playbackToken) return;
+    setState(() => _showCrystal = false);
     await _startFrequency(token);
   }
 
-  Future<void> _exitProjection() async {
+  Future<void> _openClosing() async {
+    if (_closing || _stage == _CrystalStage.closing) return;
+    _closing = true;
     _playbackToken++;
-    _followPlayerPause = false;
     if (mounted) {
       setState(() {
-        _projecting = false;
-        _controlsVisible = false;
-        _isPlaying = false;
-        _isAudioUnavailable = false;
+        _cymaticVisible = false;
+        _showCrystal = true;
       });
     }
+    await Future<void>.delayed(const Duration(milliseconds: 700));
+    unawaited(_stopPlayback());
     await _restorePortraitChrome();
+    if (!mounted) return;
+    setState(() {
+      _stage = _CrystalStage.closing;
+      _isPlaying = false;
+      _isAudioUnavailable = false;
+      _cymaticVisible = false;
+      _closing = false;
+    });
+  }
+
+  Future<void> _stopPlayback() async {
     try {
       await _player.stop();
     } catch (error, stackTrace) {
@@ -136,8 +165,145 @@ class _CrystalResonanceScreenState
     }
   }
 
-  void _handleSurfaceTap() {
-    setState(() => _controlsVisible = !_controlsVisible);
+  Future<void> _setVolume(double value) async {
+    setState(() => _volume = value);
+    try {
+      await _player.setVolume(value);
+    } catch (error, stackTrace) {
+      reportAudioFailure('Cymatic volume', error, stackTrace);
+    }
+  }
+
+  Future<void> _replayTutorial() async {
+    _followPlayerPause = true;
+    final shouldPause = _isPlaying && !_isAudioUnavailable;
+    if (!mounted) return;
+    setState(() {
+      _isPlaying = false;
+      _resumeAfterTutorial = true;
+      _stage = _CrystalStage.tutorial;
+      _cymaticVisible = false;
+    });
+    if (shouldPause) {
+      try {
+        await _player.pause();
+      } catch (error, stackTrace) {
+        reportAudioFailure('Cymatic pause', error, stackTrace);
+      }
+    }
+    await _restorePortraitChrome();
+  }
+
+  Future<void> _leaveTutorial() async {
+    if (_resumeAfterTutorial) {
+      _resumeAfterTutorial = false;
+      setState(() {
+        _stage = _CrystalStage.resonance;
+        _cymaticVisible = true;
+        _isPlaying = true;
+      });
+      await _allowRotationImmersive();
+      if (_isAudioUnavailable) return;
+      try {
+        await _player.resume();
+      } catch (error, stackTrace) {
+        reportAudioFailure('Cymatic resume', error, stackTrace);
+      }
+      return;
+    }
+    await _promptHeadphonesThenPlay();
+  }
+
+  void _openLibrary() {
+    context.push(AppRoutes.libraryTopicFor(_crystal.name));
+  }
+
+  void _completeRitual() => context.go(AppRoutes.home);
+
+  void _exploreTemples() => context.go(AppRoutes.fourTemples);
+
+  void _handleBackPressed() {
+    if (_stage == _CrystalStage.tutorial) {
+      if (_resumeAfterTutorial) {
+        unawaited(_leaveTutorial());
+      } else {
+        setState(() => _stage = _CrystalStage.temple);
+      }
+      return;
+    }
+    if (_stage == _CrystalStage.closing) {
+      setState(() => _stage = _CrystalStage.temple);
+      return;
+    }
+    if (context.canPop()) {
+      context.pop();
+      return;
+    }
+    context.go(AppRoutes.home);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final insets = MediaQuery.paddingOf(context);
+    final inResonance = _stage == _CrystalStage.resonance;
+
+    return PopScope(
+      canPop: !inResonance,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop || !inResonance) return;
+        unawaited(_openClosing());
+      },
+      child: Scaffold(
+        backgroundColor: inResonance
+            ? AppColors.indigoBlue
+            : resonanceChamberColor,
+        body: switch (_stage) {
+          _CrystalStage.temple => CrystalTempleEntry(
+            crystal: _crystal,
+            insets: insets,
+            onBack: _handleBackPressed,
+            onLibrary: _openLibrary,
+            onLearn: () => setState(() => _stage = _CrystalStage.tutorial),
+            onEnterFrequency: () => unawaited(_promptHeadphonesThenPlay()),
+          ),
+          _CrystalStage.tutorial => CrystalTutorialPage(
+            crystal: _crystal,
+            insets: insets,
+            onBack: _handleBackPressed,
+            onFinished: () => unawaited(_leaveTutorial()),
+          ),
+          _CrystalStage.resonance => Stack(
+            fit: StackFit.expand,
+            children: [
+              if (_showCrystal) CrystalScenePhoto(crystal: _crystal),
+              AnimatedOpacity(
+                opacity: _cymaticVisible ? 1 : 0,
+                duration: const Duration(milliseconds: 700),
+                curve: Curves.easeInOut,
+                child: CymaticProjection(
+                  crystal: _crystal,
+                  playing: _isPlaying,
+                  envelope: _isAudioUnavailable ? null : _envelope,
+                  playbackPosition: _position,
+                  duration: _audioDuration,
+                  volume: _volume,
+                  onTogglePlayback: () => unawaited(_handleTogglePlayback()),
+                  onStop: () => unawaited(_openClosing()),
+                  onVolumeChanged: (value) => unawaited(_setVolume(value)),
+                  onReplayTutorial: () => unawaited(_replayTutorial()),
+                ),
+              ),
+            ],
+          ),
+          _CrystalStage.closing => CrystalCoherenceClose(
+            crystal: _crystal,
+            insets: insets,
+            onComplete: _completeRitual,
+            onExplore: _exploreTemples,
+          ),
+        },
+      ),
+    );
   }
 
   Future<void> _allowRotationImmersive() async {
@@ -163,7 +329,9 @@ class _CrystalResonanceScreenState
   }
 
   void _handlePlayerStateChanged(PlayerState playerState) {
-    if (!mounted || _isAudioUnavailable || !_projecting) return;
+    if (!mounted || _isAudioUnavailable || _stage != _CrystalStage.resonance) {
+      return;
+    }
     final playing = playerState == PlayerState.playing;
     if (!playing && !_followPlayerPause) return;
     setState(() => _isPlaying = playing);
@@ -171,7 +339,8 @@ class _CrystalResonanceScreenState
 
   Future<void> _startFrequency(int token) async {
     try {
-      await _player.setReleaseMode(ReleaseMode.loop);
+      await _player.setReleaseMode(ReleaseMode.release);
+      await _player.setVolume(_volume);
       if (!mounted || token != _playbackToken) return;
       final path = await ref
           .read(crystalAudioCacheProvider)
@@ -226,443 +395,8 @@ class _CrystalResonanceScreenState
       });
     }
   }
-
-  /// Updates the active crystal for Home / sound. Does not rewrite the
-  /// Listening Garden skin-care protocol stored in journey recommendation.
-  Future<void> _handleChooseCrystal() async {
-    await ref.read(selectedCrystalProvider.notifier).select(_crystal);
-    if (!mounted) return;
-    final l10n = AppLocalizations.of(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(l10n.crystalChosenSnackbar(_crystal.localizedName(l10n))),
-      ),
-    );
-  }
-
-  void _handleBackPressed() {
-    if (context.canPop()) {
-      context.pop();
-      return;
-    }
-    context.go(AppRoutes.home);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final mediaQuery = MediaQuery.of(context);
-    final insets = mediaQuery.padding;
-    final heroHeight = (mediaQuery.size.height * _heroScreenRatio).clamp(
-      _minHeroHeight,
-      _maxHeroHeight,
-    );
-    final isSelected = ref.watch(selectedCrystalProvider).value == _crystal;
-
-    return PopScope(
-      canPop: !_projecting,
-      onPopInvokedWithResult: (didPop, _) {
-        if (didPop || !_projecting) return;
-        unawaited(_exitProjection());
-      },
-      child: Scaffold(
-        backgroundColor: _projecting
-            ? AppColors.indigoBlue
-            : resonanceChamberColor,
-        body: _projecting
-            ? CymaticProjection(
-                crystal: _crystal,
-                playing: _isPlaying,
-                controlsVisible: _controlsVisible,
-                envelope: _isAudioUnavailable ? null : _envelope,
-                playbackPosition: _position,
-                onSurfaceTap: _handleSurfaceTap,
-                onTogglePlayback: _handleTogglePlayback,
-                onExit: () => unawaited(_exitProjection()),
-              )
-            : Column(
-                children: [
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      AppSpacing.s24,
-                      insets.top + AppSpacing.s4,
-                      AppSpacing.s24,
-                      AppSpacing.s8,
-                    ),
-                    child: Column(
-                      children: [
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: _BackButton(onPressed: _handleBackPressed),
-                        ),
-                        _CrystalIntroduction(crystal: _crystal),
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    height: heroHeight,
-                    width: double.infinity,
-                    child: CrystalScenePhoto(crystal: _crystal),
-                  ),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.s24,
-                        AppSpacing.s8,
-                        AppSpacing.s24,
-                        AppSpacing.s20,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _FrequencyPlayer(
-                            crystal: _crystal,
-                            onToggle: () => unawaited(_handlePlayProjection()),
-                          ),
-                          const SizedBox(height: AppSpacing.s20),
-                          const _QuietRule(),
-                          const SizedBox(height: AppSpacing.s18),
-                          _DetailGrid(
-                            facts: [
-                              _Fact(
-                                l10n.crystalDetailSymbolicMeaning,
-                                _crystal.localizedSymbolicTitle(l10n),
-                              ),
-                              _Fact(
-                                l10n.crystalDetailAssociatedIntention,
-                                _crystal.localizedDefaultIntention(l10n),
-                              ),
-                              _Fact(
-                                l10n.crystalDetailTherapeuticPurpose,
-                                _crystal.localizedPurpose(l10n),
-                              ),
-                              _Fact(
-                                l10n.crystalDetailSkinBenefit,
-                                _crystal.localizedSkinBenefit(l10n),
-                              ),
-                              _Fact(
-                                l10n.crystalDetailMeridians,
-                                _crystal.localizedMeridians(l10n),
-                              ),
-                              _Fact(
-                                l10n.crystalDetailEnvironment,
-                                _crystal.localizedEnvironment(l10n),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      AppSpacing.s32,
-                      AppSpacing.s12,
-                      AppSpacing.s32,
-                      math.max(AppSpacing.s24, insets.bottom + AppSpacing.s12),
-                    ),
-                    child: isSelected
-                        ? _YourCrystalBadge(crystal: _crystal)
-                        : HikaruPillButton(
-                            label: l10n.crystalChoose,
-                            onPressed: _handleChooseCrystal,
-                          ),
-                  ),
-                ],
-              ),
-      ),
-    );
-  }
 }
 
-class _BackButton extends StatelessWidget {
-  const _BackButton({required this.onPressed});
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final label = AppLocalizations.of(context).commonBack;
-    return Semantics(
-      button: true,
-      label: label,
-      excludeSemantics: true,
-      child: TextButton(
-        onPressed: onPressed,
-        style: TextButton.styleFrom(
-          foregroundColor: AppColors.champagneGold,
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s8),
-        ),
-        child: Text(
-          label,
-          style: AppTypography.subheadline.copyWith(
-            color: AppColors.champagneGold,
-            fontSize: AppFontSizes.s11,
-            letterSpacing: 1.8,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _YourCrystalBadge extends StatelessWidget {
-  const _YourCrystalBadge({required this.crystal});
-
-  final Crystal crystal;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Semantics(
-      label: l10n.crystalIsYoursSemantics(crystal.localizedName(l10n)),
-      excludeSemantics: true,
-      child: Center(
-        child: DecoratedBox(
-          decoration: ShapeDecoration(
-            color: AppColors.champagneGold.withValues(alpha: 0.08),
-            shape: StadiumBorder(
-              side: BorderSide(
-                color: AppColors.champagneGold.withValues(alpha: 0.7),
-              ),
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.s24,
-              vertical: AppSpacing.s12,
-            ),
-            child: Text(
-              l10n.crystalIsYours,
-              style: AppTypography.subheadline.copyWith(
-                color: AppColors.champagneGold,
-                fontSize: AppFontSizes.s12,
-                letterSpacing: 2.4,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CrystalIntroduction extends StatelessWidget {
-  const _CrystalIntroduction({required this.crystal});
-
-  final Crystal crystal;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Column(
-      children: [
-        const ChamberTitle(),
-        const SizedBox(height: AppSpacing.s8),
-        Text(
-          crystal.localizedName(l10n),
-          textAlign: TextAlign.center,
-          style: AppTypography.headline.copyWith(
-            color: AppColors.white,
-            fontSize: AppFontSizes.s22,
-            height: 1.2,
-            letterSpacing: 4.4,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.s4),
-        Text(
-          crystal.localizedTemple(l10n),
-          textAlign: TextAlign.center,
-          style: AppTypography.footnote.copyWith(
-            color: AppColors.fog,
-            fontSize: AppFontSizes.s12,
-            fontStyle: FontStyle.italic,
-            letterSpacing: 0.6,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _Fact {
-  const _Fact(this.label, this.text);
-
-  final String label;
-  final String text;
-}
-
-class _DetailGrid extends StatelessWidget {
-  const _DetailGrid({required this.facts});
-
-  final List<_Fact> facts;
-
-  @override
-  Widget build(BuildContext context) {
-    final rows = <Widget>[];
-    for (var index = 0; index < facts.length; index += 2) {
-      if (rows.isNotEmpty) rows.add(const SizedBox(height: AppSpacing.s18));
-      final right = index + 1 < facts.length ? facts[index + 1] : null;
-      rows.add(
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(child: _FactCell(fact: facts[index])),
-            const SizedBox(width: AppSpacing.s20),
-            Expanded(
-              child: right == null
-                  ? const SizedBox.shrink()
-                  : _FactCell(fact: right),
-            ),
-          ],
-        ),
-      );
-    }
-    return Column(children: rows);
-  }
-}
-
-class _FactCell extends StatelessWidget {
-  const _FactCell({required this.fact});
-
-  final _Fact fact;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(fact.label, style: _detailLabelStyle),
-        const SizedBox(height: AppSpacing.s4),
-        Text(fact.text, style: _bodyStyle.copyWith(fontSize: AppFontSizes.s12)),
-      ],
-    );
-  }
-}
-
-class _FrequencyPlayer extends StatelessWidget {
-  const _FrequencyPlayer({required this.crystal, required this.onToggle});
-
-  static const double _buttonSize = AppSpacing.s44;
-
-  final Crystal crystal;
-  final VoidCallback onToggle;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(l10n.resonanceYourFrequency, style: _detailLabelStyle),
-                  const SizedBox(height: AppSpacing.s4),
-                  Text(
-                    crystal.localizedFrequency(l10n),
-                    style: AppTypography.headline.copyWith(
-                      color: AppColors.white,
-                      fontSize: AppFontSizes.s22,
-                      height: 1.2,
-                      fontWeight: FontWeight.w300,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: AppSpacing.s12),
-            Semantics(
-              button: true,
-              label: l10n.crystalFrequencyPlay,
-              excludeSemantics: true,
-              child: InkResponse(
-                onTap: onToggle,
-                radius: _buttonSize / 2,
-                child: Container(
-                  width: _buttonSize,
-                  height: _buttonSize,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.champagneGold.withValues(alpha: 0.08),
-                    border: Border.all(
-                      color: AppColors.champagneGold.withValues(alpha: 0.85),
-                      width: 0.8,
-                    ),
-                  ),
-                  child: const Icon(
-                    Icons.play_arrow_rounded,
-                    color: AppColors.champagneGold,
-                    size: 26,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.s8),
-        Text(
-          crystal.localizedFrequencyDetail(l10n),
-          style: _bodyStyle.copyWith(
-            color: AppColors.fog,
-            fontSize: AppFontSizes.s12,
-            height: 1.4,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.s12),
-        Text(
-          crystal.localizedProtocol(l10n),
-          style: _bodyStyle.copyWith(fontSize: AppFontSizes.s12, height: 1.4),
-        ),
-        const SizedBox(height: AppSpacing.s4),
-        Text(Crystal.sessionLength, style: _detailLabelStyle),
-        const SizedBox(height: AppSpacing.s8),
-        Text(
-          l10n.crystalCompositionCredit,
-          style: _bodyStyle.copyWith(
-            color: AppColors.fog,
-            fontSize: AppFontSizes.s11,
-            height: 1.45,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-final TextStyle _detailLabelStyle = AppTypography.subheadline.copyWith(
-  color: AppColors.champagneGold,
-  fontSize: AppFontSizes.s9,
-  height: 1.3,
-  letterSpacing: 1.35,
-);
-
-class _QuietRule extends StatelessWidget {
-  const _QuietRule();
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Container(
-        width: AppSpacing.s28,
-        height: AppSpacing.s0_6,
-        color: AppColors.champagneGold.withValues(alpha: 0.7),
-      ),
-    );
-  }
-}
-
-/// Gentle note before the cymatic plays: the Hikaru frequency is meant to be
-/// heard in stereo. Headphones are recommended but never required — the user
-/// can continue without them. The chamber blurs softly behind it.
-///
-/// Returns `true` once the user chooses to continue (with or without
-/// headphones), or `null` if the dialog is dismissed without a choice.
 class _HeadphonesDialog extends StatefulWidget {
   const _HeadphonesDialog();
 
@@ -848,11 +582,6 @@ class _HeadphonesDialogState extends State<_HeadphonesDialog> {
                         buttonHeight: AppSpacing.s44,
                         blurRadius: 12,
                         shadowAlpha: 0.25,
-                      ),
-                      const SizedBox(height: AppSpacing.s12),
-                      HikaruOutlineButton(
-                        label: l10n.headphonesDialogContinueWithout,
-                        onPressed: _handleContinue,
                       ),
                     ],
                   ),

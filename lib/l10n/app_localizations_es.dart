@@ -1768,19 +1768,71 @@ class AppLocalizationsEs extends AppLocalizations {
   String get headphonesDialogSemanticsLabel => 'Auriculares recomendados';
 
   @override
-  String get headphonesDialogEyebrow =>
-      'PARA LA EXPERIENCIA COMPLETA DE LA FRECUENCIA HIKARU';
+  String get headphonesDialogEyebrow => 'DESPIERTA TUS SENTIDOS';
 
   @override
-  String get headphonesDialogTitle => 'Auriculares recomendados';
+  String get headphonesDialogTitle => 'Tu viaje sensorial comienza ahora.';
 
   @override
   String get headphonesDialogBody =>
-      'Para una experiencia más inmersiva, recomendamos usar auriculares. Busca un espacio cómodo, ajusta el volumen y déjate envolver por el sonido.';
+      'Ponte los audífonos para una experiencia de sonido más profunda. Masajea suavemente tu rostro con tu cristal, siguiendo los movimientos que has aprendido. Deja que el sonido, el movimiento y la cimática te guíen hacia un momento de armonía y equilibrio interior.';
 
   @override
-  String get headphonesDialogReady => 'ESTOY LISTO';
+  String get headphonesDialogReady => 'ACTIVAR MI FRECUENCIA';
 
   @override
-  String get headphonesDialogContinueWithout => 'CONTINÚE SIN AURICULARES';
+  String get crystalAwakenLine =>
+      'Despierta tus sentidos. Entra en la resonancia.';
+
+  @override
+  String get crystalLearnRitual => 'APRENDE TU RITUAL DE CRISTAL';
+
+  @override
+  String get crystalEnterFrequency => 'ENTRAR A LA FRECUENCIA';
+
+  @override
+  String get crystalLibrarySemantics => 'Abrir la biblioteca del cristal';
+
+  @override
+  String get crystalTutorialReady =>
+      'Tu ritual de cristal está listo. Ahora entra en la frecuencia.';
+
+  @override
+  String get crystalContinueResonance => 'CONTINUAR A LA RESONANCIA';
+
+  @override
+  String get crystalTutorialPause => 'Pausar tutorial';
+
+  @override
+  String get crystalTutorialPlay => 'Reproducir tutorial';
+
+  @override
+  String get crystalTutorialRepeat => 'Repetir tutorial';
+
+  @override
+  String get crystalTutorialContinue => 'Continuar tutorial';
+
+  @override
+  String get crystalReturnCoherence => 'REGRESAR A LA COHERENCIA';
+
+  @override
+  String get crystalCarryHarmony => 'Lleva contigo este momento de armonía.';
+
+  @override
+  String get crystalCompleteRitual => 'COMPLETAR MI RITUAL';
+
+  @override
+  String get crystalExploreTemple => 'EXPLORAR OTRO TEMPLO';
+
+  @override
+  String get crystalReplayTutorial => 'Ver el tutorial de nuevo';
+
+  @override
+  String get crystalStop => 'Detener';
+
+  @override
+  String get crystalVolume => 'Volumen';
+
+  @override
+  String get crystalProgress => 'Progreso de la frecuencia';
 }

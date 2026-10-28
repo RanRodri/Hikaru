@@ -11,19 +11,21 @@ import '../../crystals/presentation/crystal_texts.dart';
 import '../domain/cymatic_audio.dart';
 import 'cymatic_signature.dart';
 
-/// Full-viewport cymatic for projection, in portrait or landscape.
-/// Caption and controls stay hidden until the surface is tapped.
+/// Full-viewport cymatic. The composition plays without a tap.
+/// Only the crystal name sits above the pattern.
 class CymaticProjection extends StatelessWidget {
   const CymaticProjection({
     super.key,
     required this.crystal,
     required this.playing,
-    required this.controlsVisible,
     required this.envelope,
     required this.playbackPosition,
-    required this.onSurfaceTap,
+    required this.duration,
+    required this.volume,
     required this.onTogglePlayback,
-    required this.onExit,
+    required this.onStop,
+    required this.onVolumeChanged,
+    required this.onReplayTutorial,
   });
 
   static const BoxDecoration _vignette = BoxDecoration(
@@ -36,161 +38,178 @@ class CymaticProjection extends StatelessWidget {
 
   final Crystal crystal;
   final bool playing;
-  final bool controlsVisible;
   final CymaticEnvelope? envelope;
   final ValueListenable<Duration> playbackPosition;
-  final VoidCallback onSurfaceTap;
+  final Duration duration;
+  final double volume;
   final VoidCallback onTogglePlayback;
-  final VoidCallback onExit;
+  final VoidCallback onStop;
+  final ValueChanged<double> onVolumeChanged;
+  final VoidCallback onReplayTutorial;
 
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final insets = mediaQuery.padding;
-    final isLandscape = mediaQuery.size.width > mediaQuery.size.height;
-
-    final caption = _ProjectionCaption(crystal: crystal);
-    final controls = _ProjectionControls(
-      direction: isLandscape ? Axis.vertical : Axis.horizontal,
-      playing: playing,
-      onTogglePlayback: onTogglePlayback,
-      onExit: onExit,
-    );
+    final l10n = AppLocalizations.of(context);
 
     return Stack(
       fit: StackFit.expand,
       children: [
-        GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: onSurfaceTap,
-          child: DecoratedBox(
-            decoration: _vignette,
-            child: CymaticSignature(
-              crystal: crystal,
-              playing: playing,
-              style: CymaticStyle.kaleidoscope,
-              fillBackground: false,
-              envelope: envelope,
-              playbackPosition: playbackPosition,
-              semanticLabel: AppLocalizations.of(context).cymaticSemantics,
-            ),
+        DecoratedBox(
+          decoration: _vignette,
+          child: CymaticSignature(
+            crystal: crystal,
+            playing: playing,
+            style: CymaticStyle.kaleidoscope,
+            fillBackground: false,
+            envelope: envelope,
+            playbackPosition: playbackPosition,
+            semanticLabel: l10n.cymaticSemantics,
           ),
         ),
-        _FadingChrome(
-          visible: controlsVisible,
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(
-              insets.left + AppSpacing.s32,
-              insets.top + AppSpacing.s32,
-              insets.right + AppSpacing.s32,
-              insets.bottom + AppSpacing.s32,
-            ),
-            child: Flex(
-              direction: isLandscape ? Axis.horizontal : Axis.vertical,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [caption, controls],
-            ),
+        Padding(
+          padding: EdgeInsets.fromLTRB(
+            insets.left + AppSpacing.s20,
+            insets.top + AppSpacing.s12,
+            insets.right + AppSpacing.s20,
+            insets.bottom + AppSpacing.s16,
+          ),
+          child: Column(
+            children: [
+              Text(
+                crystal.localizedName(l10n),
+                textAlign: TextAlign.center,
+                style: AppTypography.headline.copyWith(
+                  color: AppColors.white,
+                  fontSize: AppFontSizes.s14,
+                  height: 1.2,
+                  letterSpacing: 4.2,
+                ),
+              ),
+              const Spacer(),
+              _ProjectionControls(
+                playing: playing,
+                position: playbackPosition,
+                duration: duration,
+                volume: volume,
+                onTogglePlayback: onTogglePlayback,
+                onStop: onStop,
+                onVolumeChanged: onVolumeChanged,
+                onReplayTutorial: onReplayTutorial,
+              ),
+            ],
           ),
         ),
       ],
-    );
-  }
-}
-
-class _FadingChrome extends StatelessWidget {
-  const _FadingChrome({required this.visible, required this.child});
-
-  static const Duration _fadeDuration = Duration(milliseconds: 280);
-
-  final bool visible;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return IgnorePointer(
-      ignoring: !visible,
-      child: AnimatedOpacity(
-        opacity: visible ? 1 : 0,
-        duration: _fadeDuration,
-        curve: Curves.easeOut,
-        child: child,
-      ),
-    );
-  }
-}
-
-class _ProjectionCaption extends StatelessWidget {
-  const _ProjectionCaption({required this.crystal});
-
-  static const double _maxWidth = 200;
-
-  final Crystal crystal;
-
-  @override
-  Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: _maxWidth),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            crystal.localizedName(AppLocalizations.of(context)),
-            textAlign: TextAlign.center,
-            style: AppTypography.headline.copyWith(
-              color: AppColors.white,
-              fontSize: AppFontSizes.s14,
-              height: 1.2,
-              letterSpacing: 4.2,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.s4),
-          Text(
-            '${crystal.hertz} Hz',
-            textAlign: TextAlign.center,
-            style: AppTypography.subheadline.copyWith(
-              color: AppColors.champagneGold,
-              fontSize: AppFontSizes.s11,
-              letterSpacing: 1.8,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
 
 class _ProjectionControls extends StatelessWidget {
   const _ProjectionControls({
-    required this.direction,
     required this.playing,
+    required this.position,
+    required this.duration,
+    required this.volume,
     required this.onTogglePlayback,
-    required this.onExit,
+    required this.onStop,
+    required this.onVolumeChanged,
+    required this.onReplayTutorial,
   });
 
-  final Axis direction;
   final bool playing;
+  final ValueListenable<Duration> position;
+  final Duration duration;
+  final double volume;
   final VoidCallback onTogglePlayback;
-  final VoidCallback onExit;
+  final VoidCallback onStop;
+  final ValueChanged<double> onVolumeChanged;
+  final VoidCallback onReplayTutorial;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return Flex(
-      direction: direction,
+    return Column(
       mainAxisSize: MainAxisSize.min,
-      spacing: AppSpacing.s24,
       children: [
-        _ProjectionButton(
-          label: playing ? l10n.commonPause : l10n.commonPlay,
-          icon: playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
-          onPressed: onTogglePlayback,
+        ValueListenableBuilder<Duration>(
+          valueListenable: position,
+          builder: (context, current, _) {
+            final total = duration.inMilliseconds;
+            final value = total <= 0
+                ? 0.0
+                : (current.inMilliseconds / total).clamp(0.0, 1.0);
+            return Semantics(
+              label: l10n.crystalProgress,
+              value: value.toStringAsFixed(2),
+              child: LinearProgressIndicator(
+                value: total <= 0 ? null : value,
+                minHeight: 3,
+                backgroundColor: AppColors.white.withValues(alpha: 0.2),
+                color: AppColors.champagneGold,
+              ),
+            );
+          },
         ),
-        _ProjectionButton(
-          label: l10n.commonExit,
-          icon: Icons.close_rounded,
-          onPressed: onExit,
+        const SizedBox(height: AppSpacing.s12),
+        Row(
+          children: [
+            _ProjectionButton(
+              label: playing ? l10n.commonPause : l10n.commonPlay,
+              icon: playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
+              onPressed: onTogglePlayback,
+            ),
+            const SizedBox(width: AppSpacing.s12),
+            _ProjectionButton(
+              label: l10n.crystalStop,
+              icon: Icons.stop_rounded,
+              onPressed: onStop,
+            ),
+            const SizedBox(width: AppSpacing.s8),
+            Expanded(
+              child: Semantics(
+                label: l10n.crystalVolume,
+                child: Slider(
+                  value: volume.clamp(0, 1),
+                  onChanged: onVolumeChanged,
+                  activeColor: AppColors.champagneGold,
+                  inactiveColor: AppColors.white.withValues(alpha: 0.25),
+                ),
+              ),
+            ),
+            _ReplayTutorialButton(
+              label: l10n.crystalReplayTutorial,
+              onPressed: onReplayTutorial,
+            ),
+          ],
         ),
       ],
+    );
+  }
+}
+
+class _ReplayTutorialButton extends StatelessWidget {
+  const _ReplayTutorialButton({required this.label, required this.onPressed});
+
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      child: IconButton(
+        onPressed: onPressed,
+        visualDensity: VisualDensity.compact,
+        icon: const Icon(
+          Icons.replay_rounded,
+          color: AppColors.champagneGold,
+          size: 18,
+        ),
+      ),
     );
   }
 }
@@ -216,14 +235,17 @@ class _ProjectionButton extends StatelessWidget {
         onTap: onPressed,
         radius: AppSpacing.s28,
         child: Container(
-          width: AppSpacing.s52,
-          height: AppSpacing.s52,
+          width: AppSpacing.s44,
+          height: AppSpacing.s44,
+          alignment: Alignment.center,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: AppColors.darkIndigoBlue.withValues(alpha: 0.4),
-            border: Border.all(color: AppColors.champagneGold),
+            color: AppColors.darkIndigoBlue.withValues(alpha: 0.45),
+            border: Border.all(
+              color: AppColors.champagneGold.withValues(alpha: 0.8),
+            ),
           ),
-          child: Icon(icon, color: AppColors.champagneGold, size: 28),
+          child: Icon(icon, color: AppColors.champagneGold, size: 22),
         ),
       ),
     );
