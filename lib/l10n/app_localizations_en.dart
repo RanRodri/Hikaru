@@ -1041,7 +1041,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeTourOrderBody =>
-      'Merkaba is 1. Face and body are 2. Your crystal is 3. Each circle opens on its own.';
+      'Merkaba is 1. Face and neck is 2. Body is 3. Your crystal is 4. Library is 5. Each circle opens on its own.';
 
   @override
   String get homeTourBeginTitle => 'BEGIN TODAY';
@@ -1090,10 +1090,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeRitualBodySemantics => 'Hikaru Ritual Body';
 
   @override
-  String get homeRitualFace => 'HIKARU RITUAL\nFACE';
+  String get homeRitualFace => 'HIKARU RITUAL\nFACE AND NECK';
 
   @override
-  String get homeRitualFaceSemantics => 'Hikaru Ritual Face';
+  String get homeRitualFaceSemantics => 'Hikaru Ritual Face and Neck';
 
   @override
   String get templesTitle => 'THE FOUR TEMPLES';

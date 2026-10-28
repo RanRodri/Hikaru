@@ -161,7 +161,7 @@ void main() {
     await container.read(selectedCrystalProvider.notifier).select(Crystal.jade);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.bySemanticsLabel('Hikaru Ritual Face'));
+    await tester.tap(find.bySemanticsLabel('Hikaru Ritual Face and Neck'));
     await tester.pumpAndSettle();
     expect(find.text('THE FACE TEMPLE'), findsOneWidget);
     expect(find.bySemanticsLabel(RegExp('Ritual video')), findsOneWidget);
@@ -367,14 +367,25 @@ void main() {
   ) async {
     await pumpGarden(tester);
 
-    final face = tester.getSize(find.bySemanticsLabel('Hikaru Ritual Face'));
+    final face = tester.getSize(
+      find.bySemanticsLabel('Hikaru Ritual Face and Neck'),
+    );
     expect(
       tester.getSize(find.bySemanticsLabel('Merkaba')),
       const Size(merkabaCircleDiameter, merkabaCircleDiameter),
     );
-    expect(tester.getSize(find.bySemanticsLabel('Your crystal')), face);
-    expect(tester.getSize(find.bySemanticsLabel('Hikaru Ritual Body')), face);
-    expect(face, const Size(homeCircleDiameter, homeCircleDiameter));
+    final crystalSize = tester.getSize(
+      find.bySemanticsLabel('Your crystal'),
+    );
+    expect(crystalSize.width, closeTo(face.width, 0.01));
+    expect(crystalSize.height, closeTo(face.height, 0.01));
+    final bodySize = tester.getSize(
+      find.bySemanticsLabel('Hikaru Ritual Body'),
+    );
+    expect(bodySize.width, closeTo(face.width, 0.01));
+    expect(bodySize.height, closeTo(face.height, 0.01));
+    expect(face.width, closeTo(homeCircleDiameter, 0.01));
+    expect(face.height, closeTo(homeCircleDiameter, 0.01));
     expect(face.width, face.height);
     final librarySizes = [
       for (final element in tester.elementList(
@@ -384,22 +395,24 @@ void main() {
           find.byElementPredicate((candidate) => identical(candidate, element)),
         ),
     ];
-    expect(librarySizes, contains(face));
+    expect(
+      librarySizes.any(
+        (size) =>
+            (size.width - face.width).abs() < 0.01 &&
+            (size.height - face.height).abs() < 0.01,
+      ),
+      isTrue,
+    );
 
     final merkaba = tester.getCenter(find.bySemanticsLabel('Merkaba'));
     expect(merkaba.dx, closeTo(390 / 2, 0.5));
     final faceCenter = tester.getCenter(
-      find.bySemanticsLabel('Hikaru Ritual Face'),
+      find.bySemanticsLabel('Hikaru Ritual Face and Neck'),
     );
     final bodyCenter = tester.getCenter(
       find.bySemanticsLabel('Hikaru Ritual Body'),
     );
     final crystal = tester.getCenter(find.bySemanticsLabel('Your crystal'));
-    expect(merkaba.dy, lessThan(faceCenter.dy));
-    expect(faceCenter.dx, lessThan(merkaba.dx));
-    expect(crystal.dx, greaterThan(merkaba.dx));
-    expect(bodyCenter.dy, greaterThan(faceCenter.dy));
-    expect(bodyCenter.dx, lessThan(merkaba.dx));
     final libraryElement = tester
         .elementList(find.bySemanticsLabel('Library'))
         .firstWhere(
@@ -416,10 +429,15 @@ void main() {
         (candidate) => identical(candidate, libraryElement),
       ),
     );
-    expect(library.dy, closeTo(bodyCenter.dy, 0.5));
-    expect(library.dx + bodyCenter.dx, closeTo(390, 0.5));
-    expect(crystal.dy, closeTo(faceCenter.dy, 0.5));
-    expect(crystal.dx + faceCenter.dx, closeTo(390, 0.5));
+    // Clockwise from the top, 72° apart: face and neck, body, crystal, library.
+    expect(faceCenter.dx, greaterThan(merkaba.dx));
+    expect(faceCenter.dy, greaterThan(merkaba.dy));
+    expect(bodyCenter.dx, greaterThan(merkaba.dx));
+    expect(bodyCenter.dy, greaterThan(faceCenter.dy));
+    expect(crystal.dx, lessThan(merkaba.dx));
+    expect(crystal.dy, closeTo(bodyCenter.dy, 1));
+    expect(library.dx, lessThan(merkaba.dx));
+    expect(library.dy, closeTo(faceCenter.dy, 1));
 
     final orbitCenter = Offset(merkaba.dx, merkaba.dy + 138);
     for (final point in [faceCenter, bodyCenter, crystal, library]) {
@@ -435,7 +453,10 @@ void main() {
       lessThan(headTop),
     );
 
-    expect(find.text('3\nYOUR CRYSTAL'), findsOneWidget);
+    expect(find.text('4\nYOUR CRYSTAL'), findsOneWidget);
+    expect(find.text('2\nHIKARU RITUAL\nFACE AND NECK'), findsOneWidget);
+    expect(find.text('3\nHIKARU RITUAL\nBODY'), findsOneWidget);
+    expect(find.text('5\nLIBRARY'), findsOneWidget);
     expect(find.text('Listening Sanctuary'), findsNothing);
     expect(find.text('THE HARMONY GARDEN'), findsOneWidget);
     expect(find.text('Your Journey Begins Within'), findsOneWidget);
@@ -475,8 +496,14 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final face = tester.getSize(find.bySemanticsLabel('Hikaru Ritual Face'));
-    expect(tester.getSize(find.bySemanticsLabel('Your crystal JADE')), face);
+    final face = tester.getSize(
+      find.bySemanticsLabel('Hikaru Ritual Face and Neck'),
+    );
+    final jadeSize = tester.getSize(
+      find.bySemanticsLabel('Your crystal JADE'),
+    );
+    expect(jadeSize.width, closeTo(face.width, 0.01));
+    expect(jadeSize.height, closeTo(face.height, 0.01));
     expect(
       find.byWidgetPredicate(
         (widget) =>
@@ -487,7 +514,7 @@ void main() {
       ),
       findsOneWidget,
     );
-    expect(find.text('3\nJADE'), findsOneWidget);
+    expect(find.text('4\nYOUR CRYSTAL'), findsOneWidget);
     expect(find.text('Balance · Harmony'), findsNothing);
     expect(find.text('RED JASPER'), findsNothing);
   });

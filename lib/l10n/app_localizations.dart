@@ -1733,7 +1733,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeTourOrderBody.
   ///
   /// In en, this message translates to:
-  /// **'Merkaba is 1. Face and body are 2. Your crystal is 3. Each circle opens on its own.'**
+  /// **'Merkaba is 1. Face and neck is 2. Body is 3. Your crystal is 4. Library is 5. Each circle opens on its own.'**
   String get homeTourOrderBody;
 
   /// No description provided for @homeTourBeginTitle.
@@ -1823,13 +1823,13 @@ abstract class AppLocalizations {
   /// No description provided for @homeRitualFace.
   ///
   /// In en, this message translates to:
-  /// **'HIKARU RITUAL\nFACE'**
+  /// **'HIKARU RITUAL\nFACE AND NECK'**
   String get homeRitualFace;
 
   /// No description provided for @homeRitualFaceSemantics.
   ///
   /// In en, this message translates to:
-  /// **'Hikaru Ritual Face'**
+  /// **'Hikaru Ritual Face and Neck'**
   String get homeRitualFaceSemantics;
 
   /// No description provided for @templesTitle.

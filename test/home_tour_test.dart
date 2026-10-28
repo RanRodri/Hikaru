@@ -35,7 +35,7 @@ void main() {
     expect(find.text('THE ORDER'), findsOneWidget);
     expect(
       find.text(
-        'Merkaba is 1. Face and body are 2. Your crystal is 3. Each circle opens on its own.',
+        'Merkaba is 1. Face and neck is 2. Body is 3. Your crystal is 4. Library is 5. Each circle opens on its own.',
       ),
       findsOneWidget,
     );

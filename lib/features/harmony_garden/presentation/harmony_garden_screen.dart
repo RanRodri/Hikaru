@@ -99,13 +99,17 @@ class _Access {
   /// Replaced by the selected crystal, see [_crystalAccess].
   final bool isCrystalSlot;
 
-  /// Recommended journey order: 1 Merkaba → 2 Ritual → 3 Crystal.
+  /// Clockwise protocol order, starting at Merkaba.
   final int? stepNumber;
 }
 
-/// Clockwise from the top. Each side mirrors the other across the vertical axis.
+/// Evenly spaced, clockwise from Merkaba at the top.
 ///
-/// Merkaba is a proper name and stays the same in every language.
+/// Figma crowns the ring with Merkaba and does not pin Fernanda's notes to a
+/// circle, so the ritual order continues clockwise: face and neck, body,
+/// the assigned crystal, then the library. Merkaba is a proper name.
+const double _orbitStep = 72;
+
 List<_Access> _buildAccesses(AppLocalizations l10n) => [
   const _Access(
     semanticsLabel: 'Merkaba',
@@ -118,41 +122,42 @@ List<_Access> _buildAccesses(AppLocalizations l10n) => [
     stepNumber: 1,
   ),
   _Access(
-    semanticsLabel: l10n.homeYourCrystalSemantics,
-    angle: -25,
-    imageAsset: 'assets/images/library_white_quartz.png',
-    title: l10n.homeYourCrystal,
-    route: AppRoutes.fourTemples,
-    isCrystalSlot: true,
-    stepNumber: 3,
-  ),
-  _Access(
-    semanticsLabel: l10n.homeLibrarySemantics,
-    angle: 25,
-    imageAsset: 'assets/images/harmony_library.png',
-    title: l10n.homeLibrary,
-    route: AppRoutes.library,
-  ),
-  _Access(
-    semanticsLabel: l10n.homeRitualBodySemantics,
-    angle: 155,
-    imageAsset: 'assets/images/harmony_body.png',
-    title: l10n.homeRitualBody,
-    route: AppRoutes.ritualBody,
-    stepNumber: 2,
-  ),
-  _Access(
     semanticsLabel: l10n.homeRitualFaceSemantics,
-    angle: 205,
+    angle: -90 + _orbitStep,
     imageAsset: 'assets/images/harmony_face.png',
     title: l10n.homeRitualFace,
     route: AppRoutes.ritualFace,
     stepNumber: 2,
   ),
+  _Access(
+    semanticsLabel: l10n.homeRitualBodySemantics,
+    angle: -90 + _orbitStep * 2,
+    imageAsset: 'assets/images/harmony_body.png',
+    title: l10n.homeRitualBody,
+    route: AppRoutes.ritualBody,
+    stepNumber: 3,
+  ),
+  _Access(
+    semanticsLabel: l10n.homeYourCrystalSemantics,
+    angle: -90 + _orbitStep * 3,
+    imageAsset: 'assets/images/library_white_quartz.png',
+    title: l10n.homeYourCrystal,
+    route: AppRoutes.fourTemples,
+    isCrystalSlot: true,
+    stepNumber: 4,
+  ),
+  _Access(
+    semanticsLabel: l10n.homeLibrarySemantics,
+    angle: -90 + _orbitStep * 4,
+    imageAsset: 'assets/images/harmony_library.png',
+    title: l10n.homeLibrary,
+    route: AppRoutes.library,
+    stepNumber: 5,
+  ),
 ];
 
-/// Shows the recommended crystal and opens the Four Temples map so the user
-/// can explore all four, with theirs highlighted.
+/// Shows the assigned crystal for the 30-day protocol and opens the Four
+/// Temples map. The caption stays "YOUR CRYSTAL"; the photo and glow change.
 _Access _crystalAccess(_Access slot, Crystal? crystal, AppLocalizations l10n) {
   final collection = crystalCollections[crystal];
   if (crystal == null || collection == null) return slot;
@@ -161,7 +166,7 @@ _Access _crystalAccess(_Access slot, Crystal? crystal, AppLocalizations l10n) {
     semanticsLabel: l10n.homeYourCrystalNamedSemantics(name),
     angle: slot.angle,
     imageAsset: collection.imageAsset,
-    title: name,
+    title: slot.title,
     diameter: slot.diameter,
     route: AppRoutes.fourTemples,
     isCrystalSlot: true,
@@ -170,7 +175,7 @@ _Access _crystalAccess(_Access slot, Crystal? crystal, AppLocalizations l10n) {
   );
 }
 
-/// Light points on the orbit, halfway between neighboring circles.
+/// Midpoints of the clockwise arcs between neighboring circles.
 List<double> _orbitDotAngles(List<_Access> accesses) => [
   for (final (index, access) in accesses.indexed)
     (access.angle +
@@ -299,14 +304,13 @@ class _OrbitPainter extends CustomPainter {
         ..strokeWidth = 1.1 * scale
         ..color = AppColors.champagneGold.withValues(alpha: 0.85),
     );
-    final glow = Paint()
-      ..color = AppColors.splashHighlight.withValues(alpha: 0.8)
-      ..maskFilter = MaskFilter.blur(BlurStyle.normal, 3 * scale);
-    final core = Paint()..color = AppColors.white;
     for (final angle in dotAngles) {
-      final point = _pointOnOrbit(center, radius, angle);
-      canvas.drawCircle(point, 3.2 * scale, glow);
-      canvas.drawCircle(point, 1.3 * scale, core);
+      _paintClockwiseArrow(
+        canvas,
+        _pointOnOrbit(center, radius, angle),
+        angle,
+        scale,
+      );
     }
   }
 
@@ -315,6 +319,33 @@ class _OrbitPainter extends CustomPainter {
       oldDelegate.center != center ||
       oldDelegate.radius != radius ||
       oldDelegate.scale != scale;
+}
+
+/// Gold arrow on the orbit, pointing clockwise (increasing [angle]).
+void _paintClockwiseArrow(
+  Canvas canvas,
+  Offset point,
+  double angle,
+  double scale,
+) {
+  final radians = angle * math.pi / 180;
+  final direction = Offset(-math.sin(radians), math.cos(radians));
+  final normal = Offset(-direction.dy, direction.dx);
+  final length = 11 * scale;
+  final halfWidth = 4.5 * scale;
+  final tip = point + direction * (length * 0.55);
+  final tail = point - direction * (length * 0.45);
+  final path = Path()
+    ..moveTo(tip.dx, tip.dy)
+    ..lineTo(tail.dx + normal.dx * halfWidth, tail.dy + normal.dy * halfWidth)
+    ..lineTo(tail.dx - normal.dx * halfWidth, tail.dy - normal.dy * halfWidth)
+    ..close();
+  canvas.drawPath(
+    path,
+    Paint()
+      ..color = AppColors.champagneGold
+      ..style = PaintingStyle.fill,
+  );
 }
 
 class _AccessCircle extends StatelessWidget {

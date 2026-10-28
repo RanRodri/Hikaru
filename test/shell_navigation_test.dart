@@ -73,7 +73,7 @@ void main() {
       expect(find.text('THE HARMONY GARDEN'), findsOneWidget);
       expect(router.canPop(), isFalse);
 
-      await tester.tap(find.bySemanticsLabel('Hikaru Ritual Face'));
+      await tester.tap(find.bySemanticsLabel('Hikaru Ritual Face and Neck'));
       await tester.pumpAndSettle();
       expect(find.text('THE FACE TEMPLE'), findsOneWidget);
       await tester.tap(find.text('BACK'));
