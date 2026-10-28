@@ -313,7 +313,7 @@ class _ListeningRoomQuizScreenState
                           for (final option in question.options)
                             _QuizOptionTile(
                               title: l10n.quizOptionLabel(option),
-                              detail: option.detail,
+                              detail: l10n.quizOptionDetail(option),
                               selected: _answers.isSelected(
                                 question.number,
                                 option.id,
@@ -351,6 +351,19 @@ class _ListeningRoomQuizScreenState
                   HikaruPillButton(
                     label: l10n.commonNext,
                     onPressed: _handleNext,
+                  ),
+                  const SizedBox(height: AppSpacing.s14),
+                  Text(
+                    l10n.radiantFooter,
+                    textAlign: TextAlign.center,
+                    style: AppTypography.footnote.copyWith(
+                      color: AppColors.white,
+                      fontSize: AppFontSizes.s8,
+                      fontWeight: FontWeight.w300,
+                      letterSpacing: 1.2,
+                      height: 1.2,
+                      shadows: _textShadow,
+                    ),
                   ),
                 ],
               ),

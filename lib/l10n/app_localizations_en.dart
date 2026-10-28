@@ -296,11 +296,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get listeningRoomTitle => 'The\nListening Room';
 
   @override
-  String get listeningRoomTagline => 'A  SPACE  TO  BE  HEARD';
+  String get listeningRoomTagline => 'A  SPACE  TO  LISTEN  WITHIN';
 
   @override
   String get listeningRoomDescription =>
-      'Share what\'s on your mind\nso we can guide you with a\npersonalized ritual for your skin,\nyour body, and your energy.';
+      'Take a moment to connect with yourself. Share your needs and intentions so we can help you create a personalized ritual for your skin, body and energy.';
 
   @override
   String get listeningRoomBegin => 'BEGIN';
@@ -309,10 +309,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get listeningRoomFooter => 'LISTEN   ·   ALIGN   ·   RECEIVE';
 
   @override
-  String get quizHeader => 'THE LISTENING GARDEN';
+  String get quizHeader => 'THE LISTENING ROOM';
 
   @override
-  String get quizTagline => 'A SPACE TO BE HEARD';
+  String get quizTagline => 'A SPACE TO LISTEN WITHIN';
 
   @override
   String quizProgressSemantics(int number, int total) {
@@ -327,167 +327,228 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ritualReadyBody =>
-      'Your personalized Hikaru Ritual has been thoughtfully prepared, bringing together the techniques, crystal, frequencies, and intention that best support your skin and your energy today.';
+      'Inspired by your unique needs and intentions, your Hikaru Lift Ritual brings together mindful touch, crystal energy, and frequencies to guide you toward beauty, balance and inner harmony.';
 
   @override
   String get ritualReadyEnter => 'ENTER YOUR RITUAL';
 
   @override
-  String get quizQ1Prompt => 'What is your skin asking for today?';
+  String get quizQ1Prompt =>
+      'What would you like to see reflected in the mirror today?';
 
   @override
-  String get quizQ2Prompt => 'How does your skin feel right now?';
+  String get quizQ1Instruction => 'Select all that resonate with you';
 
   @override
-  String get quizQ3Prompt => 'How has your inner world been feeling lately?';
+  String get quizQ2Prompt => 'How does your skin feel today?';
 
   @override
-  String get quizQ4Prompt => 'What would you most like to release?';
+  String get quizQ2Instruction => 'Listen to what your skin is telling you';
 
   @override
-  String get quizQ5Prompt =>
-      'When you look in the mirror, what do you notice first?';
+  String get quizQ3Prompt => 'When does your skin need the most support?';
 
   @override
-  String get quizQ6Prompt => 'What does your body need more of today?';
+  String get quizQ4Prompt => 'Where do you notice the most facial tension?';
 
   @override
-  String get quizQ7Prompt => 'Which intention resonates with you?';
+  String get quizQ4Instruction => 'Select the area you notice most';
 
   @override
-  String get quizQ8Prompt => 'How would you like to feel after your ritual?';
+  String get quizQ5Prompt => 'Which area would you like to focus on?';
+
+  @override
+  String get quizQ6Prompt => 'How is your skin responding today?';
+
+  @override
+  String get quizQ7Prompt =>
+      'What intention would you like to set for today\'s ritual?';
+
+  @override
+  String get quizQ8Prompt =>
+      'What would you like to cultivate over the next 20 days?';
 
   @override
   String get quizQ9Prompt =>
-      'How much time would you like to dedicate to yourself?';
+      'How much time would you like to give yourself today?';
 
   @override
   String get quizQ10Prompt =>
-      'Is your skin currently experiencing any of these?';
+      'How familiar are you with facial sculpting rituals?';
 
   @override
-  String get quizQ10Instruction => 'Select all that apply';
+  String get quizOptionQ1ReducePuffiness => 'Reduce puffiness';
 
   @override
-  String get quizOptionQ1CalmComfort => 'Calm and comfort';
+  String get quizOptionQ1DefineContours => 'Define facial contours';
 
   @override
-  String get quizOptionQ1LiftedFirm => 'A more lifted, firm appearance';
+  String get quizOptionQ1SmoothLines => 'Smooth fine lines';
 
   @override
-  String get quizOptionQ1HydrationSoftness => 'Hydration and softness';
+  String get quizOptionQ1RestoreGlow => 'Restore glow/radiance';
 
   @override
-  String get quizOptionQ1RadianceVitality => 'Radiance and renewed vitality';
+  String get quizOptionQ1DeeplyHydrate => 'Deeply hydrate';
 
   @override
-  String get quizOptionQ2Sensitive => 'Sensitive or easily irritated';
+  String get quizOptionQ1EvenTone => 'Even skin tone';
 
   @override
-  String get quizOptionQ2TightDry => 'Tight or dry';
+  String get quizOptionQ1CalmBlemish => 'Calm blemish-prone skin';
 
   @override
-  String get quizOptionQ2PuffyTired => 'Puffy or tired';
+  String get quizOptionQ1ReduceRedness => 'Reduce visible redness';
 
   @override
-  String get quizOptionQ2ComfortableLackingRadiance =>
-      'Comfortable, but lacking radiance';
+  String get quizOptionQ2Comfortable => 'Comfortable and balanced';
 
   @override
-  String get quizOptionQ3EmotionallyOverwhelmed => 'Emotionally overwhelmed';
+  String get quizOptionQ2Tight => 'Tight';
 
   @override
-  String get quizOptionQ3MentallyBusy => 'Mentally busy or distracted';
+  String get quizOptionQ2Dry => 'Dry';
 
   @override
-  String get quizOptionQ3DisconnectedBody => 'Disconnected from my body';
+  String get quizOptionQ2Oily => 'Oily';
 
   @override
-  String get quizOptionQ3CalmBalanced => 'Calm and balanced';
+  String get quizOptionQ2Sensitive => 'Sensitive';
 
   @override
-  String get quizOptionQ4UncertaintyTension => 'Uncertainty or hidden tension';
+  String get quizOptionQ2Changes => 'It changes throughout the day';
 
   @override
-  String get quizOptionQ4MentalNoise => 'Mental noise and overthinking';
+  String get quizOptionQ3Morning => 'In the morning';
 
   @override
-  String get quizOptionQ4StressPressure => 'Stress and emotional pressure';
+  String get quizOptionQ3Travel => 'After travel';
 
   @override
-  String get quizOptionQ4FatigueHeaviness => 'Fatigue and heaviness';
+  String get quizOptionQ3Workdays => 'After long workdays';
 
   @override
-  String get quizOptionQ5ChangesUnknown => 'Changes I don\'t fully understand';
+  String get quizOptionQ3Hormonal => 'During hormonal changes';
 
   @override
-  String get quizOptionQ5LossBrightness => 'A loss of brightness';
+  String get quizOptionQ3RestlessNight => 'After a restless night';
 
   @override
-  String get quizOptionQ5StressTension => 'Signs of stress or tension';
+  String get quizOptionQ3UsuallyBalanced => 'Usually balanced';
 
   @override
-  String get quizOptionQ5FirmnessVitality => 'Changes in firmness or vitality';
+  String get quizOptionQ4Jaw => 'Jaw';
 
   @override
-  String get quizOptionQ6SpaceReflect => 'Space to reflect';
+  String get quizOptionQ4Cheeks => 'Cheeks';
 
   @override
-  String get quizOptionQ6MomentClarity => 'A moment of clarity';
+  String get quizOptionQ4Brows => 'Between eyebrows';
 
   @override
-  String get quizOptionQ6GentlenessBalance => 'Gentleness and balance';
+  String get quizOptionQ4Forehead => 'Forehead';
 
   @override
-  String get quizOptionQ6GroundingStrength => 'Grounding and strength';
+  String get quizOptionQ4Neck => 'Neck';
 
   @override
-  String get quizOptionQ7UnderstandBeneath =>
-      'Understand what lies beneath the surface';
+  String get quizOptionQ4Unsure => 'I\'m not sure';
 
   @override
-  String get quizOptionQ7GreaterClarity => 'See myself with greater clarity';
+  String get quizOptionQ5Jawline => 'Jawline';
 
   @override
-  String get quizOptionQ7ReturnHarmony => 'Return to harmony';
+  String get quizOptionQ5Cheekbones => 'Cheekbones';
 
   @override
-  String get quizOptionQ7InnerStrength => 'Reconnect with my inner strength';
+  String get quizOptionQ5Neck => 'Neck';
 
   @override
-  String get quizOptionQ8SelfAware => 'More self-aware';
+  String get quizOptionQ5EyeArea => 'Eye area';
 
   @override
-  String get quizOptionQ8ClearRefreshed => 'Clear and refreshed';
+  String get quizOptionQ5Harmony => 'Overall facial harmony';
 
   @override
-  String get quizOptionQ8CalmNurtured => 'Calm and nurtured';
+  String get quizOptionQ6Calm => 'Calm';
 
   @override
-  String get quizOptionQ8GroundedEnergized => 'Grounded and energized';
+  String get quizOptionQ6SlightlySensitive => 'Slightly sensitive';
+
+  @override
+  String get quizOptionQ6RedIrritated => 'Red or irritated';
+
+  @override
+  String get quizOptionQ6Breakout => 'Experiencing an active breakout';
+
+  @override
+  String get quizOptionQ6Recovering => 'Recovering from a cosmetic treatment';
+
+  @override
+  String get quizOptionQ7Sculpted => 'More sculpted';
+
+  @override
+  String get quizOptionQ7Radiant => 'More radiant';
+
+  @override
+  String get quizOptionQ7Refreshed => 'Refreshed';
+
+  @override
+  String get quizOptionQ7Relaxed => 'Deeply relaxed';
+
+  @override
+  String get quizOptionQ7Grounded => 'Grounded';
+
+  @override
+  String get quizOptionQ7Connected => 'More connected with myself';
+
+  @override
+  String get quizOptionQ7Restored => 'Restored';
+
+  @override
+  String get quizOptionQ8ClarityRenewal => 'Clarity and renewal';
+
+  @override
+  String get quizOptionQ8BalanceHarmony => 'Balance and harmony';
+
+  @override
+  String get quizOptionQ8GroundingProtection => 'Grounding and protection';
+
+  @override
+  String get quizOptionQ8VitalityConfidence => 'Vitality and confidence';
 
   @override
   String get quizOptionQ9ThreeMinutes => '3 minutes';
 
   @override
+  String get quizOptionQ9ThreeDetail => 'Reset';
+
+  @override
   String get quizOptionQ9FiveMinutes => '5 minutes';
+
+  @override
+  String get quizOptionQ9FiveDetail => 'Daily Ritual';
 
   @override
   String get quizOptionQ9TenMinutes => '10 minutes';
 
   @override
-  String get quizOptionQ10OpenBroken => 'Open or broken skin';
+  String get quizOptionQ9TenDetail => 'Lift & Sculpt';
 
   @override
-  String get quizOptionQ10ActiveIrritation =>
-      'Active irritation or painful inflammation';
+  String get quizOptionQ9FifteenMinutes => '15 minutes';
 
   @override
-  String get quizOptionQ10UnexplainedChange =>
-      'A new or unexplained skin change';
+  String get quizOptionQ9FifteenDetail => 'Full Sanctuary Journey';
 
   @override
-  String get quizOptionQ10None => 'None of the above';
+  String get quizOptionQ10FirstRitual => 'Today is my very first ritual';
+
+  @override
+  String get quizOptionQ10Explored => 'I\'ve explored it a few times';
+
+  @override
+  String get quizOptionQ10Routine => 'It is part of my regular routine';
 
   @override
   String get commonContinue => 'CONTINUE';
@@ -505,8 +566,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mirrorGardenEyebrow => 'THE MIRROR GARDEN';
 
   @override
-  String get mirrorGardenTitle =>
-      'Add A Photo Of Your Face For Personal Tracking';
+  String get mirrorGardenTitle => 'Capture your beginning.';
 
   @override
   String get mirrorGardenSkip => 'SKIP FOR NOW';
@@ -519,7 +579,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mirrorGardenHint =>
-      'A photo helps you celebrate your progress over time and compare your results throughout your Hikaru journey.';
+      'Take a photo to create a personal record of your 30-day Hikaru journey and observe your skin\'s evolution over time.';
 
   @override
   String get mirrorTakePhoto => 'TAKE A PHOTO';
@@ -547,17 +607,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resonanceChamberTitle => 'THE RESONANCE CHAMBER';
 
   @override
-  String get resonanceRevealTitle => 'YOUR HIKARU JOURNEY';
+  String get resonanceRevealTitle => 'Your 30 Day Journey begins here.';
 
   @override
-  String get resonanceRevealSubtitle => 'HAS BEEN REVEALED';
+  String get resonanceRevealSubtitle =>
+      'Your personalized journey brings together crystal symbolism, mindful touch, music, and intention to accompany you through 30 days of beauty, balance, and self-discovery.';
 
   @override
   String get resonanceMissingCrystal =>
       'Complete the Listening Garden to receive your crystal and personalized protocol.';
 
   @override
-  String get resonanceYourCrystal => 'YOUR CRYSTAL';
+  String resonanceYourCrystal(String crystal) {
+    return 'Your recommended crystal for the next 30 days protocol is: $crystal';
+  }
 
   @override
   String resonanceAssignedCrystalSemantics(String crystal) {
@@ -589,7 +652,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resonanceEnterSanctuary => 'ENTER MY HIKARU SANCTUARY';
 
   @override
-  String get resonanceYourFrequency => 'YOUR FREQUENCY';
+  String get resonanceYourFrequency => 'Your sound frequency';
 
   @override
   String get resonanceYourCymaticSignature => 'YOUR CYMATIC\nSIGNATURE';
@@ -598,25 +661,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resonanceCymaticSignatureSemantics => 'Your cymatic signature';
 
   @override
-  String get resonanceYourRitual => 'YOUR RITUAL';
+  String get resonanceYourRitual => 'Your personalized ritual';
 
   @override
-  String get resonanceStepRegulationName => 'Regulation';
+  String get resonanceStepRegulationName => 'Merkaba activation';
 
   @override
-  String get resonanceStepRegulationSubtitle => 'The Merkaba Room';
+  String get resonanceStepRegulationSubtitle => '';
 
   @override
-  String get resonanceStepGuaShaName => 'Gua Sha';
+  String get resonanceStepGuaShaName => 'Hikaru sculpting ritual';
 
   @override
-  String get resonanceStepGuaShaSubtitle => 'Physical Massage';
+  String get resonanceStepGuaShaSubtitle => '';
 
   @override
-  String get resonanceStepIntegrationName => 'Frequency & Cymatics Integration';
+  String get resonanceStepIntegrationName => 'Sound and cymatic integration';
 
   @override
-  String get resonanceStepIntegrationSubtitle => 'Closing Integration';
+  String get resonanceStepIntegrationSubtitle => '';
 
   @override
   String get crystalSceneSemanticsDefault => 'Your crystal in the garden';
@@ -978,7 +1041,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeTourOrderBody =>
-      'Merkaba is 1. Face and body are 2. Your crystal is 3. Each circle opens on its own.';
+      'Merkaba is 1. Face and neck is 2. Body is 3. Your crystal is 4. Library is 5. Each circle opens on its own.';
 
   @override
   String get homeTourBeginTitle => 'BEGIN TODAY';
@@ -1027,10 +1090,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeRitualBodySemantics => 'Hikaru Ritual Body';
 
   @override
-  String get homeRitualFace => 'HIKARU RITUAL\nFACE';
+  String get homeRitualFace => 'HIKARU RITUAL\nFACE AND NECK';
 
   @override
-  String get homeRitualFaceSemantics => 'Hikaru Ritual Face';
+  String get homeRitualFaceSemantics => 'Hikaru Ritual Face and Neck';
 
   @override
   String get templesTitle => 'THE FOUR TEMPLES';
@@ -1506,7 +1569,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get massageFaceSubtitle => 'HIKARU LIFT RITUAL · FACE';
 
   @override
+  String get massageFaceIntro =>
+      'Your face ritual awaits: follow the guided movements and reconnect with your natural radiance.';
+
+  @override
   String get massageBodySubtitle => 'HIKARU LIFT RITUAL · BODY';
+
+  @override
+  String get massageBodyIntro =>
+      'Your body ritual awaits: release tension and reconnect with your body through mindful movement.';
 
   @override
   String get massageVideoPlaySemantics => 'Play ritual video';
@@ -1681,19 +1752,70 @@ class AppLocalizationsEn extends AppLocalizations {
   String get headphonesDialogSemanticsLabel => 'Headphones recommended';
 
   @override
-  String get headphonesDialogEyebrow =>
-      'FOR THE FULL HIKARU FREQUENCY EXPERIENCE';
+  String get headphonesDialogEyebrow => 'AWAKEN YOUR SENSES';
 
   @override
-  String get headphonesDialogTitle => 'Headphones recommended';
+  String get headphonesDialogTitle => 'Your sensory journey begins now.';
 
   @override
   String get headphonesDialogBody =>
-      'For a more immersive experience, we recommend headphones. Find a comfortable space, set a comfortable volume, and let the sound surround you.';
+      'Put on your headphones for a deeper sound experience. Gently massage your face with your crystal, following the movements you have learned. Allow the sound, movement, and Cymatics to guide you into a moment of harmony and inner balance.';
 
   @override
-  String get headphonesDialogReady => 'I\'M READY';
+  String get headphonesDialogReady => 'ACTIVATE MY FREQUENCY';
 
   @override
-  String get headphonesDialogContinueWithout => 'CONTINUE WITHOUT HEADPHONES';
+  String get crystalAwakenLine => 'Awaken your senses. Enter the resonance.';
+
+  @override
+  String get crystalLearnRitual => 'LEARN YOUR CRYSTAL RITUAL';
+
+  @override
+  String get crystalEnterFrequency => 'ENTER THE FREQUENCY';
+
+  @override
+  String get crystalLibrarySemantics => 'Open the crystal library';
+
+  @override
+  String get crystalTutorialReady =>
+      'Your crystal ritual is ready. Now enter the frequency.';
+
+  @override
+  String get crystalContinueResonance => 'CONTINUE TO RESONANCE';
+
+  @override
+  String get crystalTutorialPause => 'Pause tutorial';
+
+  @override
+  String get crystalTutorialPlay => 'Play tutorial';
+
+  @override
+  String get crystalTutorialRepeat => 'Repeat tutorial';
+
+  @override
+  String get crystalTutorialContinue => 'Continue tutorial';
+
+  @override
+  String get crystalReturnCoherence => 'RETURN TO COHERENCE';
+
+  @override
+  String get crystalCarryHarmony => 'Carry this moment of harmony with you.';
+
+  @override
+  String get crystalCompleteRitual => 'COMPLETE MY RITUAL';
+
+  @override
+  String get crystalExploreTemple => 'EXPLORE ANOTHER TEMPLE';
+
+  @override
+  String get crystalReplayTutorial => 'Watch the tutorial again';
+
+  @override
+  String get crystalStop => 'Stop';
+
+  @override
+  String get crystalVolume => 'Volume';
+
+  @override
+  String get crystalProgress => 'Frequency progress';
 }

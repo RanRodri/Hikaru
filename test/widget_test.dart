@@ -124,10 +124,9 @@ void main() {
     expect(find.text('The\nListening Room'), findsOneWidget);
     expect(
       find.text(
-        "Share what's on your mind\n"
-        'so we can guide you with a\n'
-        'personalized ritual for your skin,\n'
-        'your body, and your energy.',
+        'Take a moment to connect with yourself. Share your needs and '
+        'intentions so we can help you create a personalized ritual for '
+        'your skin, body and energy.',
       ),
       findsOneWidget,
     );
@@ -139,20 +138,23 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('01 / 10'), findsOneWidget);
-    expect(find.text('What is your skin asking for today?'), findsOneWidget);
+    expect(
+      find.text('What would you like to see reflected in the mirror today?'),
+      findsOneWidget,
+    );
     expect(find.text('NEXT'), findsOneWidget);
 
     const quizAnswers = [
-      'Calm and comfort',
-      'Sensitive or easily irritated',
-      'Emotionally overwhelmed',
-      'Stress and emotional pressure',
-      'Signs of stress or tension',
-      'Gentleness and balance',
-      'Return to harmony',
-      'Calm and nurtured',
+      'Reduce puffiness',
+      'Sensitive',
+      'In the morning',
+      'Jaw',
+      'Jawline',
+      'Calm',
+      'Refreshed',
+      'Balance and harmony',
       '5 minutes',
-      'None of the above',
+      'It is part of my regular routine',
     ];
     for (final answer in quizAnswers) {
       await tapQuizChoice(tester, answer);
@@ -167,18 +169,22 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('THE MIRROR GARDEN'), findsOneWidget);
-    expect(
-      find.text('Add A Photo Of Your Face For Personal Tracking'),
-      findsOneWidget,
-    );
+    expect(find.text('Capture your beginning.'), findsOneWidget);
     expect(find.text('CONTINUE'), findsOneWidget);
 
     await tester.ensureVisible(find.text('CONTINUE'));
     await tester.tap(find.text('CONTINUE'));
     await tester.pumpAndSettle();
 
-    expect(find.text('YOUR HIKARU JOURNEY'), findsOneWidget);
-    expect(find.text('HAS BEEN REVEALED'), findsOneWidget);
+    expect(find.text('Your 30 Day Journey begins here.'), findsOneWidget);
+    expect(
+      find.text(
+        'Your personalized journey brings together crystal symbolism, mindful '
+        'touch, music, and intention to accompany you through 30 days of '
+        'beauty, balance, and self-discovery.',
+      ),
+      findsOneWidget,
+    );
     expect(find.bySemanticsLabel('Assigned crystal JADE'), findsOneWidget);
     expect(find.text('YOUR RECOMMENDED PROTOCOL'), findsOneWidget);
     expect(find.text('ENTER MY HIKARU SANCTUARY'), findsOneWidget);

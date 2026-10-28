@@ -17,6 +17,12 @@ extension MassageTexts on AppLocalizations {
     MassageSurface.body => massageBodySubtitle,
   };
 
+  /// Opening line in the ritual header, under the Figma temple subtitle.
+  String massageIntro(MassageRitual ritual) => switch (ritual.surface) {
+    MassageSurface.face => massageFaceIntro,
+    MassageSurface.body => massageBodyIntro,
+  };
+
   String massageZoneName(MassageZone zone) => switch (zone.name) {
     'Jawline' => massageZoneJawline,
     'Neck' => massageZoneNeck,

@@ -31,6 +31,7 @@ class MassageRitual {
     required this.temple,
     required this.subtitle,
     required this.zones,
+    required this.posterAsset,
     this.sessionLength = const Duration(minutes: 10),
     this.videoUrl,
   });
@@ -39,6 +40,9 @@ class MassageRitual {
   final String temple;
   final String subtitle;
   final List<MassageZone> zones;
+
+  /// Still frame for the video area. Replace the file at this path.
+  final String posterAsset;
   final Duration sessionLength;
   final String? videoUrl;
 
@@ -49,6 +53,7 @@ class MassageRitual {
     temple: temple,
     subtitle: subtitle,
     zones: zones,
+    posterAsset: posterAsset,
     sessionLength: sessionLength ?? this.sessionLength,
     videoUrl: videoUrl,
   );
@@ -60,10 +65,19 @@ int clampFaceSessionMinutes(int? minutes) {
   return 5;
 }
 
+/// Model using Hikaru Lift on the face. The file is not in the repo yet.
+const String faceRitualPosterAsset =
+    'assets/images/rituals/face_hikaru_lift.png';
+
+/// Model using Hikaru on the body. The file is not in the repo yet.
+const String bodyRitualPosterAsset =
+    'assets/images/rituals/body_hikaru_lift.png';
+
 const MassageRitual faceRitual = MassageRitual(
   surface: MassageSurface.face,
   temple: 'THE FACE TEMPLE',
   subtitle: 'HIKARU LIFT RITUAL · FACE',
+  posterAsset: faceRitualPosterAsset,
   zones: [
     MassageZone(
       name: 'Jawline',
@@ -102,6 +116,7 @@ const MassageRitual bodyRitual = MassageRitual(
   surface: MassageSurface.body,
   temple: 'THE BODY TEMPLE',
   subtitle: 'HIKARU LIFT RITUAL · BODY',
+  posterAsset: bodyRitualPosterAsset,
   zones: [
     MassageZone(
       name: 'Glutes',

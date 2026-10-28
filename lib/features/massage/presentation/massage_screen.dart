@@ -322,7 +322,10 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
                   child: GestureDetector(
                     onTap: _handleVideoTap,
                     behavior: HitTestBehavior.opaque,
-                    child: RitualVideoSlot(videoUrl: ritual.videoUrl),
+                    child: RitualVideoSlot(
+                      videoUrl: ritual.videoUrl,
+                      posterAsset: ritual.posterAsset,
+                    ),
                   ),
                 ),
               ),
@@ -589,6 +592,21 @@ class _RitualHero extends StatelessWidget {
                 style: _spaced(
                   AppFontSizes.s8 * scale,
                 ).copyWith(shadows: _textShadow),
+              ),
+              SizedBox(height: AppSpacing.s8 * scale),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 28 * scale),
+                child: Text(
+                  l10n.massageIntro(ritual),
+                  textAlign: TextAlign.center,
+                  style: AppTypography.body.copyWith(
+                    color: AppColors.white,
+                    fontSize: AppFontSizes.s12 * scale,
+                    height: 1.45,
+                    letterSpacing: 0.2,
+                    shadows: _textShadow,
+                  ),
+                ),
               ),
             ],
           ),

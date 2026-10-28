@@ -118,9 +118,9 @@ const String _defaultFacialRitual = RecommendationCopy.ritualHydration;
 
 /// Builds the revealed protocol from the assigned crystal and quiz answers.
 ///
-/// Duration comes from Q9. Skin focus and facial ritual come primarily from Q1
-/// (refined by Q2). Intention prefers Q7 when present, otherwise the crystal
-/// default.
+/// Duration comes from Q9. Skin focus follows the Q2 options that kept a
+/// protocol (sensitive, tight, or dry). Intention is the crystal default:
+/// the previous Q7 phrases no longer have options in the quiz.
 JourneyRecommendation buildJourneyRecommendation(
   Crystal crystal,
   QuizAnswers answers,
@@ -130,7 +130,7 @@ JourneyRecommendation buildJourneyRecommendation(
     crystal: crystal,
     crystalTitle: crystal.symbolicTitle,
     revelationMessage: crystal.revelationMessage,
-    intention: _intentionFromAnswers(answers) ?? crystal.defaultIntention,
+    intention: crystal.defaultIntention,
     skinFocus: skin.focus,
     facialRitual: skin.ritual,
     durationMinutes: _durationFromAnswers(answers),
@@ -152,56 +152,23 @@ int _durationFromAnswers(QuizAnswers answers) {
   final selected = answers.selectedIds(9);
   if (selected.contains(QuizOptionIds.q9ThreeMinutes)) return 3;
   if (selected.contains(QuizOptionIds.q9TenMinutes)) return 10;
+  if (selected.contains(QuizOptionIds.q9FifteenMinutes)) return 15;
   return 5;
 }
 
-String? _intentionFromAnswers(QuizAnswers answers) {
-  final selected = answers.selectedIds(7);
-  if (selected.contains(QuizOptionIds.q7UnderstandBeneath)) {
-    return RecommendationCopy.intentionSelfAwareness;
-  }
-  if (selected.contains(QuizOptionIds.q7GreaterClarity)) {
-    return RecommendationCopy.intentionInnerIllumination;
-  }
-  if (selected.contains(QuizOptionIds.q7ReturnHarmony)) {
-    return RecommendationCopy.intentionHarmony;
-  }
-  if (selected.contains(QuizOptionIds.q7InnerStrength)) {
-    return RecommendationCopy.intentionGrounding;
-  }
-  return null;
-}
-
 ({String focus, String ritual}) _skinCareFromAnswers(QuizAnswers answers) {
-  final q1 = answers.selectedIds(1);
   final q2 = answers.selectedIds(2);
 
-  if (q2.contains(QuizOptionIds.q2Sensitive) ||
-      q1.contains(QuizOptionIds.q1CalmComfort)) {
+  if (q2.contains(QuizOptionIds.q2Sensitive)) {
     return (
       focus: RecommendationCopy.skinFocusSoothing,
       ritual: RecommendationCopy.ritualSoothing,
     );
   }
-  if (q1.contains(QuizOptionIds.q1HydrationSoftness) ||
-      q2.contains(QuizOptionIds.q2TightDry)) {
+  if (q2.contains(QuizOptionIds.q2Tight) || q2.contains(QuizOptionIds.q2Dry)) {
     return (
       focus: RecommendationCopy.skinFocusHydration,
       ritual: RecommendationCopy.ritualHydration,
-    );
-  }
-  if (q1.contains(QuizOptionIds.q1LiftedFirm) ||
-      q2.contains(QuizOptionIds.q2PuffyTired)) {
-    return (
-      focus: RecommendationCopy.skinFocusLift,
-      ritual: RecommendationCopy.ritualLift,
-    );
-  }
-  if (q1.contains(QuizOptionIds.q1RadianceVitality) ||
-      q2.contains(QuizOptionIds.q2ComfortableLackingRadiance)) {
-    return (
-      focus: RecommendationCopy.skinFocusRadiance,
-      ritual: RecommendationCopy.ritualRadiance,
     );
   }
   return (focus: _defaultSkinFocus, ritual: _defaultFacialRitual);

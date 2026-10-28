@@ -34,8 +34,7 @@ void main() {
     final recommendation = buildJourneyRecommendation(
       Crystal.obsidian,
       const QuizAnswers({
-        1: {QuizOptionIds.q1HydrationSoftness},
-        7: {QuizOptionIds.q7UnderstandBeneath},
+        2: {QuizOptionIds.q2Dry},
         9: {QuizOptionIds.q9FiveMinutes},
       }),
     );
@@ -60,8 +59,15 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('YOUR HIKARU JOURNEY'), findsOneWidget);
-    expect(find.text('HAS BEEN REVEALED'), findsOneWidget);
+    expect(find.text('Your 30 Day Journey begins here.'), findsOneWidget);
+    expect(
+      find.text(
+        'Your personalized journey brings together crystal symbolism, mindful '
+        'touch, music, and intention to accompany you through 30 days of '
+        'beauty, balance, and self-discovery.',
+      ),
+      findsOneWidget,
+    );
     expect(find.bySemanticsLabel('Assigned crystal OBSIDIAN'), findsOneWidget);
     expect(find.text('The Mirror of the Unseen'), findsOneWidget);
     expect(find.text('YOUR RECOMMENDED PROTOCOL'), findsOneWidget);

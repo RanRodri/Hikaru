@@ -17,6 +17,7 @@ import 'package:shared_preferences_platform_interface/in_memory_shared_preferenc
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 
 import 'support/quiz_driver.dart';
+
 import 'package:hikaru/l10n/app_localizations.dart';
 
 void main() {
@@ -68,14 +69,17 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('01 / 10'), findsOneWidget);
-      expect(find.text('What is your skin asking for today?'), findsOneWidget);
+      expect(
+        find.text('What would you like to see reflected in the mirror today?'),
+        findsOneWidget,
+      );
 
       await tester.ensureVisible(find.text('NEXT'));
       await tester.tap(find.text('NEXT'));
       await tester.pump();
       expect(find.text('Select an option.'), findsOneWidget);
 
-      await tapQuizChoice(tester, 'Calm and comfort');
+      await tapQuizChoice(tester, 'Reduce puffiness');
       await tapQuizNext(tester);
 
       expect(find.text('02 / 10'), findsOneWidget);
@@ -83,18 +87,18 @@ void main() {
       await tester.tap(find.text('BACK'));
       await tester.pumpAndSettle();
       expect(find.text('01 / 10'), findsOneWidget);
-      expect(find.text('Calm and comfort'), findsOneWidget);
+      expect(find.text('Reduce puffiness'), findsOneWidget);
 
       const labels = [
-        'Sensitive or easily irritated',
-        'Emotionally overwhelmed',
-        'Stress and emotional pressure',
-        'Signs of stress or tension',
-        'Gentleness and balance',
-        'Return to harmony',
-        'Calm and nurtured',
+        'Sensitive',
+        'In the morning',
+        'Jaw',
+        'Jawline',
+        'Calm',
+        'Refreshed',
+        'Balance and harmony',
         '5 minutes',
-        'None of the above',
+        'It is part of my regular routine',
       ];
 
       await tester.ensureVisible(find.text('NEXT'));
@@ -109,11 +113,11 @@ void main() {
       expect(find.text('Your\nRitual Is Ready'), findsOneWidget);
 
       final saved = await container.read(quizAnswersRepositoryProvider).read();
-      expect(saved.selectedIds(1), {QuizOptionIds.q1CalmComfort});
+      expect(saved.selectedIds(1), {QuizOptionIds.q1ReducePuffiness});
       expect(saved.selectedIds(2), {QuizOptionIds.q2Sensitive});
-      expect(saved.selectedIds(8), {QuizOptionIds.q8CalmNurtured});
+      expect(saved.selectedIds(8), {QuizOptionIds.q8BalanceHarmony});
       expect(saved.selectedIds(9), {QuizOptionIds.q9FiveMinutes});
-      expect(saved.selectedIds(10), {QuizOptionIds.q10None});
+      expect(saved.selectedIds(10), {QuizOptionIds.q10Routine});
       expect(
         await container.read(selectedCrystalProvider.future),
         Crystal.jade,
@@ -128,13 +132,13 @@ void main() {
 
       final stored = QuizAnswersRepository(SharedPreferencesAsync());
       expect((await stored.read()).selectedIds(8), {
-        QuizOptionIds.q8CalmNurtured,
+        QuizOptionIds.q8BalanceHarmony,
       });
       expect(await stored.readStep(), 0);
     },
   );
 
-  testWidgets('Q10 none is exclusive of safety concerns', (tester) async {
+  testWidgets('Q1 keeps every option that was selected', (tester) async {
     usePhoneViewport(tester);
     final router = GoRouter(
       initialLocation: AppRoutes.listeningRoomQuiz,
@@ -162,32 +166,15 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    const path = [
-      'Calm and comfort',
-      'Sensitive or easily irritated',
-      'Calm and balanced',
-      'Stress and emotional pressure',
-      'Signs of stress or tension',
-      'Gentleness and balance',
-      'Return to harmony',
-      'Calm and nurtured',
-      '5 minutes',
-    ];
-    for (final label in path) {
-      await tapQuizChoice(tester, label);
-      await tapQuizNext(tester);
-    }
+    expect(find.text('Select all that resonate with you'), findsOneWidget);
 
-    expect(find.text('10 / 10'), findsOneWidget);
-    expect(find.text('Select all that apply'), findsOneWidget);
-
-    await tapQuizChoice(tester, 'Open or broken skin');
-    await tapQuizChoice(tester, 'None of the above');
+    await tapQuizChoice(tester, 'Reduce puffiness');
+    await tapQuizChoice(tester, 'Deeply hydrate');
     expect(
       find.byWidgetPredicate(
         (widget) =>
             widget is Semantics &&
-            widget.properties.label == 'None of the above' &&
+            widget.properties.label == 'Reduce puffiness' &&
             widget.properties.checked == true,
       ),
       findsOneWidget,
@@ -196,18 +183,18 @@ void main() {
       find.byWidgetPredicate(
         (widget) =>
             widget is Semantics &&
-            widget.properties.label == 'Open or broken skin' &&
+            widget.properties.label == 'Deeply hydrate' &&
             widget.properties.checked == true,
       ),
-      findsNothing,
+      findsOneWidget,
     );
 
-    await tapQuizChoice(tester, 'Active irritation or painful inflammation');
+    await tapQuizChoice(tester, 'Reduce puffiness');
     expect(
       find.byWidgetPredicate(
         (widget) =>
             widget is Semantics &&
-            widget.properties.label == 'None of the above' &&
+            widget.properties.label == 'Reduce puffiness' &&
             widget.properties.checked == true,
       ),
       findsNothing,
@@ -216,8 +203,7 @@ void main() {
       find.byWidgetPredicate(
         (widget) =>
             widget is Semantics &&
-            widget.properties.label ==
-                'Active irritation or painful inflammation' &&
+            widget.properties.label == 'Deeply hydrate' &&
             widget.properties.checked == true,
       ),
       findsOneWidget,
@@ -257,18 +243,18 @@ void main() {
     }
 
     await openQuiz();
-    await tapQuizChoice(tester, 'Calm and comfort');
+    await tapQuizChoice(tester, 'Reduce puffiness');
     await tapQuizNext(tester);
     expect(find.text('02 / 10'), findsOneWidget);
 
     await openQuiz();
     expect(find.text('02 / 10'), findsOneWidget);
-    expect(find.text('How does your skin feel right now?'), findsOneWidget);
+    expect(find.text('How does your skin feel today?'), findsOneWidget);
     expect(
       (await QuizAnswersRepository(
         SharedPreferencesAsync(),
       ).read()).selectedIds(1),
-      {QuizOptionIds.q1CalmComfort},
+      {QuizOptionIds.q1ReducePuffiness},
     );
 
     await tester.tap(find.text('BACK'));
@@ -281,7 +267,7 @@ void main() {
       find.byWidgetPredicate(
         (widget) =>
             widget is Semantics &&
-            widget.properties.label == 'Calm and comfort' &&
+            widget.properties.label == 'Reduce puffiness' &&
             widget.properties.checked == true,
       ),
       findsOneWidget,
@@ -336,7 +322,7 @@ void main() {
 
       // The options start to the right of the photo's window, as designed,
       // and the text never leaves the screen.
-      final label = tester.getRect(find.text('Calm and comfort'));
+      final label = tester.getRect(find.text('Reduce puffiness'));
       expect(label.left, greaterThan(size.width * 0.3));
       expect(label.right, lessThan(size.width));
 
