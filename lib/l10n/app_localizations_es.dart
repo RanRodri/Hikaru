@@ -1585,7 +1585,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get massageFaceSubtitle => 'RITUAL HIKARU LIFT · ROSTRO';
 
   @override
+  String get massageFaceIntro =>
+      'Tu ritual de rostro te espera: sigue los movimientos guiados y reconecta con tu luminosidad natural.';
+
+  @override
   String get massageBodySubtitle => 'RITUAL HIKARU LIFT · CUERPO';
+
+  @override
+  String get massageBodyIntro =>
+      'Tu ritual de cuerpo te espera: suelta la tensión y reconecta con tu cuerpo a través del movimiento consciente.';
 
   @override
   String get massageVideoPlaySemantics => 'Reproducir video del ritual';

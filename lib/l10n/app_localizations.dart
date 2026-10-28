@@ -2588,11 +2588,23 @@ abstract class AppLocalizations {
   /// **'HIKARU LIFT RITUAL · FACE'**
   String get massageFaceSubtitle;
 
+  /// No description provided for @massageFaceIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Your face ritual awaits: follow the guided movements and reconnect with your natural radiance.'**
+  String get massageFaceIntro;
+
   /// No description provided for @massageBodySubtitle.
   ///
   /// In en, this message translates to:
   /// **'HIKARU LIFT RITUAL · BODY'**
   String get massageBodySubtitle;
+
+  /// No description provided for @massageBodyIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Your body ritual awaits: release tension and reconnect with your body through mindful movement.'**
+  String get massageBodyIntro;
 
   /// No description provided for @massageVideoPlaySemantics.
   ///
