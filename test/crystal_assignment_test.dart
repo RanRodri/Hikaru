@@ -9,18 +9,16 @@ QuizAnswers _answers(Map<int, List<String>> selected) => QuizAnswers({
 });
 
 void main() {
-  test('quiz has the 10 briefing questions and 39 options', () {
+  test('quiz has the 10 briefing questions and 47 options', () {
     expect(discoveryQuiz, hasLength(10));
     expect(
       discoveryQuiz.fold<int>(
         0,
         (count, question) => count + question.options.length,
       ),
-      39,
+      47,
     );
-    expect(discoveryQuiz.first.selection, QuizSelection.single);
-    expect(discoveryQuiz.last.selection, QuizSelection.multiple);
-    expect(discoveryQuiz.last.exclusiveOptionId, QuizOptionIds.q10None);
+    expect(discoveryQuiz.every((q) => q.options.isNotEmpty), isTrue);
   });
 
   test('every crystal signal points at a real quiz option', () {
@@ -35,7 +33,7 @@ void main() {
     expect(
       assignCrystal(
         _answers({
-          7: [QuizOptionIds.q7ReturnHarmony],
+          7: [QuizOptionIds.q7Refreshed],
         }),
       ),
       Crystal.jade,
@@ -43,7 +41,7 @@ void main() {
     expect(
       assignCrystal(
         _answers({
-          8: [QuizOptionIds.q8SelfAware],
+          8: [QuizOptionIds.q8Protection],
         }),
       ),
       Crystal.obsidian,
@@ -51,18 +49,17 @@ void main() {
     expect(
       assignCrystal(
         _answers({
-          3: [QuizOptionIds.q3MentallyBusy],
+          3: [QuizOptionIds.q3LongWorkdays],
         }),
       ),
       Crystal.whiteQuartz,
     );
   });
 
-  test('weights favor emotion over skin; Q9 does not score', () {
+  test('weights favor emotion over skin', () {
     final answers = _answers({
-      7: [QuizOptionIds.q7UnderstandBeneath], // Obsidian emotion
-      1: [QuizOptionIds.q1RadianceVitality], // Quartz skin
-      9: [QuizOptionIds.q9TenMinutes], // stored only
+      7: [QuizOptionIds.q7Grounded], // Obsidian emotion
+      1: [QuizOptionIds.q1RestoreGlow], // Quartz skin
     });
 
     final scores = scoreCrystals(answers);
@@ -73,10 +70,17 @@ void main() {
     expect(assignCrystal(answers), Crystal.obsidian);
   });
 
+  test('Q9 votes within the emotion bucket', () {
+    final answers = _answers({
+      9: [QuizOptionIds.q9GroundingProtection], // Obsidian
+    });
+
+    expect(assignCrystal(answers), Crystal.obsidian);
+  });
+
   test('empty emotion renormalizes to skin only', () {
     final answers = _answers({
-      1: [QuizOptionIds.q1RadianceVitality],
-      9: [QuizOptionIds.q9ThreeMinutes],
+      1: [QuizOptionIds.q1RestoreGlow],
     });
 
     final scores = scoreCrystals(answers);
@@ -97,32 +101,32 @@ void main() {
     expect(
       assignCrystal(
         _answers({
-          5: [QuizOptionIds.q5FirmnessVitality],
+          5: [QuizOptionIds.q5Jawline],
         }),
       ),
       Crystal.redJasper,
     );
   });
 
-  test('safety answers do not affect crystal scores', () {
-    final withSafety = _answers({
-      7: [QuizOptionIds.q7GreaterClarity],
-      10: [QuizOptionIds.q10OpenBroken, QuizOptionIds.q10ActiveIrritation],
+  test('Q10 familiarity answers do not affect crystal scores', () {
+    final withFamiliarity = _answers({
+      7: [QuizOptionIds.q7MoreRadiant],
+      10: [QuizOptionIds.q10Routine],
     });
-    final withoutSafety = _answers({
-      7: [QuizOptionIds.q7GreaterClarity],
+    final withoutFamiliarity = _answers({
+      7: [QuizOptionIds.q7MoreRadiant],
     });
 
-    expect(scoreCrystals(withSafety), scoreCrystals(withoutSafety));
-    expect(assignCrystal(withSafety), Crystal.whiteQuartz);
+    expect(scoreCrystals(withFamiliarity), scoreCrystals(withoutFamiliarity));
+    expect(assignCrystal(withFamiliarity), Crystal.whiteQuartz);
   });
 
   test('tie-break prefers Jade when scores match', () {
     expect(
       assignCrystal(
         _answers({
-          7: [QuizOptionIds.q7ReturnHarmony],
-          8: [QuizOptionIds.q8ClearRefreshed],
+          7: [QuizOptionIds.q7Refreshed],
+          8: [QuizOptionIds.q8Clarity],
         }),
       ),
       Crystal.jade,
@@ -136,15 +140,15 @@ void main() {
 
   test('answers round-trip through json', () {
     const original = QuizAnswers({
-      1: {QuizOptionIds.q1CalmComfort},
-      8: {QuizOptionIds.q8CalmNurtured},
-      10: {QuizOptionIds.q10None},
+      1: {QuizOptionIds.q1DeeplyHydrate},
+      8: {QuizOptionIds.q8Harmony},
+      10: {QuizOptionIds.q10Routine},
     });
 
     final restored = QuizAnswers.fromJson(original.toJson());
 
     expect(restored.selectedIds(1), original.selectedIds(1));
-    expect(restored.selectedIds(8), {QuizOptionIds.q8CalmNurtured});
-    expect(restored.selectedIds(10), {QuizOptionIds.q10None});
+    expect(restored.selectedIds(8), {QuizOptionIds.q8Harmony});
+    expect(restored.selectedIds(10), {QuizOptionIds.q10Routine});
   });
 }

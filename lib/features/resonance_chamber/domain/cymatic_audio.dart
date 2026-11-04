@@ -84,35 +84,57 @@ double _goertzelPower(List<double> samples, int bin) {
   return s1 * s1 + s2 * s2 - coeff * s1 * s2;
 }
 
-/// Compact RMS and band envelope for one crystal track.
+const int cymaticModeCount = 12;
+
+/// Compact analysis envelope for one crystal track.
 ///
-/// Built offline from the bundled AAC so playback can look the energy up by
-/// position. Nothing is captured from the microphone.
+/// CYM2 stores RMS and twelve independently measured modal amplitudes. CYM1
+/// remains readable and is expanded to the four legacy groups at runtime.
+/// Everything is calculated offline; the phone only interpolates values.
 class CymaticEnvelope {
   CymaticEnvelope({
     required this.rms,
     required this.low,
     required this.mid,
     required this.high,
+    this.modalFrequencies = const [],
+    this.modalAmplitudes = const [],
     this.hopSamples = analysisHop,
     this.rate = analysisRate,
-  });
+  }) : assert(
+         modalAmplitudes.isEmpty ||
+             (modalFrequencies.length == cymaticModeCount &&
+                 modalAmplitudes.length == cymaticModeCount),
+       );
 
   static const int analysisRate = 16000;
   static const int analysisHop = 320;
   static const int analysisWindow = 256;
-  static const int _magic = 0x43594D31;
-  static const int _version = 1;
-  static const int _headerBytes = 16;
+  static const int _magicV1 = 0x43594D31;
+  static const int _magicV2 = 0x43594D32;
+  static const int _versionV1 = 1;
+  static const int _versionV2 = 2;
+  static const int _headerV1Bytes = 16;
+  static const int _headerV2Bytes =
+      _headerV1Bytes + cymaticModeCount * Float32List.bytesPerElement;
+  static const int _v1Channels = 4;
+  static const int _v2Channels = 1 + cymaticModeCount;
 
   final Float32List rms;
   final Float32List low;
   final Float32List mid;
   final Float32List high;
+  final List<double> modalFrequencies;
+
+  /// Structure-of-arrays: one Float32List per mode, all with [frames] values.
+  final List<Float32List> modalAmplitudes;
   final int hopSamples;
   final int rate;
 
   int get frames => rms.length;
+  bool get hasModalAmplitudes =>
+      modalAmplitudes.length == cymaticModeCount &&
+      modalAmplitudes.every((values) => values.length == frames);
 
   Duration get duration {
     if (frames == 0 || rate <= 0) return Duration.zero;
@@ -122,21 +144,55 @@ class CymaticEnvelope {
 
   CymaticWindow sampleAt(Duration position) {
     if (frames == 0 || rate <= 0) return CymaticWindow.silent;
-    final frameMicros = hopSamples * 1000000 / rate;
-    final period = frames * frameMicros;
-    if (period <= 0) return CymaticWindow.silent;
-    var wrapped = position.inMicroseconds % period;
-    if (wrapped < 0) wrapped += period;
-    final exact = wrapped / frameMicros;
-    final index = exact.floor() % frames;
-    final next = (index + 1) % frames;
-    final t = exact - exact.floor();
+    final (index, next, t) = _samplePosition(position);
     return CymaticWindow(
       rms: _lerp(rms[index], rms[next], t),
       low: _lerp(low[index], low[next], t),
       mid: _lerp(mid[index], mid[next], t),
       high: _lerp(high[index], high[next], t),
     );
+  }
+
+  /// Fills a reusable twelve-value buffer. CYM1 maps its original four
+  /// controls onto three modes each, preserving the old appearance.
+  void sampleModesAt(
+    Duration position,
+    List<double> output, {
+    CymaticWindow? legacyWindow,
+  }) {
+    assert(output.length >= cymaticModeCount);
+    if (frames == 0 || rate <= 0) {
+      output.fillRange(0, cymaticModeCount, 0);
+      return;
+    }
+    if (hasModalAmplitudes) {
+      final (index, next, t) = _samplePosition(position);
+      for (var mode = 0; mode < cymaticModeCount; mode++) {
+        final values = modalAmplitudes[mode];
+        output[mode] = _lerp(values[index], values[next], t);
+      }
+      return;
+    }
+    final window = legacyWindow ?? sampleAt(position);
+    final controls = [
+      window.low,
+      0.45 * window.low + 0.55 * window.mid,
+      window.mid,
+      window.high,
+    ];
+    for (var mode = 0; mode < cymaticModeCount; mode++) {
+      output[mode] = controls[mode ~/ 3];
+    }
+  }
+
+  (int, int, double) _samplePosition(Duration position) {
+    final frameMicros = hopSamples * 1000000 / rate;
+    final period = frames * frameMicros;
+    var wrapped = position.inMicroseconds % period;
+    if (wrapped < 0) wrapped += period;
+    final exact = wrapped / frameMicros;
+    final index = exact.floor() % frames;
+    return (index, (index + 1) % frames, exact - exact.floor());
   }
 
   /// Mean RMS of [count] equal slices of the whole track, scaled so the
@@ -161,16 +217,14 @@ class CymaticEnvelope {
     return sum / (end - start);
   }
 
-  Uint8List encode() {
-    final bytes = Uint8List(_headerBytes + frames * 4);
+  Uint8List encode() => hasModalAmplitudes ? _encodeV2() : _encodeV1();
+
+  Uint8List _encodeV1() {
+    final bytes = Uint8List(_headerV1Bytes + frames * _v1Channels);
     final data = ByteData.sublistView(bytes);
-    data.setUint32(0, _magic);
-    data.setUint16(4, _version);
-    data.setUint16(6, hopSamples);
-    data.setUint32(8, rate);
-    data.setUint32(12, frames);
+    _writeHeader(data, _magicV1, _versionV1);
     for (var frame = 0; frame < frames; frame++) {
-      final offset = _headerBytes + frame * 4;
+      final offset = _headerV1Bytes + frame * _v1Channels;
       bytes[offset] = _unit8(rms[frame]);
       bytes[offset + 1] = _unit8(low[frame]);
       bytes[offset + 2] = _unit8(mid[frame]);
@@ -179,24 +233,59 @@ class CymaticEnvelope {
     return bytes;
   }
 
-  static CymaticEnvelope? decode(Uint8List bytes) {
-    if (bytes.length < _headerBytes) return null;
+  Uint8List _encodeV2() {
+    final bytes = Uint8List(_headerV2Bytes + frames * _v2Channels);
     final data = ByteData.sublistView(bytes);
-    if (data.getUint32(0) != _magic || data.getUint16(4) != _version) {
-      return null;
+    _writeHeader(data, _magicV2, _versionV2);
+    for (var mode = 0; mode < cymaticModeCount; mode++) {
+      data.setFloat32(
+        _headerV1Bytes + mode * Float32List.bytesPerElement,
+        modalFrequencies[mode],
+      );
     }
-    final hop = data.getUint16(6);
-    final rate = data.getUint32(8);
-    final frames = data.getUint32(12);
-    if (hop == 0 || rate == 0 || bytes.length < _headerBytes + frames * 4) {
-      return null;
+    for (var frame = 0; frame < frames; frame++) {
+      final offset = _headerV2Bytes + frame * _v2Channels;
+      bytes[offset] = _unit8(rms[frame]);
+      for (var mode = 0; mode < cymaticModeCount; mode++) {
+        bytes[offset + 1 + mode] = _unit8(modalAmplitudes[mode][frame]);
+      }
     }
+    return bytes;
+  }
+
+  void _writeHeader(ByteData data, int magic, int version) {
+    data.setUint32(0, magic);
+    data.setUint16(4, version);
+    data.setUint16(6, hopSamples);
+    data.setUint32(8, rate);
+    data.setUint32(12, frames);
+  }
+
+  static CymaticEnvelope? decode(Uint8List bytes) {
+    if (bytes.length < _headerV1Bytes) return null;
+    final data = ByteData.sublistView(bytes);
+    final magic = data.getUint32(0);
+    final version = data.getUint16(4);
+    if (magic == _magicV1 && version == _versionV1) {
+      return _decodeV1(bytes, data);
+    }
+    if (magic == _magicV2 && version == _versionV2) {
+      return _decodeV2(bytes, data);
+    }
+    return null;
+  }
+
+  static CymaticEnvelope? _decodeV1(Uint8List bytes, ByteData data) {
+    final header = _readHeader(data);
+    if (header == null) return null;
+    final (hop, rate, frames) = header;
+    if (bytes.length < _headerV1Bytes + frames * _v1Channels) return null;
     final rms = Float32List(frames);
     final low = Float32List(frames);
     final mid = Float32List(frames);
     final high = Float32List(frames);
     for (var frame = 0; frame < frames; frame++) {
-      final offset = _headerBytes + frame * 4;
+      final offset = _headerV1Bytes + frame * _v1Channels;
       rms[frame] = bytes[offset] / 255;
       low[frame] = bytes[offset + 1] / 255;
       mid[frame] = bytes[offset + 2] / 255;
@@ -211,6 +300,53 @@ class CymaticEnvelope {
       rate: rate,
     );
   }
+
+  static CymaticEnvelope? _decodeV2(Uint8List bytes, ByteData data) {
+    final header = _readHeader(data);
+    if (header == null || bytes.length < _headerV2Bytes) return null;
+    final (hop, rate, frames) = header;
+    if (bytes.length < _headerV2Bytes + frames * _v2Channels) return null;
+    final frequencies = List<double>.generate(
+      cymaticModeCount,
+      (mode) =>
+          data.getFloat32(_headerV1Bytes + mode * Float32List.bytesPerElement),
+      growable: false,
+    );
+    final rms = Float32List(frames);
+    final modal = List.generate(
+      cymaticModeCount,
+      (_) => Float32List(frames),
+      growable: false,
+    );
+    for (var frame = 0; frame < frames; frame++) {
+      final offset = _headerV2Bytes + frame * _v2Channels;
+      rms[frame] = bytes[offset] / 255;
+      for (var mode = 0; mode < cymaticModeCount; mode++) {
+        modal[mode][frame] = bytes[offset + 1 + mode] / 255;
+      }
+    }
+    final low = Float32List(frames);
+    final mid = Float32List(frames);
+    final high = Float32List(frames);
+    _deriveBands(frequencies, modal, low, mid, high);
+    return CymaticEnvelope(
+      rms: rms,
+      low: low,
+      mid: mid,
+      high: high,
+      modalFrequencies: frequencies,
+      modalAmplitudes: modal,
+      hopSamples: hop,
+      rate: rate,
+    );
+  }
+
+  static (int, int, int)? _readHeader(ByteData data) {
+    final hop = data.getUint16(6);
+    final rate = data.getUint32(8);
+    final frames = data.getUint32(12);
+    return hop == 0 || rate == 0 ? null : (hop, rate, frames);
+  }
 }
 
 /// `audio/white_quartz.m4a` → `assets/audio/white_quartz.cym`.
@@ -222,14 +358,24 @@ String cymaticEnvelopeAsset(String audioAsset) {
   return 'assets/audio/$stem.cym';
 }
 
-/// Builds an envelope from mono 16-bit PCM. RMS is scaled so the 99th
-/// percentile is 1, which keeps a quiet track and a loud one in the same range.
+/// Builds an envelope from mono 16-bit PCM. RMS and all modal channels share
+/// per-track normalization references so quiet resonances are not promoted to
+/// the same strength as dominant ones.
 CymaticEnvelope envelopeFromPcm(
   Int16List pcm, {
   int sampleRate = CymaticEnvelope.analysisRate,
   int hopSamples = CymaticEnvelope.analysisHop,
   int windowSamples = CymaticEnvelope.analysisWindow,
+  List<double> modalFrequencies = const [],
 }) {
+  if (modalFrequencies.isNotEmpty &&
+      modalFrequencies.length != cymaticModeCount) {
+    throw ArgumentError.value(
+      modalFrequencies.length,
+      'modalFrequencies',
+      'Expected $cymaticModeCount frequencies',
+    );
+  }
   if (pcm.isEmpty || hopSamples <= 0 || windowSamples <= 0) {
     return CymaticEnvelope(
       rms: Float32List(0),
@@ -246,6 +392,13 @@ CymaticEnvelope envelopeFromPcm(
   final low = Float32List(frames);
   final mid = Float32List(frames);
   final high = Float32List(frames);
+  final modal = modalFrequencies.isEmpty
+      ? <Float32List>[]
+      : List.generate(
+          cymaticModeCount,
+          (_) => Float32List(frames),
+          growable: false,
+        );
   final window = List<double>.filled(windowSamples, 0);
 
   for (var frame = 0; frame < frames; frame++) {
@@ -255,18 +408,42 @@ CymaticEnvelope envelopeFromPcm(
       final source = start + index;
       window[index] = source < end ? pcm[source] / 32768.0 : 0;
     }
-    final analyzed = analyzeCymaticWindow(window, sampleRate: sampleRate);
-    rms[frame] = analyzed.rms;
-    low[frame] = analyzed.low;
-    mid[frame] = analyzed.mid;
-    high[frame] = analyzed.high;
+    if (modal.isEmpty) {
+      final analyzed = analyzeCymaticWindow(window, sampleRate: sampleRate);
+      rms[frame] = analyzed.rms;
+      low[frame] = analyzed.low;
+      mid[frame] = analyzed.mid;
+      high[frame] = analyzed.high;
+    } else {
+      rms[frame] = _rms(window);
+      for (var mode = 0; mode < cymaticModeCount; mode++) {
+        modal[mode][frame] = _frequencyAmplitude(
+          window,
+          sampleRate,
+          modalFrequencies[mode],
+        );
+      }
+    }
   }
 
-  final ranked = Float32List.fromList(rms)..sort();
-  final peak = ranked[(0.99 * (ranked.length - 1)).round()];
-  final scale = peak > 1e-6 ? peak : 1.0;
-  for (var frame = 0; frame < frames; frame++) {
-    rms[frame] = (rms[frame] / scale).clamp(0.0, 1.0);
+  _normalizeAtPercentile(rms, 0.99);
+  if (modal.isNotEmpty) {
+    final ranked = Float32List(frames * cymaticModeCount);
+    var write = 0;
+    for (final channel in modal) {
+      for (final value in channel) {
+        ranked[write++] = value;
+      }
+    }
+    ranked.sort();
+    final peak = ranked[(0.99 * (ranked.length - 1)).round()];
+    final scale = peak > 1e-8 ? peak : 1.0;
+    for (final channel in modal) {
+      for (var frame = 0; frame < frames; frame++) {
+        channel[frame] = (channel[frame] / scale).clamp(0.0, 1.0);
+      }
+    }
+    _deriveBands(modalFrequencies, modal, low, mid, high);
   }
 
   return CymaticEnvelope(
@@ -274,9 +451,90 @@ CymaticEnvelope envelopeFromPcm(
     low: low,
     mid: mid,
     high: high,
+    modalFrequencies: modalFrequencies.isEmpty
+        ? const []
+        : List<double>.unmodifiable(modalFrequencies),
+    modalAmplitudes: modal,
     hopSamples: hopSamples,
     rate: sampleRate,
   );
+}
+
+double _rms(List<double> samples) {
+  if (samples.isEmpty) return 0;
+  var square = 0.0;
+  for (final sample in samples) {
+    square += sample * sample;
+  }
+  return math.sqrt(square / samples.length);
+}
+
+/// Exact-frequency Goertzel amplitude with a Hann window. Exact targets avoid
+/// snapping each physical mode to the nearest FFT bin.
+double _frequencyAmplitude(
+  List<double> samples,
+  int sampleRate,
+  double frequency,
+) {
+  if (samples.length < 2 || sampleRate <= 0 || frequency <= 0) return 0;
+  final omega = 2 * math.pi * frequency / sampleRate;
+  final coefficient = 2 * math.cos(omega);
+  var previous = 0.0;
+  var previous2 = 0.0;
+  final last = samples.length - 1;
+  for (var index = 0; index < samples.length; index++) {
+    final hann = 0.5 - 0.5 * math.cos(2 * math.pi * index / last);
+    final current = samples[index] * hann + coefficient * previous - previous2;
+    previous2 = previous;
+    previous = current;
+  }
+  final power =
+      previous * previous +
+      previous2 * previous2 -
+      coefficient * previous * previous2;
+  return math.sqrt(math.max(0.0, power)) / samples.length;
+}
+
+void _normalizeAtPercentile(Float32List values, double percentile) {
+  if (values.isEmpty) return;
+  final ranked = Float32List.fromList(values)..sort();
+  final peak = ranked[(percentile * (ranked.length - 1)).round()];
+  final scale = peak > 1e-8 ? peak : 1.0;
+  for (var index = 0; index < values.length; index++) {
+    values[index] = (values[index] / scale).clamp(0.0, 1.0);
+  }
+}
+
+/// Reconstructs the legacy band shares for old UI consumers. Modal power is
+/// grouped by its actual target frequency and normalized per frame.
+void _deriveBands(
+  List<double> frequencies,
+  List<Float32List> modal,
+  Float32List low,
+  Float32List mid,
+  Float32List high,
+) {
+  for (var frame = 0; frame < low.length; frame++) {
+    var lowPower = 0.0;
+    var midPower = 0.0;
+    var highPower = 0.0;
+    for (var mode = 0; mode < cymaticModeCount; mode++) {
+      final power = modal[mode][frame] * modal[mode][frame];
+      final frequency = frequencies[mode];
+      if (frequency < 280) {
+        lowPower += power;
+      } else if (frequency < 1400) {
+        midPower += power;
+      } else {
+        highPower += power;
+      }
+    }
+    final total = lowPower + midPower + highPower;
+    if (total <= 1e-10) continue;
+    low[frame] = lowPower / total;
+    mid[frame] = midPower / total;
+    high[frame] = highPower / total;
+  }
 }
 
 /// What the mandala should do for one analysis step.

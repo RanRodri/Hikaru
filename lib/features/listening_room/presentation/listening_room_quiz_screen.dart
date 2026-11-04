@@ -106,27 +106,10 @@ class _ListeningRoomQuizScreenState
 
   void _handleSelect(String optionId) {
     final question = _question;
-    final selected = _answers.selectedIds(question.number).toSet();
-    final exclusiveId = question.exclusiveOptionId;
-
-    if (question.selection == QuizSelection.multiple) {
-      if (exclusiveId != null && optionId == exclusiveId) {
-        if (selected.contains(exclusiveId) && selected.length == 1) {
-          selected.clear();
-        } else {
-          selected
-            ..clear()
-            ..add(exclusiveId);
-        }
-      } else {
-        if (exclusiveId != null) selected.remove(exclusiveId);
-        if (!selected.add(optionId)) selected.remove(optionId);
-      }
-    } else {
-      selected
-        ..clear()
-        ..add(optionId);
-    }
+    final selected = question.multiSelect
+        ? _answers.selectedIds(question.number).toSet()
+        : <String>{};
+    if (!selected.add(optionId)) selected.remove(optionId);
 
     setState(() {
       _answers = _answers.withSelection(question.number, selected);
@@ -238,7 +221,7 @@ class _ListeningRoomQuizScreenState
                       discoveryQuiz.length,
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.s8),
+                  SizedBox(height: compact ? AppSpacing.s4 : AppSpacing.s8),
                   Text(
                     progressLabel,
                     style: AppTypography.body.copyWith(
@@ -250,13 +233,13 @@ class _ListeningRoomQuizScreenState
                       shadows: _textShadow,
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.s10),
+                  SizedBox(height: compact ? AppSpacing.s6 : AppSpacing.s10),
                   Container(
                     width: 40,
                     height: 1.5,
                     color: AppColors.champagneGold,
                   ),
-                  const SizedBox(height: AppSpacing.s14),
+                  SizedBox(height: compact ? AppSpacing.s8 : AppSpacing.s14),
                   Text(
                     l10n.quizHeader,
                     textAlign: TextAlign.center,
@@ -268,7 +251,7 @@ class _ListeningRoomQuizScreenState
                     textAlign: TextAlign.center,
                     style: _headerStyle,
                   ),
-                  const SizedBox(height: AppSpacing.s24),
+                  SizedBox(height: compact ? AppSpacing.s10 : AppSpacing.s24),
                   Text(
                     l10n.quizPrompt(question),
                     textAlign: TextAlign.center,
@@ -281,7 +264,7 @@ class _ListeningRoomQuizScreenState
                     ),
                   ),
                   if (instruction != null) ...[
-                    const SizedBox(height: AppSpacing.s12),
+                    SizedBox(height: compact ? AppSpacing.s4 : AppSpacing.s12),
                     Text(
                       instruction,
                       textAlign: TextAlign.center,
@@ -289,62 +272,51 @@ class _ListeningRoomQuizScreenState
                         color: AppColors.fog,
                         fontSize: AppFontSizes.s12,
                         fontWeight: FontWeight.w300,
-                        height: 1.6,
+                        height: 1.3,
                         letterSpacing: 0.5,
                         shadows: _textShadow,
                       ),
                     ),
                   ],
                   Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Align(
-                          alignment: Alignment.center,
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(
-                              maxWidth: _optionsPanelWidth,
-                              maxHeight: _optionsPanelMaxHeight,
-                            ),
-                            child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                color: AppColors.scrim60,
-                                borderRadius: BorderRadius.circular(
-                                  AppRadii.r16,
-                                ),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          maxWidth: _optionsPanelWidth,
+                          maxHeight: _optionsPanelMaxHeight,
+                        ),
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: AppColors.scrim60,
+                            borderRadius: BorderRadius.circular(AppRadii.r16),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(AppRadii.r16),
+                            child: ListView.separated(
+                              controller: _optionsController,
+                              shrinkWrap: true,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.s12,
+                                vertical: AppSpacing.s8,
                               ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(
-                                  AppRadii.r16,
-                                ),
-                                child: ListView.separated(
-                                  controller: _optionsController,
-                                  shrinkWrap: true,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: AppSpacing.s12,
-                                    vertical: AppSpacing.s8,
+                              itemCount: question.options.length,
+                              separatorBuilder: (context, index) =>
+                                  const SizedBox(height: 6),
+                              itemBuilder: (context, index) {
+                                final option = question.options[index];
+                                return _QuizOptionTile(
+                                  title: l10n.quizOptionLabel(option),
+                                  selected: _answers.isSelected(
+                                    question.number,
+                                    option.id,
                                   ),
-                                  itemCount: question.options.length,
-                                  separatorBuilder: (context, index) =>
-                                      const SizedBox(height: 6),
-                                  itemBuilder: (context, index) {
-                                    final option = question.options[index];
-                                    return _QuizOptionTile(
-                                      title: l10n.quizOptionLabel(option),
-                                      detail: option.detail,
-                                      selected: _answers.isSelected(
-                                        question.number,
-                                        option.id,
-                                      ),
-                                      onPressed: () => _handleSelect(option.id),
-                                    );
-                                  },
-                                ),
-                              ),
+                                  onPressed: () => _handleSelect(option.id),
+                                );
+                              },
                             ),
                           ),
                         ),
-                      ],
+                      ),
                     ),
                   ),
                   if (_showChoiceError)
@@ -432,24 +404,20 @@ class _Progress extends StatelessWidget {
 class _QuizOptionTile extends StatelessWidget {
   const _QuizOptionTile({
     required this.title,
-    required this.detail,
     required this.selected,
     required this.onPressed,
   });
 
   final String title;
-  final String? detail;
   final bool selected;
   final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
-    final optionDetail = detail;
-
     return Semantics(
       button: true,
       checked: selected,
-      label: optionDetail == null ? title : '$title. $optionDetail',
+      label: title,
       child: Material(
         color: AppColors.darkIndigoBlue.withValues(alpha: 0),
         child: InkWell(
@@ -461,34 +429,16 @@ class _QuizOptionTile extends StatelessWidget {
                 _ChoiceMark(selected: selected),
                 const SizedBox(width: AppSpacing.s14),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: AppTypography.subheadline.copyWith(
-                          color: selected
-                              ? AppColors.champagneGold
-                              : AppColors.white,
-                          fontSize: AppFontSizes.s12,
-                          letterSpacing: 0,
-                          height: 1.2,
-                        ),
-                      ),
-                      if (optionDetail != null) ...[
-                        const SizedBox(height: AppSpacing.s2),
-                        Text(
-                          optionDetail,
-                          style: AppTypography.body.copyWith(
-                            color: AppColors.fog,
-                            fontWeight: FontWeight.w400,
-                            fontSize: AppFontSizes.s12,
-                            height: 1.3,
-                            letterSpacing: 0,
-                          ),
-                        ),
-                      ],
-                    ],
+                  child: Text(
+                    title,
+                    style: AppTypography.subheadline.copyWith(
+                      color: selected
+                          ? AppColors.champagneGold
+                          : AppColors.white,
+                      fontSize: AppFontSizes.s12,
+                      letterSpacing: 0,
+                      height: 1.2,
+                    ),
                   ),
                 ),
               ],

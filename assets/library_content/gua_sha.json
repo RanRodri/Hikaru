@@ -1,0 +1,184 @@
+{
+ "library_id": "'gua_sha' — recommended NEW LibraryCollection (alt: sub-page of ritualsCollection). Overlaps with rituals/The Hikaru Ritual (origin of Gua Sha, Qi, tool edges, 4 crystals).",
+ "source": "src/x2.jpg",
+ "chrome_note": "Original shows back arrow and home icon (UI chrome).",
+ "conflicts": [
+  "Overlap with rituals (The Hikaru Ritual): both cover Gua Sha origin, tool parts and the 4 crystals.",
+  "Tool part names differ: here Smooth Edge / Curved Edge / Precision Tip / Rounded Tail; in The Hikaru Ritual: Tail / Wave Side / Soft Side. Product name here \"Hikaru Lift Sculpt\".",
+  "Crystal keywords differ from crystal pages (e.g. Red Jasper STRENGTH here vs Temple of Vitality; Obsidian PROTECTION).",
+  "\"Follow the guided sequence in the app (5–15 minutes)\" — needs a real app link/target."
+ ],
+ "sections": [
+  {
+   "type": "eyebrow",
+   "text": "HIKARU SANCTUARY"
+  },
+  {
+   "type": "title",
+   "text": "GUA SHA"
+  },
+  {
+   "type": "tagline",
+   "text": "HISTORY • BENEFITS • HIKARU LIFT SCULPT"
+  },
+  {
+   "type": "image",
+   "asset": "hero_tray.webp"
+  },
+  {
+   "type": "card",
+   "heading": "ANCIENT ORIGINS",
+   "text": "Gua sha is a traditional healing technique from Ancient China, with a history of over 2,000 years. It was originally used on the body to stimulate circulation, release tension and support the flow of Qi (vital energy). Over time, it evolved into a refined facial practice to promote health, radiance and longevity."
+  },
+  {
+   "type": "card",
+   "heading": "EVOLUTION TO MODERN BEAUTY",
+   "text": "Today, facial gua sha is embraced worldwide as a natural, non-invasive way to support skin health, lymphatic drainage, muscle relaxation and a lifted, more radiant appearance."
+  },
+  {
+   "type": "card",
+   "heading": "HIKARU LIFT SCULPT",
+   "text": "A modern evolution of this ancient practice, the Hikaru Lift Sculpt is designed to work with the body’s anatomy, energy pathways and the power of the four Hikaru crystals."
+  },
+  {
+   "type": "heading",
+   "text": "KEY BENEFITS"
+  },
+  {
+   "type": "cards",
+   "layout": "grid2",
+   "items": [
+    {
+     "icon": "waves",
+     "label": "IMPROVES CIRCULATION",
+     "desc": "Brings oxygen and nutrients to the skin."
+    },
+    {
+     "icon": "drop",
+     "label": "SUPPORTS LYMPHATIC DRAINAGE",
+     "desc": "Helps reduce puffiness and fluid retention."
+    },
+    {
+     "icon": "lotus",
+     "label": "RELAXES FACIAL TENSION",
+     "desc": "Softens tight muscles and stress patterns."
+    },
+    {
+     "icon": "sparkle",
+     "label": "ENHANCES SKIN RADIANCE",
+     "desc": "Supports a brighter, clearer and more even complexion."
+    },
+    {
+     "icon": "arrows_up",
+     "label": "CONTOURS AND LIFTS",
+     "desc": "Helps define facial features and improves tone."
+    },
+    {
+     "icon": "triangle",
+     "label": "BALANCES ENERGY FLOW",
+     "desc": "Stimulates meridians and acupressure points to promote overall well-being."
+    }
+   ]
+  },
+  {
+   "type": "heading",
+   "text": "THE HIKARU LIFT SCULPT"
+  },
+  {
+   "type": "image",
+   "asset": "tool_sculpt_labeled.webp",
+   "note": "Crop contains baked labels; Kiro should ideally use a clean tool photo and overlay these labels as Text"
+  },
+  {
+   "type": "rows",
+   "items": [
+    {
+     "icon": "edge",
+     "label": "SMOOTH EDGE",
+     "desc": "Lifting and contouring"
+    },
+    {
+     "icon": "edge",
+     "label": "CURVED EDGE",
+     "desc": "For larger areas (face, neck, body)"
+    },
+    {
+     "icon": "edge",
+     "label": "PRECISION TIP",
+     "desc": "For acupressure points and delicate areas"
+    },
+    {
+     "icon": "edge",
+     "label": "ROUNDED TAIL",
+     "desc": "For lymphatic drainage and release"
+    }
+   ]
+  },
+  {
+   "type": "heading",
+   "text": "HOW TO USE"
+  },
+  {
+   "type": "image",
+   "asset": "how_to_face.webp",
+   "small": true
+  },
+  {
+   "type": "numbered",
+   "items": [
+    {
+     "label": "Apply a facial oil to clean skin.",
+     "desc": ""
+    },
+    {
+     "label": "Hold the tool at a gentle angle and glide with light to medium pressure.",
+     "desc": ""
+    },
+    {
+     "label": "Follow the guided sequence in the app (5–15 minutes).",
+     "desc": ""
+    },
+    {
+     "label": "Use with the chosen Hikaru crystal and its corresponding frequency.",
+     "desc": ""
+    },
+    {
+     "label": "Repeat regularly for long-term benefits and a natural lifting effect.",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "type": "heading",
+   "text": "ENHANCE YOUR RITUAL WITH THE FOUR HIKARU CRYSTALS"
+  },
+  {
+   "type": "cards",
+   "layout": "grid2",
+   "items": [
+    {
+     "asset": "crystal_white_quartz.webp",
+     "label": "WHITE QUARTZ",
+     "desc": "CLARITY\nAmplifies intention and self-healing."
+    },
+    {
+     "asset": "crystal_jade.webp",
+     "label": "JADE",
+     "desc": "HARMONY\nSupports balance, prosperity and vitality."
+    },
+    {
+     "asset": "crystal_obsidian.webp",
+     "label": "OBSIDIAN",
+     "desc": "PROTECTION\nGrounds energy and transformation."
+    },
+    {
+     "asset": "crystal_red_jasper.webp",
+     "label": "RED JASPER",
+     "desc": "STRENGTH\nBrings stability, endurance and vitality."
+    }
+   ]
+  }
+ ],
+ "typos_fixed": [],
+ "topic": "gua_sha"
+}

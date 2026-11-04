@@ -1,0 +1,404 @@
+{
+ "library_id": "libraryRitualsId (ritualsCollection, existing)",
+ "source": "src/adjunto.png (duplicate: none in zip)",
+ "sections": [
+  {
+   "type": "brand",
+   "text": "HIKARU LIFT®"
+  },
+  {
+   "type": "title",
+   "text": "THE HIKARU RITUAL"
+  },
+  {
+   "type": "subtitle",
+   "text": "AN ANCESTRAL BEAUTY TECHNOLOGY FOR LONGEVITY"
+  },
+  {
+   "type": "image",
+   "asset": "hero_face.webp"
+  },
+  {
+   "type": "paragraph",
+   "text": "A modern evolution of the ancient Gua Sha, uniting Traditional Chinese Medicine, Ayurveda, crystals, frequency music, and a multi-sensory ritual to restore flow, release tension, and awaken your natural radiance."
+  },
+  {
+   "type": "card",
+   "heading": "THE ORIGIN OF GUA SHA",
+   "asset": "origin_sage.webp",
+   "text": "An ancient Chinese therapy with roots in Traditional Chinese Medicine, used for thousands of years to move Qi (vital energy), release stagnation, and restore the natural flow within the body."
+  },
+  {
+   "type": "card",
+   "heading": "A PILLAR OF CHINESE MEDICINE",
+   "asset": "kanji_gua_sha.webp",
+   "bullets": [
+    "Activates the meridians",
+    "Releases blockages and tension",
+    "Improves circulation (Qi and blood)",
+    "Supports the lymphatic system [UNCERTAIN]",
+    "Restores balance and vitality"
+   ]
+  },
+  {
+   "type": "card",
+   "heading": "CULTURAL SIGNIFICANCE",
+   "asset": "icon_torii.webp",
+   "text": "More than a beauty tool, Gua Sha is a holistic ritual of prevention, longevity, and selfcare, rooted in the philosophy of harmony between body, mind, and nature."
+  },
+  {
+   "type": "heading",
+   "text": "HIKARU LIFT®",
+   "sub": "THE NEXT EVOLUTION"
+  },
+  {
+   "type": "image",
+   "asset": "tool_photo.webp"
+  },
+  {
+   "type": "paragraph",
+   "text": "A precision sculpting tool and ritual system that elevates the traditional Gua Sha with an advanced design, interchangeable crystals, frequency music [UNCERTAIN], and a multi-sensory experience. the facial and body vitality, beauty, and longevity."
+  },
+  {
+   "type": "heading",
+   "text": "A MULTI-FUNCTIONAL DESIGN",
+   "sub": "FOR FACE & BODY"
+  },
+  {
+   "type": "rows",
+   "items": [
+    {
+     "asset": "tool_tail.webp",
+     "label": "TAIL – JAWLINE & MERIDIANS",
+     "desc": "A targeted edge that releases tension, defines the jawline, and stimulates key meridians (e.g., Stomach, Gallbladder, Small Intestine)."
+    },
+    {
+     "asset": "tool_wave.webp",
+     "label": "WAVE SIDE – SCULPT & RELEASE",
+     "desc": "Contours, depuffs, and releases fascia, muscle tension, and stagnation along the face and body meridians."
+    },
+    {
+     "asset": "tool_soft.webp",
+     "label": "SOFT SIDE – SOOTHE & DRAIN",
+     "desc": "A smooth, fluid edge ideal for the face, neck, and body to support fascia release and lymphatic drainage."
+    }
+   ]
+  },
+  {
+   "type": "heading",
+   "text": "4 INTERCHANGEABLE CRYSTALS",
+   "sub": "WITH FREQUENCY COMPOSITIONS BY MAESTRO JORGE ALFANO"
+  },
+  {
+   "type": "cards",
+   "layout": "grid2",
+   "items": [
+    {
+     "asset": "crystal_obsidian.webp",
+     "label": "OBSIDIAN",
+     "desc": "Grounding",
+     "bullets": [
+      "Protection",
+      "Protection"
+     ]
+    },
+    {
+     "asset": "crystal_quartz.webp",
+     "label": "QUARTZ",
+     "desc": "Illumination",
+     "bullets": [
+      "Clarity",
+      "Renewal",
+      "Radiance"
+     ]
+    },
+    {
+     "asset": "crystal_jade.webp",
+     "label": "JADE",
+     "desc": "Harmony",
+     "bullets": [
+      "Balance",
+      "Detox",
+      "Calm"
+     ]
+    },
+    {
+     "asset": "crystal_red_jasper.webp",
+     "label": "RED JASPER",
+     "desc": "Vitality",
+     "bullets": [
+      "Energy",
+      "Circulation",
+      "Strength"
+     ]
+    }
+   ]
+  },
+  {
+   "type": "card",
+   "heading": "FREQUENCY MUSIC & CYMATICS",
+   "asset": "cymatics.webp",
+   "text": "Original frequency compositions by renowned [UNCERTAIN] musician Jorge Alfano, with cymatics (the visible patterns of sound) that harmonize your body, mind [UNCERTAIN], and energy field."
+  },
+  {
+   "type": "heading",
+   "text": "A MULTI-SENSORY RITUAL",
+   "sub": "THAT ACTIVATES ALL YOUR SENSES"
+  },
+  {
+   "type": "cards",
+   "layout": "hscroll",
+   "items": [
+    {
+     "icon": "eye",
+     "label": "SIGHT",
+     "desc": "Visual beauty & cymatics"
+    },
+    {
+     "icon": "ear",
+     "label": "SOUND",
+     "desc": "Frequency music"
+    },
+    {
+     "icon": "hand",
+     "label": "TOUCH",
+     "desc": "Sculpting movement"
+    },
+    {
+     "icon": "waves",
+     "label": "SCENT",
+     "desc": "Aromatherapy & botanicals"
+    },
+    {
+     "icon": "gem",
+     "label": "CRYSTALS",
+     "desc": "Crystal energetics [UNCERTAIN]"
+    },
+    {
+     "icon": "lungs",
+     "label": "BREATH",
+     "desc": "Nervous system regulation"
+    },
+    {
+     "icon": "lotus",
+     "label": "INTENTION",
+     "desc": "Presence & renewal [UNCERTAIN]"
+    }
+   ]
+  },
+  {
+   "type": "image",
+   "asset": "benefits_face.webp"
+  },
+  {
+   "type": "heading",
+   "text": "KEY BENEFITS OF THE HIKARU RITUAL"
+  },
+  {
+   "type": "checklist",
+   "items": [
+    "Stimulates lymphatic drainage and reduces puffiness",
+    "Improves circulation and oxygenation",
+    "Lifts, sculpts, and defines facial contours",
+    "Relieves muscle tension and jaw tightness (TMJ)",
+    "Enhances skin texture, tone, and radiance",
+    "Supports the nervous system and reduces stress",
+    "Promotes cellular renewal and skin regeneration",
+    "Aids in long-term vitality and healthy aging"
+   ]
+  },
+  {
+   "type": "heading",
+   "text": "LONGEVITY & YOUTHFUL VITALITY"
+  },
+  {
+   "type": "cards",
+   "layout": "grid2",
+   "items": [
+    {
+     "icon": "face",
+     "label": "FIRMER, MORE ELASTIC SKIN"
+    },
+    {
+     "icon": "sparkle",
+     "label": "NATURAL LIFT & DEFINITION"
+    },
+    {
+     "icon": "waves",
+     "label": "HEALTHY CIRCULATION & DETOX"
+    },
+    {
+     "icon": "lotus",
+     "label": "BALANCED ENERGY (QI)"
+    },
+    {
+     "icon": "dna",
+     "label": "CELLULAR REGENERATION & REPAIR"
+    },
+    {
+     "icon": "infinity",
+     "label": "LONG-TERM SKIN HEALTH & LONGEVITY"
+    },
+    {
+     "icon": "sun",
+     "label": "A MORE RADIANT, VITAL & YOUTHFUL LOOK"
+    }
+   ]
+  }
+ ],
+ "typos_fixed": [
+  [
+   "frequency musice",
+   "frequency music"
+  ],
+  [
+   "a multi-sse sory thtud io restore",
+   "a multi-sensory ritual to restore"
+  ],
+  [
+   "relcase tension",
+   "release tension"
+  ],
+  [
+   "Chiness therapy",
+   "Chinese therapy"
+  ],
+  [
+   "Chbiece Medicine",
+   "Chinese Medicine"
+  ],
+  [
+   "(beal reergy)",
+   "(vital energy)"
+  ],
+  [
+   "setease stagnation",
+   "release stagnation"
+  ],
+  [
+   "restort",
+   "restore"
+  ],
+  [
+   "wdhis the body",
+   "within the body"
+  ],
+  [
+   "Supports thy limprives eptions",
+   "Supports the lymphatic system  ⚠ INCIERTO, ilegible: verificar"
+  ],
+  [
+   "Gua Sbu",
+   "Gua Sha"
+  ],
+  [
+   "lnopeity",
+   "longevity"
+  ],
+  [
+   "vellcare / selticare",
+   "selfcare  ⚠ ¿\"self-care\"?"
+  ],
+  [
+   "sharmony",
+   "harmony"
+  ],
+  [
+   "toal",
+   "tool"
+  ],
+  [
+   "cvystis / crvstals",
+   "crystals"
+  ],
+  [
+   "fiegsory aperie",
+   "frequency music  ⚠ INCIERTO"
+  ],
+  [
+   "facie! and oody",
+   "facial and body (la frase sigue incompleta: falta un verbo, p. ej. \"to enhance\")"
+  ],
+  [
+   "MAESTNO PORGE ALFANO",
+   "MAESTRO JORGE ALFANO"
+  ],
+  [
+   "QUARTE",
+   "QUARTZ"
+  ],
+  [
+   "Protecon",
+   "Protection (Obsidian lista \"Protection\" dos veces: el original probablemente decía otra palabra)"
+  ],
+  [
+   "Viealty",
+   "Vitality"
+  ],
+  [
+   "Celm",
+   "Calm"
+  ],
+  [
+   "Strengh / Stremgeh",
+   "Strength"
+  ],
+  [
+   "freqvcerd musician",
+   "renowned musician  ⚠ INCIERTO"
+  ],
+  [
+   "Jorge Alfane",
+   "Jorge Alfano"
+  ],
+  [
+   "cyreatons (he visble thelners on of ssaud)",
+   "cymatics (the visible patterns of sound)"
+  ],
+  [
+   "eiidy avgite, and energy field",
+   "body, mind, and energy field  ⚠ INCIERTO"
+  ],
+  [
+   "Sullpting movement",
+   "Sculpting movement"
+  ],
+  [
+   "Arovementry & botanicals",
+   "Aromatherapy & botanicals"
+  ],
+  [
+   "lelergel energetics",
+   "Crystal energetics  ⚠ INCIERTO"
+  ],
+  [
+   "Prenevat & renewal",
+   "Presence & renewal  ⚠ INCIERTO"
+  ],
+  [
+   "Nervous system regulation (ilegible parcial)",
+   "Nervous system regulation"
+  ],
+  [
+   "faical contours",
+   "facial contours"
+  ],
+  [
+   "NATURAL LIET B. DEFINITION",
+   "NATURAL LIFT & DEFINITION"
+  ],
+  [
+   "REGRHERATION",
+   "REGENERATION"
+  ],
+  [
+   "SKIN BEAEM",
+   "SKIN HEALTH  ⚠ probable"
+  ],
+  [
+   "RAUTANT",
+   "RADIANT"
+  ]
+ ],
+ "topic": "rituals"
+}

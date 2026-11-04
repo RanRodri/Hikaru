@@ -42,6 +42,13 @@ class MemberProfileRepository {
     await file.writeAsBytes(photo, flush: true);
   }
 
+  /// Forgets the name and portrait kept on this device.
+  Future<void> clear() async {
+    await _preferences.remove(_nameKey);
+    final file = await _photoFile();
+    if (await file.exists()) await file.delete();
+  }
+
   Future<File> _photoFile() async {
     final directory = await getApplicationDocumentsDirectory();
     return File('${directory.path}/$_photoFileName');

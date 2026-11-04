@@ -27,6 +27,22 @@ final ritualCycleGatewayProvider = Provider<RitualCycleGateway>(
   (ref) => AmplifyRitualCycleGateway(),
 );
 
+/// A write the backend did not confirm. The change stays pending locally.
+class RitualSyncException implements Exception {
+  const RitualSyncException(this.operation);
+
+  final String operation;
+
+  @override
+  String toString() => 'RitualSyncException($operation)';
+}
+
+/// Distinct days with a finished Merkaba as the backend counts them, or
+/// `null` when it cannot answer.
+final merkabaPracticedDaysReaderProvider = Provider<Future<int?> Function()>(
+  (ref) => AmplifyRitualCycleGateway().merkabaPracticedDays,
+);
+
 class AmplifyRitualCycleGateway implements RitualCycleGateway {
   static const AmplifyGraphQL _api = AmplifyGraphQL('cycle');
 
@@ -61,20 +77,63 @@ class AmplifyRitualCycleGateway implements RitualCycleGateway {
       r'mutation UpdateDay($input: UpdateDailyRitualInput!) { '
       r'updateDailyRitual(input: $input) { id } }';
 
+  static const String _listCompletedDays =
+      r'query ListCompleted($cycleId: ID!, $nextToken: String) { '
+      r'listDailyRituals('
+      r'filter: {cycleId: {eq: $cycleId}, isCompleted: {eq: true}}, '
+      r'limit: 100, nextToken: $nextToken'
+      ') { items { date } nextToken } }';
+
+  static const String _listMerkabaDays =
+      r'query ListMerkabaDays($userId: ID!, $nextToken: String) { '
+      r'listDailyRituals('
+      r'filter: {userId: {eq: $userId}, isMerkabahDone: {eq: true}}, '
+      r'limit: 500, nextToken: $nextToken'
+      ') { items { date } nextToken } }';
+
   @override
   Future<CycleProgress?> fetchActive(DateTime today) async {
     final userId = await _api.currentUserId();
     if (userId == null) return null;
 
-    final rows = await listAllPages(_api, _listCycles, 'listUser30DayCycles', {
+    // A failed read is `null`, never "no cycle": answering empty here would
+    // let the caller replace a real local cycle with nothing.
+    final rows = await _listStrict(_listCycles, 'listUser30DayCycles', {
       'userId': userId,
     });
+    if (rows == null) return null;
     final cycles = rows.map(_cycleFromRow).nonNulls.toList()
       ..sort((a, b) => b.startDate.compareTo(a.startDate));
     if (cycles.isEmpty) return CycleProgress.empty;
 
-    final cycle = cycles.first;
-    final day = await _dayRow(cycle, cycle.dayNumber(today));
+    final completed = await _listStrict(
+      _listCompletedDays,
+      'listDailyRituals',
+      {'cycleId': cycles.first.id},
+    );
+    if (completed == null) return null;
+    // The backend has no lastCompletedDate: it is the latest completed day.
+    // Without it every completion restarted the streak at 1.
+    final completedDates = completed
+        .map((row) => DateTime.tryParse('${row['date']}'))
+        .nonNulls
+        .map(dateOnly)
+        .toList();
+    final cycle = completedDates.isEmpty
+        ? cycles.first
+        : cycles.first.copyWith(
+            lastCompletedDate: completedDates.reduce(
+              (a, b) => a.isAfter(b) ? a : b,
+            ),
+          );
+
+    final dayNumber = cycle.dayNumber(today);
+    final days = await _listStrict(_listDays, 'listDailyRituals', {
+      'cycleId': cycle.id,
+      'dayNumber': dayNumber,
+    });
+    if (days == null) return null;
+    final day = days.isEmpty ? null : days.first;
     return CycleProgress(
       cycle: cycle,
       date: dateOnly(today),
@@ -88,11 +147,63 @@ class AmplifyRitualCycleGateway implements RitualCycleGateway {
     );
   }
 
+  /// Distinct days with a finished Merkaba across every cycle, or `null`
+  /// without a session or when the read fails.
+  Future<int?> merkabaPracticedDays() async {
+    final userId = await _api.currentUserId();
+    if (userId == null) return null;
+    final rows = await _listStrict(_listMerkabaDays, 'listDailyRituals', {
+      'userId': userId,
+    });
+    if (rows == null) return null;
+    return rows
+        .map((row) => DateTime.tryParse('${row['date']}'))
+        .nonNulls
+        .map(dateOnly)
+        .toSet()
+        .length;
+  }
+
+  /// Like [listAllPages], but `null` when any page fails.
+  Future<List<Map<String, dynamic>>?> _listStrict(
+    String document,
+    String connectionField,
+    Map<String, dynamic> variables,
+  ) async {
+    final items = <Map<String, dynamic>>[];
+    String? nextToken;
+    do {
+      final data = await _api.query(document, {
+        ...variables,
+        'nextToken': nextToken,
+      });
+      final page = data?[connectionField];
+      if (page is! Map) return null;
+      final pageItems = page['items'];
+      if (pageItems is List) {
+        items.addAll(pageItems.whereType<Map<String, dynamic>>());
+      }
+      nextToken = page['nextToken'] as String?;
+    } while (nextToken != null);
+    return items;
+  }
+
+  /// Runs [document] and throws when the backend did not store the change,
+  /// so the controller keeps it pending and retries later.
+  Future<void> _write(
+    String document,
+    Map<String, dynamic> variables,
+    String field,
+  ) async {
+    final data = await _api.mutate(document, variables);
+    if (data?[field] == null) throw RitualSyncException(field);
+  }
+
   @override
   Future<void> createCycle(RitualCycle cycle) async {
     final userId = await _api.currentUserId();
     if (userId == null) return;
-    await _api.mutate(_createCycle, {
+    await _write(_createCycle, {
       'input': {
         'id': cycle.id,
         'userId': userId,
@@ -103,20 +214,20 @@ class AmplifyRitualCycleGateway implements RitualCycleGateway {
         'isActive': cycle.isActive,
         'streak': cycle.streak,
       },
-    });
+    }, 'createUser30DayCycle');
   }
 
   @override
   Future<void> updateCycle(RitualCycle cycle, {required int currentDay}) async {
     if (await _api.currentUserId() == null) return;
-    await _api.mutate(_updateCycle, {
+    await _write(_updateCycle, {
       'input': {
         'id': cycle.id,
         'currentDay': currentDay,
         'isActive': cycle.isActive,
         'streak': cycle.streak,
       },
-    });
+    }, 'updateUser30DayCycle');
   }
 
   @override
@@ -136,14 +247,20 @@ class AmplifyRitualCycleGateway implements RitualCycleGateway {
       'isFrequencyDone': flags.frequency,
       'isCompleted': flags.completed,
     };
-    final existing = await _dayRow(cycle, dayNumber);
+    final rows = await _listStrict(_listDays, 'listDailyRituals', {
+      'cycleId': cycle.id,
+      'dayNumber': dayNumber,
+    });
+    // Unknown whether the day exists: creating now could duplicate it.
+    if (rows == null) throw const RitualSyncException('listDailyRituals');
+    final existing = rows.isEmpty ? null : rows.first;
     if (existing != null) {
-      await _api.mutate(_updateDay, {
+      await _write(_updateDay, {
         'input': {'id': existing['id'], ...values},
-      });
+      }, 'updateDailyRitual');
       return;
     }
-    await _api.mutate(_createDay, {
+    await _write(_createDay, {
       'input': {
         'userId': userId,
         'cycleId': cycle.id,
@@ -151,18 +268,7 @@ class AmplifyRitualCycleGateway implements RitualCycleGateway {
         'date': isoDate(dateOnly(date)),
         ...values,
       },
-    });
-  }
-
-  Future<Map<String, dynamic>?> _dayRow(
-    RitualCycle cycle,
-    int dayNumber,
-  ) async {
-    final rows = await listAllPages(_api, _listDays, 'listDailyRituals', {
-      'cycleId': cycle.id,
-      'dayNumber': dayNumber,
-    });
-    return rows.isEmpty ? null : rows.first;
+    }, 'createDailyRitual');
   }
 
   RitualCycle? _cycleFromRow(Map<String, dynamic> row) {

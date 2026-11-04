@@ -1,0 +1,198 @@
+{
+ "library_id": "'lymphatic' (NEW LibraryCollection)",
+ "source": "src/adjunto (1).png",
+ "sections": [
+  {
+   "type": "brand",
+   "text": "HIKARU LIFT"
+  },
+  {
+   "type": "title",
+   "text": "THE LYMPHATIC SYSTEM"
+  },
+  {
+   "type": "tagline",
+   "text": "DETOX • DEPUFF • RENEW"
+  },
+  {
+   "type": "image",
+   "asset": "hero_face.webp"
+  },
+  {
+   "type": "paragraph",
+   "italic": true,
+   "text": "A vital detox and defense network that moves fluid, removes waste, calms inflammation, and keeps your skin and body light, defined, and radiant."
+  },
+  {
+   "type": "cards",
+   "layout": "hscroll",
+   "items": [
+    {
+     "icon": "drop",
+     "label": "REMOVES TOXINS & WASTE"
+    },
+    {
+     "icon": "waves",
+     "label": "REDUCES PUFFINESS & FLUID RETENTION"
+    },
+    {
+     "icon": "lotus",
+     "label": "CALMS INFLAMMATION & SENSITIVITY"
+    },
+    {
+     "icon": "sparkle",
+     "label": "SUPPORTS IMMUNITY & SKIN HEALTH"
+    },
+    {
+     "icon": "infinity",
+     "label": "ENHANCES RADIANCE & LONGEVITY"
+    }
+   ]
+  },
+  {
+   "type": "card",
+   "heading": "WHEN LYMPHATIC FLOW BECOMES SLUGGISH",
+   "asset": "sluggish_head.webp",
+   "checks": [
+    "Puffiness (face, eyes, jawline)",
+    "Fluid retention (face & body)",
+    "Dull or congested skin",
+    "More visible inflammation",
+    "A heavier, less defined look",
+    "Slower tissue repair and renewal"
+   ]
+  },
+  {
+   "type": "card",
+   "heading": "THE HIKARU EFFECT",
+   "asset": "tool_photo.webp",
+   "text": "A holistic ritual that combines intentional sculpting, gentle pressure, meridian support, and frequency to stimulate lymphatic drainage, release stagnation, reduce puffiness, and restore lightness, definition, and vitality from head to toe."
+  },
+  {
+   "type": "heading",
+   "text": "LYMPHATIC MAP: FACE & NECK"
+  },
+  {
+   "type": "image",
+   "asset": "map_face_neck.webp"
+  },
+  {
+   "type": "numbered",
+   "items": [
+    {
+     "label": "Under Eyes",
+     "desc": "Reduces puffiness and fluid buildup"
+    },
+    {
+     "label": "Cheeks",
+     "desc": "Drains and clarifies"
+    },
+    {
+     "label": "Jawline",
+     "desc": "Defines and releases congestion"
+    },
+    {
+     "label": "Neck",
+     "desc": "Guides fluid to the supraclavicular nodes (for full drainage)"
+    }
+   ]
+  },
+  {
+   "type": "heading",
+   "text": "LYMPHATIC MAP: BODY"
+  },
+  {
+   "type": "image",
+   "asset": "map_body_figure.webp",
+   "small": true
+  },
+  {
+   "type": "rows",
+   "items": [
+    {
+     "asset": "body_neck_shoulders.webp",
+     "label": "Neck & Shoulders",
+     "desc": "Releases tension and opens flow"
+    },
+    {
+     "asset": "body_underarms.webp",
+     "label": "Underarms",
+     "desc": "Key drainage hub for the upper body"
+    },
+    {
+     "asset": "body_abdomen.webp",
+     "label": "Abdomen",
+     "desc": "Supports digestion, detox and fluid movement"
+    },
+    {
+     "asset": "body_groin.webp",
+     "label": "Groin",
+     "desc": "Major drainage center that supports whole-body circulation"
+    },
+    {
+     "asset": "body_legs.webp",
+     "label": "Legs",
+     "desc": "Reduces heaviness, fluid retention and swelling"
+    }
+   ]
+  },
+  {
+   "type": "heading",
+   "text": "THE HIKARU LYMPHATIC RITUAL",
+   "sub": "FACE & BODY PROTOCOL"
+  },
+  {
+   "type": "cards",
+   "layout": "hscroll",
+   "items": [
+    {
+     "asset": "ritual_sculpt.webp",
+     "label": "SCULPT & GUIDE",
+     "desc": "Lymphatic flow with light, fluid strokes."
+    },
+    {
+     "asset": "ritual_drain.webp",
+     "label": "DRAIN & RELEASE",
+     "desc": "Decongests, reduces puffiness and tension."
+    },
+    {
+     "asset": "ritual_activate.webp",
+     "label": "ACTIVATE & RENEW",
+     "desc": "Supports complete drainage from face to body."
+    }
+   ]
+  },
+  {
+   "type": "heading",
+   "text": "VISIBLE & SENSORY RESULTS"
+  },
+  {
+   "type": "cards",
+   "layout": "grid2",
+   "items": [
+    {
+     "icon": "face",
+     "label": "A LIGHTER, MORE DEFINED FACE & BODY"
+    },
+    {
+     "icon": "waves",
+     "label": "LESS PUFFINESS (FACE, EYES & BODY)"
+    },
+    {
+     "icon": "sparkle",
+     "label": "CLEARER, MORE RADIANT SKIN"
+    },
+    {
+     "icon": "lotus",
+     "label": "A CALMER, BALANCED SYSTEM"
+    },
+    {
+     "icon": "infinity",
+     "label": "LONG-TERM SUPPORT FOR SKIN HEALTH & LONGEVITY"
+    }
+   ]
+  }
+ ],
+ "typos_fixed": [],
+ "topic": "lymphatic"
+}

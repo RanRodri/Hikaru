@@ -174,6 +174,9 @@ class _ProfileGateway implements UserProfileGateway {
 }
 
 class _AuthGateway implements AuthGateway {
+  @override
+  Future<void> signOut() async {}
+
   String? username;
   String? password;
 

@@ -1,0 +1,79 @@
+{
+ "library_id": "redJasper (existing)",
+ "source": "src/adjunto (5).png + duplicate adjunto (7).png (lower res 505x741)",
+ "chrome_note": "Original shows back arrow and \"03 / 04\" progress (UI chrome).",
+ "sections": [
+  {
+   "type": "brand",
+   "text": "HIKARU LIFT"
+  },
+  {
+   "type": "eyebrow",
+   "text": "THE CRYSTAL SANCTUARY"
+  },
+  {
+   "type": "title",
+   "text": "RED JASPER"
+  },
+  {
+   "type": "subtitle",
+   "text": "TEMPLE OF VITALITY"
+  },
+  {
+   "type": "heading",
+   "text": "THE LIFE FORCE CRYSTAL"
+  },
+  {
+   "type": "paragraph",
+   "text": "A powerful, earth-energizing crystal that activates vitality, endurance and embodied presence."
+  },
+  {
+   "type": "image",
+   "asset": "crystal_photo.webp"
+  },
+  {
+   "type": "cards",
+   "layout": "grid2",
+   "items": [
+    {
+     "icon": "sun",
+     "label": "VITALITY",
+     "desc": "Ignites life force and sustained energy"
+    },
+    {
+     "icon": "lotus",
+     "label": "STRENGTH",
+     "desc": "Builds resilience, focus and determination"
+    },
+    {
+     "icon": "waves",
+     "label": "CIRCULATION",
+     "desc": "Supports healthy flow and activation"
+    },
+    {
+     "icon": "sparkle",
+     "label": "PRESENCE",
+     "desc": "Brings grounding, confidence and stability"
+    }
+   ]
+  },
+  {
+   "type": "card",
+   "heading": "THE ESSENCE",
+   "asset": "flower_of_life.webp",
+   "text": "A stabilizing, high-frequency crystal that energizes the body, enhances endurance and reconnects you with your inner power."
+  },
+  {
+   "type": "card",
+   "heading": "YOUR RITUAL",
+   "icon": "meditation",
+   "text": "Use Red Jasper when you want to increase your energy, motivation and physical vitality."
+  },
+  {
+   "type": "cta",
+   "text": "SELECT THIS CRYSTAL →"
+  }
+ ],
+ "typos_fixed": [],
+ "topic": "crystal_red_jasper"
+}

@@ -42,6 +42,8 @@ dependencies:
   go_router: ^17.5.0
   flutter_svg: ^2.3.0
   audioplayers: ^6.7.1
+  video_player: ^2.11.1
+  wakelock_plus: ^1.7.0
   shared_preferences: ^2.5.6
   image_picker: ^1.2.4
   camera: ^0.12.0+2
@@ -98,13 +100,25 @@ flutter:
   generate: true
 
   shaders:
-    - shaders/cymatic_kaleidoscope.frag
+    - shaders/cymatic_plate.frag
 
   assets:
     - assets/images/
     - assets/images/mudras/
     - assets/images/merkaba_guide/
+    - assets/images/library/merkaba/
+    - assets/images/library/rituals/
+    - assets/images/library/crystal_white_quartz/
+    - assets/images/library/crystal_obsidian/
+    - assets/images/library/crystal_red_jasper/
+    - assets/images/library/crystal_jade/
+    - assets/images/library/meridians/
+    - assets/images/library/lymphatic/
+    - assets/images/library/fascia/
+    - assets/images/library/gua_sha/
+    - assets/library_content/
     - assets/audio/
+    - assets/cymatic/
 
   fonts:
     - family: Inter

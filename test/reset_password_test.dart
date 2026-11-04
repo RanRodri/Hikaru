@@ -89,6 +89,9 @@ class _ResetBiometricGate implements BiometricGate {
 }
 
 class _ResetAuthGateway implements AuthGateway {
+  @override
+  Future<void> signOut() async {}
+
   String? requested;
   String? confirmedUsername;
   String? confirmedCode;

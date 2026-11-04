@@ -1,0 +1,161 @@
+{
+ "library_id": "'fascia' (NEW LibraryCollection)",
+ "source": "src/adjunto (2).png",
+ "sections": [
+  {
+   "type": "brand",
+   "text": "HIKARU LIFT"
+  },
+  {
+   "type": "title",
+   "text": "THE FASCIA"
+  },
+  {
+   "type": "subtitle",
+   "text": "THE LIVING MATRIX THAT SHAPES YOU"
+  },
+  {
+   "type": "image",
+   "asset": "hero_face.webp"
+  },
+  {
+   "type": "paragraph",
+   "italic": true,
+   "text": "A dynamic, intelligent network that connects your skin, muscles, and organs, giving shape to your face and body while also sensing and storing the imprint of your emotions, experiences, and stress."
+  },
+  {
+   "type": "cards",
+   "layout": "hscroll",
+   "items": [
+    {
+     "icon": "lotus",
+     "label": "SUPPORTS STRUCTURE & TONE"
+    },
+    {
+     "icon": "waves",
+     "label": "FACILITATES CIRCULATION & DETOX"
+    },
+    {
+     "icon": "flower",
+     "label": "CONNECTS EMOTIONS & BODY"
+    },
+    {
+     "icon": "bolt",
+     "label": "RELEASES TENSION & TRAUMA"
+    },
+    {
+     "icon": "infinity",
+     "label": "RESTORES ELASTICITY & VITALITY"
+    }
+   ]
+  },
+  {
+   "type": "card",
+   "heading": "FASCIA, EMOTIONS & STORED EXPERIENCES",
+   "asset": "fascia_fibers.webp",
+   "text": "Fascia can hold the imprint of unprocessed emotions, chronic stress, and past experiences, creating areas of tension, restriction, and changes in your natural shape, facial expression, and vitality."
+  },
+  {
+   "type": "heading",
+   "text": "WHEN FASCIA BECOMES RESTRICTED"
+  },
+  {
+   "type": "checklist",
+   "items": [
+    "It can pull and change facial and body contours",
+    "Contributes to puffiness and fluid retention",
+    "Creates tension in the jaw, neck, and facial muscles",
+    "Affects lymphatic flow and skin vitality",
+    "May be linked to emotional load and physical stress"
+   ]
+  },
+  {
+   "type": "heading",
+   "text": "THE “TECH NECK” EFFECT",
+   "sub": "A MODERN DRIVER OF FACIAL CHANGE"
+  },
+  {
+   "type": "image",
+   "asset": "tech_neck.webp"
+  },
+  {
+   "type": "paragraph",
+   "text": "The repeated forward head position from phones, computers, and screens creates constant tension in the fascia and neck muscles, which can lead to:"
+  },
+  {
+   "type": "bullets",
+   "items": [
+    "Loss of definition in the jawline",
+    "Accumulation of fluid and puffiness",
+    "A more prominent double chin",
+    "A compressed, less lifted appearance"
+   ]
+  },
+  {
+   "type": "heading",
+   "text": "THE DOUBLE CHIN CONNECTION"
+  },
+  {
+   "type": "cards",
+   "layout": "grid2",
+   "items": [
+    {
+     "asset": "chin_congested.webp",
+     "label": "CONGESTED FASCIA",
+     "desc": "(TENSION • FLUID • POOR POSTURE)"
+    },
+    {
+     "asset": "chin_released.webp",
+     "label": "RELEASED FASCIA",
+     "desc": "(FLOW • DEFINITION • LIFT)"
+    }
+   ]
+  },
+  {
+   "type": "heading",
+   "text": "THE HIKARU RITUAL",
+   "sub": "RELEASE • REALIGN • LIFT"
+  },
+  {
+   "type": "image",
+   "asset": "tool_photo.webp"
+  },
+  {
+   "type": "paragraph",
+   "italic": true,
+   "text": "A holistic ritual that works with fascia, meridians, lymphatic flow, and frequency to release deep tension, dissolve stagnation, and restore your natural contours."
+  },
+  {
+   "type": "rows",
+   "items": [
+    {
+     "icon": "face",
+     "label": "RELEASES FACIAL TENSION",
+     "desc": "and accumulated stress"
+    },
+    {
+     "icon": "waves",
+     "label": "DECONGESTS AND DRAINS",
+     "desc": "lymphatic fluid"
+    },
+    {
+     "icon": "jaw",
+     "label": "DEFINES THE JAWLINE",
+     "desc": "and helps reduce the appearance of a double chin"
+    },
+    {
+     "icon": "lotus",
+     "label": "REHARMONIZES EMOTIONAL PATTERNS",
+     "desc": "supporting a lighter, more radiant look"
+    },
+    {
+     "icon": "sparkle",
+     "label": "SUPPORTS LONGEVITY & SKIN VITALITY",
+     "desc": "for firm, resilient, and luminous skin"
+    }
+   ]
+  }
+ ],
+ "typos_fixed": [],
+ "topic": "fascia"
+}

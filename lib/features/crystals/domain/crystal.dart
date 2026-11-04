@@ -8,7 +8,7 @@ enum Crystal {
     temple: 'Temple of Illumination',
     imageAsset: 'assets/images/temple_white_quartz.png',
     audioAsset: 'audio/white_quartz.m4a',
-    protocol: 'Quartz Illumination Protocol — Maestro Jorge Alfano',
+    protocol: 'Quartz Illumination Protocol',
     frequency: 'Cellular Coherence Frequency • 528 Hz',
     frequencyDetail: 'Energy amplification & cellular coherence',
     hertz: 528,
@@ -147,7 +147,7 @@ enum Crystal {
     temple: 'Temple of Vitality',
     imageAsset: 'assets/images/temple_red_jasper.png',
     audioAsset: 'audio/red_jasper.m4a',
-    protocol: 'Jasper Vitality Protocol — Maestro Jorge Alfano',
+    protocol: 'Jasper Vitality Protocol',
     frequency: 'Vitality & Vascular Flow Frequency • 639 Hz',
     frequencyDetail: 'Activates metabolic & vascular flow',
     hertz: 639,
@@ -203,11 +203,6 @@ enum Crystal {
     required this.frequencyTagline,
     required this.benefits,
   });
-
-  static const String composer = 'Maestro Jorge Alfano';
-  static const String compositionCredit =
-      'Composed by $composer with Japanese instruments';
-  static const String sessionLength = '20 min';
 
   final String displayName;
   final String temple;

@@ -1,4 +1,7 @@
 import 'package:amplify_flutter/amplify_flutter.dart' show UUID;
+import 'dart:async';
+import 'dart:developer';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../crystals/application/selected_crystal_controller.dart';
@@ -38,12 +41,98 @@ class RitualCycleController extends AsyncNotifier<CycleProgress> {
   @override
   Future<CycleProgress> build() async {
     final repository = ref.watch(ritualCycleRepositoryProvider);
+    final gateway = ref.watch(ritualCycleGatewayProvider);
     final local = await repository.read();
+    final pending = await repository.hasPending();
     final now = ref.read(ritualClockProvider)();
-    final remote = await ref.watch(ritualCycleGatewayProvider).fetchActive(now);
-    if (remote == null) return local;
-    await repository.save(remote);
-    return remote;
+
+    CycleProgress? remote;
+    try {
+      remote = await gateway.fetchActive(now);
+    } catch (error, stackTrace) {
+      _log('Cycle could not be read', error, stackTrace);
+    }
+
+    // Offline or the read failed: the device copy stands, and anything it
+    // has not delivered yet is sent again.
+    if (remote == null) {
+      if (pending) unawaited(_push(local, now, mayCreate: true));
+      return local;
+    }
+
+    final merged = mergeCycleProgress(
+      local: local,
+      remote: remote,
+      pending: pending,
+      now: now,
+    );
+    await repository.save(merged);
+    final behind = !_sameProgress(merged, remote, now);
+    if (pending || behind) {
+      final mayCreate = merged.cycle?.id != remote.cycle?.id;
+      // A day finished offline before today is delivered first, so its
+      // flags are not lost when the screens move on to today.
+      final earlierDay = local.date;
+      final sendEarlier =
+          pending &&
+          earlierDay != null &&
+          local.cycle != null &&
+          dateOnly(earlierDay) != dateOnly(now);
+      unawaited(() async {
+        if (sendEarlier) await _push(local, now, mayCreate: mayCreate);
+        await _push(merged, now, mayCreate: mayCreate && !sendEarlier);
+      }());
+    }
+    return merged;
+  }
+
+  /// Sends [progress] to the backend. Until every write is confirmed the
+  /// change stays marked pending and is sent again on the next start.
+  Future<bool> _push(
+    CycleProgress progress,
+    DateTime now, {
+    required bool mayCreate,
+  }) async {
+    final cycle = progress.cycle;
+    if (cycle == null) return true;
+    final repository = ref.read(ritualCycleRepositoryProvider);
+    final gateway = ref.read(ritualCycleGatewayProvider);
+    await repository.setPending(true);
+    try {
+      if (mayCreate) {
+        try {
+          await gateway.createCycle(cycle);
+        } catch (error, stackTrace) {
+          // It may already exist from an earlier attempt; the update below
+          // tells whether the backend really has it.
+          _log('Cycle create was not confirmed', error, stackTrace);
+        }
+      }
+      final day = progress.date;
+      if (day != null) {
+        await gateway.saveDay(cycle, date: day, flags: progress.today);
+      }
+      await gateway.updateCycle(cycle, currentDay: cycle.dayNumber(now));
+      await repository.setPending(false);
+      return true;
+    } catch (error, stackTrace) {
+      _log('Cycle progress kept on the device for later', error, stackTrace);
+      return false;
+    }
+  }
+
+  static bool _sameProgress(CycleProgress a, CycleProgress b, DateTime now) {
+    final x = a.cycle;
+    final y = b.cycle;
+    if (x == null || y == null) return x == y;
+    return x.id == y.id &&
+        x.streak == y.streak &&
+        x.isActive == y.isActive &&
+        a.flagsOn(now) == b.flagsOn(now);
+  }
+
+  static void _log(String message, Object error, StackTrace stackTrace) {
+    log(message, name: 'hikaru.cycle', error: error, stackTrace: stackTrace);
   }
 
   Future<void> markMerkaba() => _mark((flags) => flags.copyWith(merkaba: true));
@@ -80,8 +169,15 @@ class RitualCycleController extends AsyncNotifier<CycleProgress> {
       today: DailyRitualFlags.none,
     );
     _stagedCycle = next;
-    await ref.read(ritualCycleRepositoryProvider).save(next);
-    await ref.read(ritualCycleGatewayProvider).createCycle(opened);
+    final repository = ref.read(ritualCycleRepositoryProvider);
+    await repository.save(next);
+    await repository.setPending(true);
+    try {
+      await ref.read(ritualCycleGatewayProvider).createCycle(opened);
+      await repository.setPending(false);
+    } catch (error, stackTrace) {
+      _log('New cycle kept on the device for later', error, stackTrace);
+    }
     return opened;
   }
 
@@ -105,9 +201,7 @@ class RitualCycleController extends AsyncNotifier<CycleProgress> {
     state = AsyncData(next);
     await ref.read(ritualCycleRepositoryProvider).save(next);
     final now = ref.read(ritualClockProvider)();
-    await ref
-        .read(ritualCycleGatewayProvider)
-        .updateCycle(closed, currentDay: closed.dayNumber(now));
+    await _push(next, now, mayCreate: false);
   }
 
   Future<void> _mark(DailyRitualFlags Function(DailyRitualFlags) change) async {
@@ -146,11 +240,7 @@ class RitualCycleController extends AsyncNotifier<CycleProgress> {
     final next = CycleProgress(cycle: cycle, date: dateOnly(now), today: after);
     state = AsyncData(next);
     await ref.read(ritualCycleRepositoryProvider).save(next);
-
-    final gateway = ref.read(ritualCycleGatewayProvider);
-    if (opened) await gateway.createCycle(cycle);
-    await gateway.saveDay(cycle, date: now, flags: after);
-    await gateway.updateCycle(cycle, currentDay: cycle.dayNumber(now));
+    await _push(next, now, mayCreate: opened);
   }
 
   Future<Crystal> _crystalForNewCycle() async {
@@ -161,4 +251,49 @@ class RitualCycleController extends AsyncNotifier<CycleProgress> {
     );
     return recommendation?.crystal ?? Crystal.jade;
   }
+}
+
+/// Combines the device copy with the backend instead of letting either one
+/// overwrite the other.
+///
+/// - Same cycle: a ritual done on either side stays done today, the longer
+///   streak and the latest completed day win, and a cycle ended on either
+///   side stays ended.
+/// - Only one side has a cycle, or they differ: the backend wins, unless the
+///   device holds an undelivered change for a cycle at least as recent.
+CycleProgress mergeCycleProgress({
+  required CycleProgress local,
+  required CycleProgress remote,
+  required bool pending,
+  required DateTime now,
+}) {
+  final mine = local.cycle;
+  final theirs = remote.cycle;
+  if (mine == null) return remote;
+  if (theirs == null) return pending ? local : remote;
+  if (mine.id != theirs.id) {
+    final keepMine = pending && !theirs.startDate.isAfter(mine.startDate);
+    return keepMine ? local : remote;
+  }
+
+  final a = local.flagsOn(now);
+  final b = remote.flagsOn(now);
+  final flags = DailyRitualFlags(
+    merkaba: a.merkaba || b.merkaba,
+    massage: a.massage || b.massage,
+    frequency: a.frequency || b.frequency,
+  );
+
+  DateTime? latest(DateTime? x, DateTime? y) {
+    if (x == null) return y;
+    if (y == null) return x;
+    return x.isAfter(y) ? x : y;
+  }
+
+  final cycle = theirs.copyWith(
+    isActive: mine.isActive && theirs.isActive,
+    streak: mine.streak > theirs.streak ? mine.streak : theirs.streak,
+    lastCompletedDate: latest(mine.lastCompletedDate, theirs.lastCompletedDate),
+  );
+  return CycleProgress(cycle: cycle, date: dateOnly(now), today: flags);
 }

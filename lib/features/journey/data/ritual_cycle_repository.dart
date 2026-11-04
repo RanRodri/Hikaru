@@ -25,6 +25,21 @@ class RitualCycleRepository {
 
   Future<void> save(CycleProgress progress) =>
       _preferences.setString(storageKey, jsonEncode(progress.toJson()));
+
+  /// Set while the local copy holds a change the backend has not confirmed.
+  static const String pendingKey = 'ritual_cycle_pending_sync';
+
+  Future<bool> hasPending() async =>
+      await _preferences.getBool(pendingKey) ?? false;
+
+  Future<void> setPending(bool pending) => pending
+      ? _preferences.setBool(pendingKey, true)
+      : _preferences.remove(pendingKey);
+
+  Future<void> clear() async {
+    await _preferences.remove(storageKey);
+    await _preferences.remove(pendingKey);
+  }
 }
 
 final ritualCycleRepositoryProvider = Provider<RitualCycleRepository>(

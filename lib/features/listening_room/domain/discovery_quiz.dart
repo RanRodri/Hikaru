@@ -1,88 +1,88 @@
 /// Listening Garden discovery quiz — 10 questions.
 ///
-/// Q1–Q9 are single choice. Q10 is a multi-select safety screening question
-/// with an exclusive "None of the above" option. Answers are stored for
-/// personalization; Q10 is informative only and does not block experiences.
-enum QuizSelection { single, multiple }
-
+/// Q1 is multi-select; the rest are single choice. Answers are stored for
+/// personalization; Q10 (familiarity with facial sculpting rituals) is
+/// informative only and does not score crystals.
 class QuizOption {
-  const QuizOption({required this.id, required this.label, this.detail});
+  const QuizOption({required this.id, required this.label});
 
   final String id;
   final String label;
-  final String? detail;
 }
 
 class DiscoveryQuestion {
   const DiscoveryQuestion({
     required this.number,
     required this.prompt,
-    required this.selection,
     required this.options,
-    this.instruction,
-    this.exclusiveOptionId,
+    this.multiSelect = false,
   });
 
   final int number;
   final String prompt;
-  final String? instruction;
-  final QuizSelection selection;
   final List<QuizOption> options;
 
-  /// When set on a multiple-choice question, selecting this option clears the
-  /// others, and selecting any other option clears this one.
-  final String? exclusiveOptionId;
+  /// When true the user may pick several options; otherwise exactly one.
+  final bool multiSelect;
 }
 
 abstract final class QuizOptionIds {
-  static const q1CalmComfort = 'q1_calm_comfort';
-  static const q1LiftedFirm = 'q1_lifted_firm';
-  static const q1HydrationSoftness = 'q1_hydration_softness';
-  static const q1RadianceVitality = 'q1_radiance_vitality';
+  static const q1ReducePuffiness = 'q1_reduce_puffiness';
+  static const q1DefineContours = 'q1_define_contours';
+  static const q1SmoothFineLines = 'q1_smooth_fine_lines';
+  static const q1RestoreGlow = 'q1_restore_glow';
+  static const q1DeeplyHydrate = 'q1_deeply_hydrate';
 
+  static const q2ComfortableBalanced = 'q2_comfortable_balanced';
+  static const q2Tight = 'q2_tight';
+  static const q2Dry = 'q2_dry';
+  static const q2Oily = 'q2_oily';
   static const q2Sensitive = 'q2_sensitive';
-  static const q2TightDry = 'q2_tight_dry';
-  static const q2PuffyTired = 'q2_puffy_tired';
-  static const q2ComfortableLackingRadiance = 'q2_comfortable_lacking_radiance';
 
-  static const q3EmotionallyOverwhelmed = 'q3_emotionally_overwhelmed';
-  static const q3MentallyBusy = 'q3_mentally_busy';
-  static const q3DisconnectedBody = 'q3_disconnected_body';
-  static const q3CalmBalanced = 'q3_calm_balanced';
+  static const q3Morning = 'q3_morning';
+  static const q3AfterTravel = 'q3_after_travel';
+  static const q3LongWorkdays = 'q3_long_workdays';
+  static const q3HormonalChanges = 'q3_hormonal_changes';
+  static const q3RestlessNight = 'q3_restless_night';
 
-  static const q4UncertaintyTension = 'q4_uncertainty_tension';
-  static const q4MentalNoise = 'q4_mental_noise';
-  static const q4StressPressure = 'q4_stress_pressure';
-  static const q4FatigueHeaviness = 'q4_fatigue_heaviness';
+  static const q4Jaw = 'q4_jaw';
+  static const q4Cheeks = 'q4_cheeks';
+  static const q4BetweenEyebrows = 'q4_between_eyebrows';
+  static const q4Forehead = 'q4_forehead';
+  static const q4Neck = 'q4_neck';
 
-  static const q5ChangesUnknown = 'q5_changes_unknown';
-  static const q5LossBrightness = 'q5_loss_brightness';
-  static const q5StressTension = 'q5_stress_tension';
-  static const q5FirmnessVitality = 'q5_firmness_vitality';
+  static const q5Jawline = 'q5_jawline';
+  static const q5Cheekbones = 'q5_cheekbones';
+  static const q5Neck = 'q5_neck';
+  static const q5EyeArea = 'q5_eye_area';
+  static const q5OverallHarmony = 'q5_overall_harmony';
 
-  static const q6SpaceReflect = 'q6_space_reflect';
-  static const q6MomentClarity = 'q6_moment_clarity';
-  static const q6GentlenessBalance = 'q6_gentleness_balance';
-  static const q6GroundingStrength = 'q6_grounding_strength';
+  static const q6CalmBalanced = 'q6_calm_balanced';
+  static const q6SlightlySensitive = 'q6_slightly_sensitive';
+  static const q6RedIrritated = 'q6_red_irritated';
+  static const q6ActiveBreakout = 'q6_active_breakout';
+  static const q6RecoveringTreatment = 'q6_recovering_treatment';
 
-  static const q7UnderstandBeneath = 'q7_understand_beneath';
-  static const q7GreaterClarity = 'q7_greater_clarity';
-  static const q7ReturnHarmony = 'q7_return_harmony';
-  static const q7InnerStrength = 'q7_inner_strength';
+  static const q7MoreSculpted = 'q7_more_sculpted';
+  static const q7MoreRadiant = 'q7_more_radiant';
+  static const q7Refreshed = 'q7_refreshed';
+  static const q7DeeplyRelaxed = 'q7_deeply_relaxed';
+  static const q7Grounded = 'q7_grounded';
 
-  static const q8SelfAware = 'q8_self_aware';
-  static const q8ClearRefreshed = 'q8_clear_refreshed';
-  static const q8CalmNurtured = 'q8_calm_nurtured';
-  static const q8GroundedEnergized = 'q8_grounded_energized';
+  static const q8Clarity = 'q8_clarity';
+  static const q8Harmony = 'q8_harmony';
+  static const q8Grounding = 'q8_grounding';
+  static const q8Protection = 'q8_protection';
+  static const q8Vitality = 'q8_vitality';
 
-  static const q9ThreeMinutes = 'q9_three_minutes';
-  static const q9FiveMinutes = 'q9_five_minutes';
-  static const q9TenMinutes = 'q9_ten_minutes';
+  static const q9ClarityRenewal = 'q9_clarity_renewal';
+  static const q9BalanceHarmony = 'q9_balance_harmony';
+  static const q9GroundingProtection = 'q9_grounding_protection';
+  static const q9VitalityConfidence = 'q9_vitality_confidence';
 
-  static const q10OpenBroken = 'q10_open_broken';
-  static const q10ActiveIrritation = 'q10_active_irritation';
-  static const q10UnexplainedChange = 'q10_unexplained_change';
-  static const q10None = 'q10_none';
+  static const q10FirstRitual = 'q10_first_ritual';
+  static const q10ExploredFewTimes = 'q10_explored_few_times';
+  static const q10Routine = 'q10_routine';
 }
 
 /// Symbolic / non-medical disclaimer shown in the quiz and revelation screens.
@@ -93,191 +93,170 @@ const String crystalRecommendationDisclaimer =
 const List<DiscoveryQuestion> discoveryQuiz = [
   DiscoveryQuestion(
     number: 1,
-    prompt: 'What is your skin asking for today?',
-    selection: QuizSelection.single,
+    prompt: 'What would you like to see reflected in the mirror today?',
+    multiSelect: true,
     options: [
-      QuizOption(id: QuizOptionIds.q1CalmComfort, label: 'Calm and comfort'),
       QuizOption(
-        id: QuizOptionIds.q1LiftedFirm,
-        label: 'A more lifted, firm appearance',
+        id: QuizOptionIds.q1ReducePuffiness,
+        label: 'Reduce puffiness',
       ),
       QuizOption(
-        id: QuizOptionIds.q1HydrationSoftness,
-        label: 'Hydration and softness',
+        id: QuizOptionIds.q1DefineContours,
+        label: 'Define facial contours',
       ),
       QuizOption(
-        id: QuizOptionIds.q1RadianceVitality,
-        label: 'Radiance and renewed vitality',
+        id: QuizOptionIds.q1SmoothFineLines,
+        label: 'Smooth fine lines',
       ),
+      QuizOption(
+        id: QuizOptionIds.q1RestoreGlow,
+        label: 'Restore glow/radiance',
+      ),
+      QuizOption(id: QuizOptionIds.q1DeeplyHydrate, label: 'Deeply hydrate'),
     ],
   ),
   DiscoveryQuestion(
     number: 2,
-    prompt: 'How does your skin feel right now?',
-    selection: QuizSelection.single,
+    prompt: 'How does your skin feel today?',
     options: [
       QuizOption(
-        id: QuizOptionIds.q2Sensitive,
-        label: 'Sensitive or easily irritated',
+        id: QuizOptionIds.q2ComfortableBalanced,
+        label: 'Comfortable and balanced',
       ),
-      QuizOption(id: QuizOptionIds.q2TightDry, label: 'Tight or dry'),
-      QuizOption(id: QuizOptionIds.q2PuffyTired, label: 'Puffy or tired'),
-      QuizOption(
-        id: QuizOptionIds.q2ComfortableLackingRadiance,
-        label: 'Comfortable, but lacking radiance',
-      ),
+      QuizOption(id: QuizOptionIds.q2Tight, label: 'Tight'),
+      QuizOption(id: QuizOptionIds.q2Dry, label: 'Dry'),
+      QuizOption(id: QuizOptionIds.q2Oily, label: 'Oily'),
+      QuizOption(id: QuizOptionIds.q2Sensitive, label: 'Sensitive'),
     ],
   ),
   DiscoveryQuestion(
     number: 3,
-    prompt: 'How has your inner world been feeling lately?',
-    selection: QuizSelection.single,
+    prompt: 'Where does your skin need extra care?',
     options: [
+      QuizOption(id: QuizOptionIds.q3Morning, label: 'In the morning'),
+      QuizOption(id: QuizOptionIds.q3AfterTravel, label: 'After travel'),
       QuizOption(
-        id: QuizOptionIds.q3EmotionallyOverwhelmed,
-        label: 'Emotionally overwhelmed',
+        id: QuizOptionIds.q3LongWorkdays,
+        label: 'After long workdays',
       ),
       QuizOption(
-        id: QuizOptionIds.q3MentallyBusy,
-        label: 'Mentally busy or distracted',
+        id: QuizOptionIds.q3HormonalChanges,
+        label: 'During hormonal changes',
       ),
       QuizOption(
-        id: QuizOptionIds.q3DisconnectedBody,
-        label: 'Disconnected from my body',
+        id: QuizOptionIds.q3RestlessNight,
+        label: 'After a restless night',
       ),
-      QuizOption(id: QuizOptionIds.q3CalmBalanced, label: 'Calm and balanced'),
     ],
   ),
   DiscoveryQuestion(
     number: 4,
-    prompt: 'What would you most like to release?',
-    selection: QuizSelection.single,
+    prompt: 'Where do you notice the most facial tension?',
     options: [
+      QuizOption(id: QuizOptionIds.q4Jaw, label: 'Jaw'),
+      QuizOption(id: QuizOptionIds.q4Cheeks, label: 'Cheeks'),
       QuizOption(
-        id: QuizOptionIds.q4UncertaintyTension,
-        label: 'Uncertainty or hidden tension',
+        id: QuizOptionIds.q4BetweenEyebrows,
+        label: 'Between eyebrows',
       ),
-      QuizOption(
-        id: QuizOptionIds.q4MentalNoise,
-        label: 'Mental noise and overthinking',
-      ),
-      QuizOption(
-        id: QuizOptionIds.q4StressPressure,
-        label: 'Stress and emotional pressure',
-      ),
-      QuizOption(
-        id: QuizOptionIds.q4FatigueHeaviness,
-        label: 'Fatigue and heaviness',
-      ),
+      QuizOption(id: QuizOptionIds.q4Forehead, label: 'Forehead'),
+      QuizOption(id: QuizOptionIds.q4Neck, label: 'Neck'),
     ],
   ),
   DiscoveryQuestion(
     number: 5,
-    prompt: 'When you look in the mirror, what do you notice first?',
-    selection: QuizSelection.single,
+    prompt: 'Which area would you like to focus?',
     options: [
+      QuizOption(id: QuizOptionIds.q5Jawline, label: 'Jawline'),
+      QuizOption(id: QuizOptionIds.q5Cheekbones, label: 'Cheekbones'),
+      QuizOption(id: QuizOptionIds.q5Neck, label: 'Neck'),
+      QuizOption(id: QuizOptionIds.q5EyeArea, label: 'Eye area'),
       QuizOption(
-        id: QuizOptionIds.q5ChangesUnknown,
-        label: "Changes I don't fully understand",
-      ),
-      QuizOption(
-        id: QuizOptionIds.q5LossBrightness,
-        label: 'A loss of brightness',
-      ),
-      QuizOption(
-        id: QuizOptionIds.q5StressTension,
-        label: 'Signs of stress or tension',
-      ),
-      QuizOption(
-        id: QuizOptionIds.q5FirmnessVitality,
-        label: 'Changes in firmness or vitality',
+        id: QuizOptionIds.q5OverallHarmony,
+        label: 'Overall facial harmony',
       ),
     ],
   ),
   DiscoveryQuestion(
     number: 6,
-    prompt: 'What does your body need more of today?',
-    selection: QuizSelection.single,
+    prompt: 'How is your skin responding today?',
     options: [
-      QuizOption(id: QuizOptionIds.q6SpaceReflect, label: 'Space to reflect'),
+      QuizOption(id: QuizOptionIds.q6CalmBalanced, label: 'Calm and balanced'),
       QuizOption(
-        id: QuizOptionIds.q6MomentClarity,
-        label: 'A moment of clarity',
+        id: QuizOptionIds.q6SlightlySensitive,
+        label: 'Slightly sensitive',
+      ),
+      QuizOption(id: QuizOptionIds.q6RedIrritated, label: 'Red or irritated'),
+      QuizOption(
+        id: QuizOptionIds.q6ActiveBreakout,
+        label: 'Experiencing an active breakout',
       ),
       QuizOption(
-        id: QuizOptionIds.q6GentlenessBalance,
-        label: 'Gentleness and balance',
-      ),
-      QuizOption(
-        id: QuizOptionIds.q6GroundingStrength,
-        label: 'Grounding and strength',
+        id: QuizOptionIds.q6RecoveringTreatment,
+        label: 'Recovering from a cosmetic treatment',
       ),
     ],
   ),
   DiscoveryQuestion(
     number: 7,
-    prompt: 'Which intention resonates with you?',
-    selection: QuizSelection.single,
+    prompt: "How would you like to feel at the end of today's ritual?",
     options: [
-      QuizOption(
-        id: QuizOptionIds.q7UnderstandBeneath,
-        label: 'Understand what lies beneath the surface',
-      ),
-      QuizOption(
-        id: QuizOptionIds.q7GreaterClarity,
-        label: 'See myself with greater clarity',
-      ),
-      QuizOption(id: QuizOptionIds.q7ReturnHarmony, label: 'Return to harmony'),
-      QuizOption(
-        id: QuizOptionIds.q7InnerStrength,
-        label: 'Reconnect with my inner strength',
-      ),
+      QuizOption(id: QuizOptionIds.q7MoreSculpted, label: 'More sculpted'),
+      QuizOption(id: QuizOptionIds.q7MoreRadiant, label: 'More radiant'),
+      QuizOption(id: QuizOptionIds.q7Refreshed, label: 'Refreshed'),
+      QuizOption(id: QuizOptionIds.q7DeeplyRelaxed, label: 'Deeply relaxed'),
+      QuizOption(id: QuizOptionIds.q7Grounded, label: 'Grounded'),
     ],
   ),
   DiscoveryQuestion(
     number: 8,
-    prompt: 'How would you like to feel after your ritual?',
-    selection: QuizSelection.single,
+    prompt: "What intention would you like to set for today's ritual?",
     options: [
-      QuizOption(id: QuizOptionIds.q8SelfAware, label: 'More self-aware'),
-      QuizOption(
-        id: QuizOptionIds.q8ClearRefreshed,
-        label: 'Clear and refreshed',
-      ),
-      QuizOption(id: QuizOptionIds.q8CalmNurtured, label: 'Calm and nurtured'),
-      QuizOption(
-        id: QuizOptionIds.q8GroundedEnergized,
-        label: 'Grounded and energized',
-      ),
+      QuizOption(id: QuizOptionIds.q8Clarity, label: 'Clarity'),
+      QuizOption(id: QuizOptionIds.q8Harmony, label: 'Harmony'),
+      QuizOption(id: QuizOptionIds.q8Grounding, label: 'Grounding'),
+      QuizOption(id: QuizOptionIds.q8Protection, label: 'Protection'),
+      QuizOption(id: QuizOptionIds.q8Vitality, label: 'Vitality'),
     ],
   ),
   DiscoveryQuestion(
     number: 9,
-    prompt: 'How much time would you like to dedicate to yourself?',
-    selection: QuizSelection.single,
+    prompt: 'What would you like to cultivate over the next 20 days?',
     options: [
-      QuizOption(id: QuizOptionIds.q9ThreeMinutes, label: '3 minutes'),
-      QuizOption(id: QuizOptionIds.q9FiveMinutes, label: '5 minutes'),
-      QuizOption(id: QuizOptionIds.q9TenMinutes, label: '10 minutes'),
+      QuizOption(
+        id: QuizOptionIds.q9ClarityRenewal,
+        label: 'Clarity and renewal',
+      ),
+      QuizOption(
+        id: QuizOptionIds.q9BalanceHarmony,
+        label: 'Balance and harmony',
+      ),
+      QuizOption(
+        id: QuizOptionIds.q9GroundingProtection,
+        label: 'Grounding and protection',
+      ),
+      QuizOption(
+        id: QuizOptionIds.q9VitalityConfidence,
+        label: 'Vitality and confidence',
+      ),
     ],
   ),
   DiscoveryQuestion(
     number: 10,
-    prompt: 'Is your skin currently experiencing any of these?',
-    instruction: 'Select all that apply',
-    selection: QuizSelection.multiple,
-    exclusiveOptionId: QuizOptionIds.q10None,
+    prompt: 'How familiar are you with facial sculpting rituals?',
     options: [
-      QuizOption(id: QuizOptionIds.q10OpenBroken, label: 'Open or broken skin'),
       QuizOption(
-        id: QuizOptionIds.q10ActiveIrritation,
-        label: 'Active irritation or painful inflammation',
+        id: QuizOptionIds.q10FirstRitual,
+        label: 'Today is my very first ritual',
       ),
       QuizOption(
-        id: QuizOptionIds.q10UnexplainedChange,
-        label: 'A new or unexplained skin change',
+        id: QuizOptionIds.q10ExploredFewTimes,
+        label: "I've explored it a few times",
       ),
-      QuizOption(id: QuizOptionIds.q10None, label: 'None of the above'),
+      QuizOption(
+        id: QuizOptionIds.q10Routine,
+        label: 'It is part of my regular routine',
+      ),
     ],
   ),
 ];

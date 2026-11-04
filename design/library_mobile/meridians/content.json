@@ -1,0 +1,151 @@
+{
+ "library_id": "'meridians' (NEW LibraryCollection)",
+ "source": "src/adjunto (3).png",
+ "chrome_note": "Original shows back arrow and \"01 / 04\" progress (UI chrome, not content).",
+ "sections": [
+  {
+   "type": "brand",
+   "text": "HIKARU LIFT"
+  },
+  {
+   "type": "eyebrow",
+   "text": "TRADITIONAL CHINESE MEDICINE"
+  },
+  {
+   "type": "title",
+   "text": "MERIDIANS & ENERGY FLOW"
+  },
+  {
+   "type": "tagline",
+   "text": "RELEASE • RESTORE • REJUVENATE"
+  },
+  {
+   "type": "paragraph",
+   "italic": true,
+   "text": "Balance the flow of Qi to support facial harmony, healthy skin, and longevity."
+  },
+  {
+   "type": "image",
+   "asset": "hero_face.webp"
+  },
+  {
+   "type": "card",
+   "heading": "THE MERIDIAN SYSTEM",
+   "asset": "body_meridians.webp",
+   "text": "A network of energy channels that circulates Qi (vital energy) through the face, body and organs, nourishing the skin, calming the nervous system, repairing tissue, and supporting vitality and longevity."
+  },
+  {
+   "type": "heading",
+   "text": "THE 12 MAIN MERIDIANS"
+  },
+  {
+   "type": "cards",
+   "layout": "hscroll",
+   "items": [
+    {
+     "icon": "lungs",
+     "label": "LUNG (LU)"
+    },
+    {
+     "icon": "intestine",
+     "label": "LARGE INTESTINE (LI)"
+    },
+    {
+     "icon": "stomach",
+     "label": "STOMACH (ST)"
+    },
+    {
+     "icon": "heart",
+     "label": "HEART (HT)"
+    },
+    {
+     "icon": "kidney",
+     "label": "KIDNEY (KI)"
+    },
+    {
+     "icon": "liver",
+     "label": "LIVER (LR)"
+    }
+   ]
+  },
+  {
+   "type": "paragraph",
+   "text": "Regulate organ function, detoxify, reduce inflammation and support longevity."
+  },
+  {
+   "type": "heading",
+   "text": "KEY FACIAL MERIDIANS & POINTS",
+   "sub": "FOR FACIAL PARALYSIS, SKIN HEALTH & LIFT"
+  },
+  {
+   "type": "image",
+   "asset": "face_points_map.webp",
+   "note": "Map labels baked in image: GB14, Taiyang, ST2, SI18, LI20, Yin Tang, Mastoid (Vagal)"
+  },
+  {
+   "type": "rows",
+   "items": [
+    {
+     "icon": "lotus",
+     "label": "YIN TANG",
+     "desc": "Calms the mind and nervous system."
+    },
+    {
+     "icon": "waves",
+     "label": "TAIYANG",
+     "desc": "Relieves tension, improves circulation and facial tone."
+    },
+    {
+     "icon": "waves",
+     "label": "ST2",
+     "desc": "Reduces puffiness and supports lymphatic flow."
+    },
+    {
+     "icon": "sparkle",
+     "label": "SI18",
+     "desc": "Releases jaw tension and supports the trigeminal nerve."
+    },
+    {
+     "icon": "leaf",
+     "label": "GB14",
+     "desc": "Clears stagnation, lifts and brightens the eyes."
+    }
+   ]
+  },
+  {
+   "type": "card",
+   "heading": "ACUPUNCTURE & ACUPRESSURE",
+   "asset": "acupuncture.webp",
+   "text": "Activate specific points along the meridians to release blockages, restore the flow of Qi, calm inflammation, and stimulate natural healing and regeneration."
+  },
+  {
+   "type": "card",
+   "heading": "WHEN Qi IS BLOCKED",
+   "asset": "qi_flow.webp",
+   "bullets": [
+    "Dull, congested skin",
+    "Fluid retention and puffiness",
+    "Muscle tension and asymmetry",
+    "Nerve imbalances (e.g., facial paralysis)",
+    "Slower repair and signs of aging"
+   ]
+  },
+  {
+   "type": "card",
+   "heading": "THE LONGEVITY CONNECTION",
+   "asset": "icon_hourglass.webp",
+   "text": "A free and balanced flow of Qi and blood nourishes the skin, strengthens facial muscles and nerves, reduces inflammation, and supports a resilient, youthful and radiant complexion."
+  },
+  {
+   "type": "cta",
+   "text": "EXPLORE THE MERIDIANS MAP →"
+  }
+ ],
+ "typos_fixed": [
+  [
+   "relesse blockages",
+   "release blockages"
+  ]
+ ],
+ "topic": "meridians"
+}

@@ -7,24 +7,33 @@ import 'package:hikaru/features/resonance_chamber/domain/cymatic_audio.dart';
 import 'package:hikaru/features/resonance_chamber/presentation/cymatic_signature.dart';
 
 void main() {
-  test('every crystal shares the 8-fold cymatic', () {
+  test('every crystal has a distinct symmetric Chladni signature', () {
+    const expectedSymmetry = <Crystal, int>{
+      Crystal.whiteQuartz: 12,
+      Crystal.jade: 10,
+      Crystal.obsidian: 6,
+      Crystal.redJasper: 8,
+    };
+    final assets = <String>{};
+    final modeSets = <String>{};
+
     for (final crystal in Crystal.values) {
-      expect(CymaticMotif.of(crystal).folds, 8);
-      expect(CymaticMotif.of(crystal).rings, inInclusiveRange(3, 4));
+      final motif = CymaticMotif.of(crystal);
+      expect(motif.symmetry, expectedSymmetry[crystal]);
+      expect(motif.modes, hasLength(12));
+      expect(motif.weights, hasLength(12));
+      expect(motif.modes.every((mode) => mode % motif.symmetry == 0), isTrue);
+      assets.add(motif.lutAsset);
+      modeSets.add(motif.modes.join(','));
     }
-    expect(
-      cymaticColorJourney(Crystal.redJasper),
-      lessThan(cymaticColorJourney(Crystal.jade)),
-    );
+
+    expect(assets, hasLength(4));
+    expect(modeSets, hasLength(4));
+    expect(cymaticColorJourney(Crystal.jade), const Duration(seconds: 20));
   });
 
-  test('a higher frequency shortens the cymatic cycle', () {
-    expect(
-      cymaticCycle(Crystal.redJasper),
-      lessThan(cymaticCycle(Crystal.jade)),
-    );
-    expect(cymaticHertz(Crystal.redJasper), 639);
-    expect(cymaticHertz(Crystal.whiteQuartz), 528);
+  test('display hertz does not change the plate animation period', () {
+    expect(cymaticCycle(Crystal.redJasper), cymaticCycle(Crystal.jade));
   });
 
   testWidgets('play starts the cymatic and pause settles it', (tester) async {
@@ -34,20 +43,11 @@ void main() {
     expect(key.currentState!.isAnimating, isFalse);
     expect(key.currentState!.motion, 0);
     expect(key.currentState!.phase, 0);
-    expect(key.currentState!.colorProgress, 1);
+    expect(key.currentState!.colorProgress, 0);
 
     await tester.tap(find.text('PLAY'));
     await tester.pump();
     expect(key.currentState!.isAnimating, isTrue);
-    expect(
-      tester
-          .widget<Align>(
-            find.ancestor(of: find.byType(Image), matching: find.byType(Align)),
-          )
-          .alignment,
-      Alignment.center,
-    );
-
     await tester.pump(const Duration(milliseconds: 500));
     final phaseWhilePlaying = key.currentState!.phase;
     final colorWhilePlaying = key.currentState!.colorProgress;
@@ -89,7 +89,7 @@ void main() {
     expect(key.currentState!.isAnimating, isFalse);
     expect(key.currentState!.motion, 0);
     expect(key.currentState!.phase, 0);
-    expect(key.currentState!.colorProgress, 1);
+    expect(key.currentState!.colorProgress, 0);
   });
 
   testWidgets('a real envelope follows playback and settles on pause', (
@@ -176,7 +176,6 @@ class _CymaticHostState extends State<_CymaticHost> {
                 key: widget.signatureKey,
                 crystal: Crystal.jade,
                 playing: _playing,
-                showSeal: true,
                 envelope: widget.envelope,
                 playbackPosition: widget.playbackPosition,
               ),

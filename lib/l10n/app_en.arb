@@ -131,57 +131,67 @@
   "ritualReadyBody": "Inspired by your unique needs and intentions, your Hikaru Lift Ritual brings together: mindful touch, crystal energy, and frequencies to guide you toward beauty, balance and inner harmony.",
   "ritualReadyEnter": "ENTER YOUR RITUAL",
 
-  "quizQ1Prompt": "What is your skin asking for today?",
-  "quizQ2Prompt": "How does your skin feel right now?",
-  "quizQ3Prompt": "How has your inner world been feeling lately?",
-  "quizQ4Prompt": "What would you most like to release?",
-  "quizQ5Prompt": "When you look in the mirror, what do you notice first?",
-  "quizQ6Prompt": "What does your body need more of today?",
-  "quizQ7Prompt": "Which intention resonates with you?",
-  "quizQ8Prompt": "How would you like to feel after your ritual?",
-  "quizQ9Prompt": "How much time would you like to dedicate to yourself?",
-  "quizQ10Prompt": "Is your skin currently experiencing any of these?",
-  "quizQ10Instruction": "Select all that apply",
+  "quizQ1Prompt": "What would you like to see reflected in the mirror today?",
+  "quizQ1Instruction": "Select all that resonate with you",
+  "quizQ2Prompt": "How does your skin feel today?",
+  "quizQ2Instruction": "Listen to what your skin is telling you",
+  "quizQ3Prompt": "Where does your skin need extra care?",
+  "quizQ4Prompt": "Where do you notice the most facial tension?",
+  "quizQ4Instruction": "Select the area you notice most",
+  "quizQ5Prompt": "Which area would you like to focus?",
+  "quizQ6Prompt": "How is your skin responding today?",
+  "quizQ7Prompt": "How would you like to feel at the end of today's ritual?",
+  "quizQ8Prompt": "What intention would you like to set for today's ritual?",
+  "quizQ9Prompt": "What would you like to cultivate over the next 20 days?",
+  "quizQ10Prompt": "How familiar are you with facial sculpting rituals?",
 
-  "quizOptionQ1CalmComfort": "Calm and comfort",
-  "quizOptionQ1LiftedFirm": "A more lifted, firm appearance",
-  "quizOptionQ1HydrationSoftness": "Hydration and softness",
-  "quizOptionQ1RadianceVitality": "Radiance and renewed vitality",
-  "quizOptionQ2Sensitive": "Sensitive or easily irritated",
-  "quizOptionQ2TightDry": "Tight or dry",
-  "quizOptionQ2PuffyTired": "Puffy or tired",
-  "quizOptionQ2ComfortableLackingRadiance": "Comfortable, but lacking radiance",
-  "quizOptionQ3EmotionallyOverwhelmed": "Emotionally overwhelmed",
-  "quizOptionQ3MentallyBusy": "Mentally busy or distracted",
-  "quizOptionQ3DisconnectedBody": "Disconnected from my body",
-  "quizOptionQ3CalmBalanced": "Calm and balanced",
-  "quizOptionQ4UncertaintyTension": "Uncertainty or hidden tension",
-  "quizOptionQ4MentalNoise": "Mental noise and overthinking",
-  "quizOptionQ4StressPressure": "Stress and emotional pressure",
-  "quizOptionQ4FatigueHeaviness": "Fatigue and heaviness",
-  "quizOptionQ5ChangesUnknown": "Changes I don't fully understand",
-  "quizOptionQ5LossBrightness": "A loss of brightness",
-  "quizOptionQ5StressTension": "Signs of stress or tension",
-  "quizOptionQ5FirmnessVitality": "Changes in firmness or vitality",
-  "quizOptionQ6SpaceReflect": "Space to reflect",
-  "quizOptionQ6MomentClarity": "A moment of clarity",
-  "quizOptionQ6GentlenessBalance": "Gentleness and balance",
-  "quizOptionQ6GroundingStrength": "Grounding and strength",
-  "quizOptionQ7UnderstandBeneath": "Understand what lies beneath the surface",
-  "quizOptionQ7GreaterClarity": "See myself with greater clarity",
-  "quizOptionQ7ReturnHarmony": "Return to harmony",
-  "quizOptionQ7InnerStrength": "Reconnect with my inner strength",
-  "quizOptionQ8SelfAware": "More self-aware",
-  "quizOptionQ8ClearRefreshed": "Clear and refreshed",
-  "quizOptionQ8CalmNurtured": "Calm and nurtured",
-  "quizOptionQ8GroundedEnergized": "Grounded and energized",
-  "quizOptionQ9ThreeMinutes": "3 minutes",
-  "quizOptionQ9FiveMinutes": "5 minutes",
-  "quizOptionQ9TenMinutes": "10 minutes",
-  "quizOptionQ10OpenBroken": "Open or broken skin",
-  "quizOptionQ10ActiveIrritation": "Active irritation or painful inflammation",
-  "quizOptionQ10UnexplainedChange": "A new or unexplained skin change",
-  "quizOptionQ10None": "None of the above",
+  "quizOptionQ1ReducePuffiness": "Reduce puffiness",
+  "quizOptionQ1DefineContours": "Define facial contours",
+  "quizOptionQ1SmoothFineLines": "Smooth fine lines",
+  "quizOptionQ1RestoreGlow": "Restore glow/radiance",
+  "quizOptionQ1DeeplyHydrate": "Deeply hydrate",
+  "quizOptionQ2ComfortableBalanced": "Comfortable and balanced",
+  "quizOptionQ2Tight": "Tight",
+  "quizOptionQ2Dry": "Dry",
+  "quizOptionQ2Oily": "Oily",
+  "quizOptionQ2Sensitive": "Sensitive",
+  "quizOptionQ3Morning": "In the morning",
+  "quizOptionQ3AfterTravel": "After travel",
+  "quizOptionQ3LongWorkdays": "After long workdays",
+  "quizOptionQ3HormonalChanges": "During hormonal changes",
+  "quizOptionQ3RestlessNight": "After a restless night",
+  "quizOptionQ4Jaw": "Jaw",
+  "quizOptionQ4Cheeks": "Cheeks",
+  "quizOptionQ4BetweenEyebrows": "Between eyebrows",
+  "quizOptionQ4Forehead": "Forehead",
+  "quizOptionQ4Neck": "Neck",
+  "quizOptionQ5Jawline": "Jawline",
+  "quizOptionQ5Cheekbones": "Cheekbones",
+  "quizOptionQ5Neck": "Neck",
+  "quizOptionQ5EyeArea": "Eye area",
+  "quizOptionQ5OverallHarmony": "Overall facial harmony",
+  "quizOptionQ6CalmBalanced": "Calm and balanced",
+  "quizOptionQ6SlightlySensitive": "Slightly sensitive",
+  "quizOptionQ6RedIrritated": "Red or irritated",
+  "quizOptionQ6ActiveBreakout": "Experiencing an active breakout",
+  "quizOptionQ6RecoveringTreatment": "Recovering from a cosmetic treatment",
+  "quizOptionQ7MoreSculpted": "More sculpted",
+  "quizOptionQ7MoreRadiant": "More radiant",
+  "quizOptionQ7Refreshed": "Refreshed",
+  "quizOptionQ7DeeplyRelaxed": "Deeply relaxed",
+  "quizOptionQ7Grounded": "Grounded",
+  "quizOptionQ8Clarity": "Clarity",
+  "quizOptionQ8Harmony": "Harmony",
+  "quizOptionQ8Grounding": "Grounding",
+  "quizOptionQ8Protection": "Protection",
+  "quizOptionQ8Vitality": "Vitality",
+  "quizOptionQ9ClarityRenewal": "Clarity and renewal",
+  "quizOptionQ9BalanceHarmony": "Balance and harmony",
+  "quizOptionQ9GroundingProtection": "Grounding and protection",
+  "quizOptionQ9VitalityConfidence": "Vitality and confidence",
+  "quizOptionQ10FirstRitual": "Today is my very first ritual",
+  "quizOptionQ10ExploredFewTimes": "I've explored it a few times",
+  "quizOptionQ10Routine": "It is part of my regular routine",
 
   "commonContinue": "CONTINUE",
   "commonPlay": "Play",
@@ -242,12 +252,6 @@
   },
   "cymaticSemantics": "Cymatic",
 
-  "crystalDetailSymbolicMeaning": "SYMBOLIC MEANING",
-  "crystalDetailAssociatedIntention": "ASSOCIATED INTENTION",
-  "crystalDetailTherapeuticPurpose": "THERAPEUTIC PURPOSE",
-  "crystalDetailSkinBenefit": "SKIN BENEFIT",
-  "crystalDetailMeridians": "ILLUMINATED MERIDIANS",
-  "crystalDetailEnvironment": "VISUAL ENVIRONMENT",
   "crystalChoose": "CHOOSE THIS CRYSTAL",
   "crystalIsYours": "YOUR CRYSTAL",
   "crystalIsYoursSemantics": "{crystal} is your crystal",
@@ -262,17 +266,12 @@
       "crystal": {"type": "String"}
     }
   },
-  "crystalFrequencyPlay": "Play frequency",
-  "crystalFrequencyPause": "Pause frequency",
-  "crystalFrequencyUnavailable": "Frequency unavailable right now",
-
-  "crystalCompositionCredit": "Composed by Maestro Jorge Alfano with Japanese instruments",
 
   "crystalTextName": "{crystal, select, whiteQuartz{WHITE QUARTZ} jade{JADE} obsidian{OBSIDIAN} redJasper{RED JASPER} other{}}",
   "@crystalTextName": {"placeholders": {"crystal": {"type": "String"}}},
   "crystalTextTemple": "{crystal, select, whiteQuartz{Temple of Illumination} jade{Temple of Harmony} obsidian{Temple of Transformation} redJasper{Temple of Vitality} other{}}",
   "@crystalTextTemple": {"placeholders": {"crystal": {"type": "String"}}},
-  "crystalTextProtocol": "{crystal, select, whiteQuartz{Quartz Illumination Protocol — Maestro Jorge Alfano} jade{Jade Harmony Protocol} obsidian{Obsidian Transformation Protocol} redJasper{Jasper Vitality Protocol — Maestro Jorge Alfano} other{}}",
+  "crystalTextProtocol": "{crystal, select, whiteQuartz{Quartz Illumination Protocol} jade{Jade Harmony Protocol} obsidian{Obsidian Transformation Protocol} redJasper{Jasper Vitality Protocol} other{}}",
   "@crystalTextProtocol": {"placeholders": {"crystal": {"type": "String"}}},
   "crystalTextFrequency": "{crystal, select, whiteQuartz{Cellular Coherence Frequency • 528 Hz} jade{528 Hz} obsidian{528 Hz} redJasper{Vitality & Vascular Flow Frequency • 639 Hz} other{}}",
   "@crystalTextFrequency": {"placeholders": {"crystal": {"type": "String"}}},
@@ -462,6 +461,12 @@
     }
   },
   "profileCycleEnd": "END CYCLE",
+  "profileSignOut": "SIGN OUT",
+  "profileSignOutTitle": "Sign out?",
+  "profileSignOutBody": "Your progress is saved to your account and will be here when you sign in again.",
+  "profileSignOutCancel": "STAY",
+  "profileSignOutConfirm": "SIGN OUT",
+  "profileSignOutError": "We couldn't sign you out. Check your connection and try again.",
 
   "libraryTitle": "LIBRARY",
   "librarySubtitle": "Sacred knowledge for your journey",
@@ -486,6 +491,8 @@
   "libraryNextSemantics": "Next in library, {label}",
   "@libraryNextSemantics": {"placeholders": {"label": {"type": "String"}}},
   "libraryRead": "READ",
+  "libraryReadMore": "READ MORE",
+  "libraryReadLess": "READ LESS",
 
   "libraryTextCollectionName": "{id, select, merkaba{MERKABA} rituals{HIKARU RITUALS} other{}}",
   "@libraryTextCollectionName": {"placeholders": {"id": {"type": "String"}}},
@@ -514,7 +521,7 @@
   "libraryMerkabaScene3": "1:30–3:40 Breath Builds the Merkaba. The two interlocking tetrahedra are drawn edge by edge around the body. Lotus Mudra. Receiving and expansion.",
   "libraryMerkabaScene4": "3:40–4:30 Expansion Through Coherence. The triangles counter-rotate and the field expands with heart coherence. Akash Mudra. Spaciousness and consciousness.",
   "libraryMerkabaScene5": "4:30–5:00 The Heart Blossoms. The Merkaba slows, its lines soften and bloom into the Anahata heart mandala. Anjali. Integration and gratitude.",
-  "libraryMerkabaCues": "One clear chime cues Inhale (4 seconds). A soft sustained shimmer cues Hold (4 seconds). A warm lower chime cues Exhale (6 seconds).",
+  "libraryMerkabaCues": "A soft breath and a golden circle of light cue Inhale (4 seconds). The light rests and shimmers on Hold (4 seconds). The circle gently shrinks on Exhale (6 seconds).",
 
   "libraryRitualsHeadingSequence": "Sequence",
   "libraryRitualsSequence": "01 The Merkaba Room. Breathing 4·4·6: inhale 4 seconds, hold 4 seconds, exhale 6 seconds. Mudras.\n02 Hikaru Massage Experience. Facial Gua Sha. The massage maps meridians, lymphatic drainage, fascia, and the 54 facial muscles.\n03 Hikaru Massage Experience. Body Gua Sha. Timer. Pressure: Light, Moderate, Firm.\n04 Frequency and cymatics. 528 Hz, Maestro Jorge Alfano. Locked until the Merkaba meditation and the Gua Sha massage are complete.",
@@ -527,6 +534,7 @@
     "placeholders": {"number": {"type": "int"}, "total": {"type": "int"}}
   },
   "merkabaBreaths": "BREATHS",
+  "merkabaRemaining": "REMAINING",
   "merkabaCycle": "Cycle {percent}%",
   "@merkabaCycle": {"placeholders": {"percent": {"type": "int"}}},
   "merkabaBreathsSemantics": "{done} of {total} breaths. Cycle {percent} percent",
@@ -542,6 +550,17 @@
   "@merkabaPercentValue": {"placeholders": {"percent": {"type": "int"}}},
   "merkabaSilence": "Silence.",
   "merkabaWomanSemantics": "Seated woman in meditation",
+  "merkabaTimeRemaining": "{time} remaining",
+  "@merkabaTimeRemaining": {"placeholders": {"time": {"type": "String"}}},
+  "merkabaSessionLength": "TIME IN THE ROOM",
+  "merkabaPreparing": "Preparing the room",
+  "merkabaSaving": "Saving today's progress",
+  "merkabaSaved": "Today's Merkaba is saved",
+  "merkabaSavedOnDevice": "Saved on this device",
+  "merkabaCycleDay": "Day {day} of {total}",
+  "@merkabaCycleDay": {"placeholders": {"day": {"type": "int"}, "total": {"type": "int"}}},
+  "merkabaDaysPracticed": "{count, plural, =1{1 day of Merkaba} other{{count} days of Merkaba}}",
+  "@merkabaDaysPracticed": {"placeholders": {"count": {"type": "int"}}},
   "merkabaPhaseInhale": "Inhale",
   "merkabaPhaseHold": "Hold",
   "merkabaPhaseExhale": "Exhale",
@@ -650,24 +669,104 @@
   "@headphonesDialogSemanticsLabel": {
     "description": "Accessibility label announcing the headphones note dialog."
   },
-  "headphonesDialogEyebrow": "FOR THE FULL HIKARU FREQUENCY EXPERIENCE",
+  "headphonesDialogEyebrow": "AWAKEN YOUR SENSES",
   "@headphonesDialogEyebrow": {
-    "description": "Small overline above the headphones dialog title."
+    "description": "Small gold overline at the top of the headphones dialog, shown before the cymatic starts."
   },
-  "headphonesDialogTitle": "Headphones recommended",
-  "@headphonesDialogTitle": {
-    "description": "Main title of the headphones recommendation dialog."
-  },
-  "headphonesDialogBody": "For a more immersive experience, we recommend headphones. Find a comfortable space, set a comfortable volume, and let the sound surround you.",
+  "headphonesDialogBody": "Put on your headphones and let the frequency surround you.",
   "@headphonesDialogBody": {
-    "description": "Body copy of the headphones dialog, including the comfortable-volume reminder."
+    "description": "Single line of copy in the headphones dialog inviting the user to wear headphones."
   },
-  "headphonesDialogReady": "I'M READY",
+  "headphonesDialogReady": "ACTIVATE MY FREQUENCY",
   "@headphonesDialogReady": {
-    "description": "Primary button: continue with headphones ready."
+    "description": "Primary button of the headphones dialog: starts the frequency and the cymatic."
   },
   "headphonesDialogContinueWithout": "CONTINUE WITHOUT HEADPHONES",
   "@headphonesDialogContinueWithout": {
-    "description": "Secondary button: continue without headphones."
+    "description": "Secondary button of the headphones dialog: continue without headphones."
+  },
+
+  "crystalTutorialButton": "VIDEO TUTORIAL",
+  "@crystalTutorialButton": {
+    "description": "Primary button on the crystal screen that opens the vertical tutorial video."
+  },
+  "crystalStartFrequencyButton": "START YOUR FREQUENCY",
+  "@crystalStartFrequencyButton": {
+    "description": "Primary button on the crystal screen that starts the frequency and cymatic flow."
+  },
+  "crystalYourCrystalLibraryButton": "YOUR CRYSTAL",
+  "@crystalYourCrystalLibraryButton": {
+    "description": "Secondary button on the crystal screen that opens this crystal's page in the Library."
+  },
+  "crystalTutorialPendingNote": "Tutorial video coming soon",
+  "@crystalTutorialPendingNote": {
+    "description": "Subtle note on the tutorial placeholder shown while the crystal's video has not been delivered."
+  },
+  "crystalTutorialReadyTitle": "Your crystal ritual is ready. Now enter the frequency.",
+  "@crystalTutorialReadyTitle": {
+    "description": "Message shown after a tutorial video ends, before moving on to the frequency."
+  },
+  "crystalContinueToResonance": "CONTINUE TO RESONANCE",
+  "@crystalContinueToResonance": {
+    "description": "Button that skips the rest of the tutorial and goes on to the headphones step and the cymatic."
+  },
+  "crystalTutorialReminderBody": "Have you watched the video tutorial? It shows how to use your roller during the resonance.",
+  "@crystalTutorialReminderBody": {
+    "description": "Body of the reminder dialog shown when the user starts the frequency without having watched the tutorial."
+  },
+  "crystalWatchTutorial": "WATCH TUTORIAL",
+  "@crystalWatchTutorial": {
+    "description": "Primary button of the tutorial reminder dialog: opens the tutorial."
+  },
+  "tutorialPause": "Pause",
+  "@tutorialPause": {
+    "description": "Accessibility label of the pause button in the tutorial video controls."
+  },
+  "tutorialResume": "Resume",
+  "@tutorialResume": {
+    "description": "Accessibility label of the resume button in the tutorial video controls."
+  },
+  "tutorialReplay": "Replay",
+  "@tutorialReplay": {
+    "description": "Accessibility label of the replay button in the tutorial video controls."
+  },
+  "tutorialClose": "Close",
+  "@tutorialClose": {
+    "description": "Accessibility label of the close button of the tutorial video."
+  },
+  "cymaticStop": "Stop",
+  "@cymaticStop": {
+    "description": "Accessibility label of the stop button shown over the cymatic projection when the screen is tapped."
+  },
+  "resonanceReturnTitle": "RETURN TO COHERENCE",
+  "@resonanceReturnTitle": {
+    "description": "Title of the closing screen after the cymatic ends."
+  },
+  "resonanceReturnSubtitle": "Carry this moment of harmony with you",
+  "@resonanceReturnSubtitle": {
+    "description": "Subtitle of the closing screen after the cymatic ends."
+  },
+  "resonanceCompleteRitual": "COMPLETE MY RITUAL",
+  "@resonanceCompleteRitual": {
+    "description": "Primary button of the closing screen: returns to Home."
+  },
+  "resonanceExploreAnotherTemple": "EXPLORE ANOTHER TEMPLE",
+  "@resonanceExploreAnotherTemple": {
+    "description": "Secondary button of the closing screen: opens the Four Temples map."
+  },
+  "libraryCrystalHeadingWhyRecommended": "Why we recommended this crystal",
+  "@libraryCrystalHeadingWhyRecommended": {
+    "description": "Heading of the Library chapter, and label of the closing-screen link, explaining why this crystal was recommended to the user."
+  },
+  "resonanceDiscoverInLibraryLink": "Discover this crystal in the Library",
+  "@resonanceDiscoverInLibraryLink": {
+    "description": "Link on the closing screen, shown when the crystal is not the user's recommended one, that opens it in the Library."
+  },
+  "crystalTrackDurationSemantics": "Track length {duration}",
+  "@crystalTrackDurationSemantics": {
+    "description": "Accessibility label for the track length shown next to the frequency, for example 4:32.",
+    "placeholders": {
+      "duration": {"type": "String"}
+    }
   }
 }

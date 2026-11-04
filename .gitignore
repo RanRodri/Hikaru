@@ -47,6 +47,15 @@ app.*.map.json
 # Cursor MCP config (contains API keys)
 .cursor/mcp.json
 
+# Merkaba render lives in S3 (Merkaba/merkaba_full_5min.mp4), not in the repo
+/merkaba_full_5min.mp4
+
+# Crystal audio masters live in S3 and are used locally only to regenerate CYM
+/assets/audio/white_quartz.m4a
+/assets/audio/jade.m4a
+/assets/audio/obsidian.m4a
+/assets/audio/red_jasper.m4a
+
 # AWS Amplify
 .amplify/
 amplify_outputs*

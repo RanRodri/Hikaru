@@ -3,7 +3,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
-import '../../../core/media/remote_image.dart';
 import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/widgets/hikaru_navigation_bar.dart';
 import '../../../core/design_system/widgets/hikaru_page_intro.dart';
@@ -102,6 +101,7 @@ class _CollectionsConstellation extends StatelessWidget {
     );
   }
 }
+
 
 class _LightCenter extends StatelessWidget {
   const _LightCenter();

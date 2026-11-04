@@ -137,20 +137,23 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('01 / 10'), findsOneWidget);
-    expect(find.text('What is your skin asking for today?'), findsOneWidget);
+    expect(
+      find.text('What would you like to see reflected in the mirror today?'),
+      findsOneWidget,
+    );
     expect(find.text('NEXT'), findsOneWidget);
 
     const quizAnswers = [
-      'Calm and comfort',
-      'Sensitive or easily irritated',
-      'Emotionally overwhelmed',
-      'Stress and emotional pressure',
-      'Signs of stress or tension',
-      'Gentleness and balance',
-      'Return to harmony',
-      'Calm and nurtured',
-      '5 minutes',
-      'None of the above',
+      'Deeply hydrate',
+      'Sensitive',
+      'After a restless night',
+      'Cheeks',
+      'Overall facial harmony',
+      'Slightly sensitive',
+      'Refreshed',
+      'Harmony',
+      'Clarity and renewal',
+      'It is part of my regular routine',
     ];
     for (final answer in quizAnswers) {
       await tapQuizChoice(tester, answer);
@@ -165,10 +168,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('THE MIRROR GARDEN'), findsOneWidget);
-    expect(
-      find.text('Capture your beginning.'),
-      findsOneWidget,
-    );
+    expect(find.text('Capture your beginning.'), findsOneWidget);
     expect(find.text('CONTINUE'), findsOneWidget);
 
     await tester.ensureVisible(find.text('CONTINUE'));
@@ -201,6 +201,9 @@ class _WidgetBiometricGate implements BiometricGate {
 }
 
 class _WidgetAuthGateway implements AuthGateway {
+  @override
+  Future<void> signOut() async {}
+
   @override
   Future<void> confirmSignUp({
     required String username,

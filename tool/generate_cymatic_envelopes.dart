@@ -2,26 +2,42 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:hikaru/features/crystals/domain/crystal.dart';
 import 'package:hikaru/features/resonance_chamber/domain/cymatic_audio.dart';
+import 'package:hikaru/features/resonance_chamber/domain/cymatic_plate_profiles.g.dart';
 
-const _tracks = ['white_quartz', 'jade', 'obsidian', 'red_jasper'];
+const _tracks = <String, Crystal>{
+  'white_quartz': Crystal.whiteQuartz,
+  'jade': Crystal.jade,
+  'obsidian': Crystal.obsidian,
+  'red_jasper': Crystal.redJasper,
+};
 
-/// Decodes each crystal AAC to mono PCM and writes a `.cym` envelope.
+/// Decodes each crystal AAC to mono PCM and writes a CYM2 modal envelope.
 ///
-/// The `.m4a` masters live in S3 and are not shipped in the app. Place them
-/// at `assets/audio/` only while regenerating these envelopes.
+/// The `.m4a` masters live in S3 and are not shipped in the app. Pass a source
+/// directory containing them, or place them at `assets/audio/` temporarily.
 ///
-/// Run from the repo root: `dart run tool/generate_cymatic_envelopes.dart`.
-Future<void> main() async {
-  for (final name in _tracks) {
-    final source = 'assets/audio/$name.m4a';
+/// Run from the repo root:
+/// `dart run tool/generate_cymatic_envelopes.dart [source-directory]`.
+Future<void> main(List<String> arguments) async {
+  final sourceDirectory = arguments.isEmpty ? 'assets/audio' : arguments.first;
+  for (final MapEntry(key: name, value: crystal) in _tracks.entries) {
+    final source = '$sourceDirectory/$name.m4a';
+    if (!await File(source).exists()) {
+      throw StateError('Missing modal-analysis master: $source');
+    }
     final pcm = await _decodeMono(source);
-    final envelope = envelopeFromPcm(pcm);
+    final profile = crystal.cymaticPlateProfile;
+    final envelope = envelopeFromPcm(
+      pcm,
+      modalFrequencies: profile.frequencies,
+    );
     final bytes = envelope.encode();
     final destination = 'assets/audio/$name.cym';
     await File(destination).writeAsBytes(bytes, flush: true);
     stdout.writeln(
-      '$destination  ${envelope.frames} frames  '
+      '$destination  CYM2  ${envelope.frames} frames  '
       '${envelope.duration.inMilliseconds} ms  ${bytes.length} bytes',
     );
   }

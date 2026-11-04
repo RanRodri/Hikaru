@@ -1,3 +1,4 @@
+import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/backend/amplify_graphql.dart';
@@ -64,6 +65,42 @@ abstract class UserProfileGateway {
 final userProfileGatewayProvider = Provider<UserProfileGateway>(
   (ref) => AmplifyUserProfileGateway(),
 );
+
+/// Name and email of the signed-in member as Cognito keeps them.
+typedef CognitoIdentity = ({String? name, String? email});
+
+/// Reads the Cognito `name` and `email` attributes, the ones sign-up fills.
+/// Returns `null` without Amplify, without a session, or on any error.
+typedef CognitoIdentityReader = Future<CognitoIdentity?> Function();
+
+final cognitoIdentityReaderProvider = Provider<CognitoIdentityReader>(
+  (ref) => _readCognitoIdentity,
+);
+
+Future<CognitoIdentity?> _readCognitoIdentity() async {
+  if (!Amplify.isConfigured) return null;
+  try {
+    final session = await Amplify.Auth.fetchAuthSession();
+    if (!session.isSignedIn) return null;
+    final attributes = await Amplify.Auth.fetchUserAttributes();
+    String? valueOf(AuthUserAttributeKey key) {
+      for (final attribute in attributes) {
+        if (attribute.userAttributeKey == key) {
+          final value = attribute.value.trim();
+          return value.isEmpty ? null : value;
+        }
+      }
+      return null;
+    }
+
+    return (
+      name: valueOf(AuthUserAttributeKey.name),
+      email: valueOf(AuthUserAttributeKey.email),
+    );
+  } on AmplifyException {
+    return null;
+  }
+}
 
 class AmplifyUserProfileGateway implements UserProfileGateway {
   static const AmplifyGraphQL _api = AmplifyGraphQL('profile');

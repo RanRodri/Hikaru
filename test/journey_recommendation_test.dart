@@ -22,15 +22,15 @@ void main() {
     final recommendation = buildJourneyRecommendation(
       Crystal.obsidian,
       _answers({
-        1: [QuizOptionIds.q1HydrationSoftness],
-        7: [QuizOptionIds.q7UnderstandBeneath],
-        9: [QuizOptionIds.q9FiveMinutes],
+        1: [QuizOptionIds.q1DeeplyHydrate],
+        7: [QuizOptionIds.q7Grounded],
+        9: [QuizOptionIds.q9ClarityRenewal],
       }),
     );
 
     expect(recommendation.crystal, Crystal.obsidian);
     expect(recommendation.crystalTitle, 'The Mirror of the Unseen');
-    expect(recommendation.intention, 'Self-awareness and reflection');
+    expect(recommendation.intention, 'Grounding and inner strength');
     expect(recommendation.skinFocus, 'Hydration and gentle facial care');
     expect(recommendation.facialRitual, 'Hydration Protocol');
     expect(recommendation.durationMinutes, 5);
@@ -40,24 +40,26 @@ void main() {
     final recommendation = buildJourneyRecommendation(
       Crystal.jade,
       _answers({
-        1: [QuizOptionIds.q1RadianceVitality],
+        1: [QuizOptionIds.q1RestoreGlow],
         2: [QuizOptionIds.q2Sensitive],
-        9: [QuizOptionIds.q9ThreeMinutes],
+        9: [QuizOptionIds.q9ClarityRenewal],
       }),
     );
 
     expect(recommendation.facialRitual, 'Soothing Comfort Protocol');
-    expect(recommendation.durationMinutes, 3);
+    expect(recommendation.durationMinutes, 5);
   });
 
   test('persists recommendation for profile reuse', () async {
-    final repository = JourneyRecommendationRepository(SharedPreferencesAsync());
+    final repository = JourneyRecommendationRepository(
+      SharedPreferencesAsync(),
+    );
     final original = buildJourneyRecommendation(
       Crystal.whiteQuartz,
       _answers({
-        1: [QuizOptionIds.q1RadianceVitality],
-        7: [QuizOptionIds.q7GreaterClarity],
-        9: [QuizOptionIds.q9TenMinutes],
+        1: [QuizOptionIds.q1RestoreGlow],
+        7: [QuizOptionIds.q7MoreRadiant],
+        9: [QuizOptionIds.q9ClarityRenewal],
       }),
     );
 
@@ -67,7 +69,7 @@ void main() {
     expect(restored, isNotNull);
     expect(restored!.crystal, Crystal.whiteQuartz);
     expect(restored.facialRitual, 'Radiance Protocol');
-    expect(restored.durationMinutes, 10);
+    expect(restored.durationMinutes, 5);
     expect(restored.intention, 'Clarity and inner illumination');
   });
 }

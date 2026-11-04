@@ -1,0 +1,75 @@
+{
+  "library_id": "jade (existing)",
+  "provisional": true,
+  "note": "TODO(client): Provisional page assembled from existing app copy until the official Jade infographic arrives.",
+  "sections": [
+    {
+      "type": "brand",
+      "text": "HIKARU LIFT"
+    },
+    {
+      "type": "eyebrow",
+      "text": "THE CRYSTAL SANCTUARY"
+    },
+    {
+      "type": "title",
+      "text": "JADE"
+    },
+    {
+      "type": "subtitle",
+      "text": "TEMPLE OF HARMONY"
+    },
+    {
+      "type": "heading",
+      "text": "THE HARMONY CRYSTAL"
+    },
+    {
+      "type": "paragraph",
+      "text": "Nervous system regulation, emotional balance, recovery and deep calm."
+    },
+    {
+      "type": "image",
+      "asset": "crystal_photo.webp"
+    },
+    {
+      "type": "cards",
+      "layout": "grid2",
+      "items": [
+        {
+          "icon": "lotus",
+          "label": "NERVOUS SYSTEM REGULATION",
+          "desc": "Calms stress and restores deep inner balance"
+        },
+        {
+          "icon": "heart",
+          "label": "HEART-MIND COHERENCE",
+          "desc": "Promotes emotional harmony and heart connection"
+        },
+        {
+          "icon": "waves",
+          "label": "LYMPHATIC BALANCE",
+          "desc": "Calms inflammation and supports healthy skin tone"
+        },
+        {
+          "icon": "sparkle",
+          "label": "NATURAL RADIANCE",
+          "desc": "Enhances natural glow and overall skin wellness"
+        }
+      ]
+    },
+    {
+      "type": "card",
+      "heading": "THE ESSENCE",
+      "asset": "flower_of_life.webp",
+      "text": "HARMONY\nSupports balance, prosperity and vitality."
+    },
+    {
+      "type": "card",
+      "heading": "YOUR RITUAL",
+      "icon": "meditation",
+      "text": "Harmony, Self-Love, Renewal"
+    }
+  ],
+  "typos_fixed": [],
+  "topic": "crystal_jade"
+}

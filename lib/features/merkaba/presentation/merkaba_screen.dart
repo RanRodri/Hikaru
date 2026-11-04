@@ -1,32 +1,38 @@
 import 'dart:async';
 import 'dart:developer';
-import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
 import '../../../core/design_system/tokens/app_font_sizes.dart';
-import '../../../core/design_system/tokens/app_radii.dart';
 import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../journey/application/ritual_cycle_controller.dart';
+import '../../journey/data/ritual_cycle_gateway.dart'
+    show merkabaPracticedDaysReaderProvider;
+import '../../journey/data/ritual_cycle_repository.dart';
+import '../../journey/domain/ritual_cycle.dart'
+    show dateOnly, ritualCycleLength;
 import '../data/merkaba_progress_repository.dart';
+import '../data/merkaba_video_source.dart';
 import '../domain/merkaba_session.dart';
 import 'merkaba_painter.dart';
+import '../../../core/media/starry_night.dart';
+import 'merkaba_sanctuary.dart';
 import 'merkaba_soundscape.dart';
-import 'merkaba_texts.dart';
-
-const String merkabaStarryNightAsset = 'assets/images/merkaba_starry_night.jpg';
+import 'merkaba_video.dart';
 
 /// Called when the breath phase changes while the session is playing.
 ///
-/// Optional listener. The screen also plays the breath sound and chime.
+/// Optional listener. The screen also plays the breath sound.
 typedef MerkabaPhaseCue = void Function(BreathPhase phase);
 
 class MerkabaMeditationScreen extends ConsumerStatefulWidget {
@@ -36,6 +42,7 @@ class MerkabaMeditationScreen extends ConsumerStatefulWidget {
     this.onPhaseCue,
     this.replacementVisual,
     this.inCycle = false,
+    this.clock,
   });
 
   final Duration initialElapsed;
@@ -44,9 +51,14 @@ class MerkabaMeditationScreen extends ConsumerStatefulWidget {
   final bool inCycle;
   final MerkabaPhaseCue? onPhaseCue;
 
-  /// When set, replaces [MerkabaStage]'s painter. Intended for a pre-rendered
-  /// video of the same breath and scene timing.
+  /// When set, it is shown instead of the pre-rendered video. Without it the
+  /// screen plays the video, and draws [MerkabaStage]'s painter if the video
+  /// cannot be loaded.
   final Widget Function(MerkabaFrame frame)? replacementVisual;
+
+  /// Wall clock used to measure how long the session really took. Tests
+  /// replace it.
+  final DateTime Function()? clock;
 
   @override
   ConsumerState<MerkabaMeditationScreen> createState() =>
@@ -56,31 +68,68 @@ class MerkabaMeditationScreen extends ConsumerStatefulWidget {
 class _MerkabaMeditationScreenState
     extends ConsumerState<MerkabaMeditationScreen>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
-  static const Duration _sceneFade = Duration(milliseconds: 700);
+  static const Duration _controlsHideAfter = Duration(seconds: 3);
+  static const Duration _resumeSaveEvery = Duration(seconds: 5);
+  static const Duration _videoSyncEvery = Duration(seconds: 1);
 
-  late Duration _elapsed = widget.initialElapsed >= merkabaDuration
-      ? merkabaDuration
-      : (widget.initialElapsed.isNegative
-            ? Duration.zero
-            : widget.initialElapsed);
+  /// A frame gap longer than this is a stall, not time the user sat through.
+  static const Duration _maxTickStep = Duration(seconds: 1);
+
   late final Ticker _ticker;
   late final MerkabaProgressRepository _progress;
-  Duration _lastTick = Duration.zero;
-  bool _playing = false;
-  bool _started = false;
-  bool _recorded = false;
-  bool _womanPrecached = false;
-  Duration _lastResumeSave = Duration.zero;
+  MerkabaVideoPlayback? _video;
   final MerkabaSoundscape _sound = MerkabaSoundscape();
 
-  MerkabaFrame get _frame => merkabaFrameAt(_elapsed);
+  // The clock and everything derived from it live in notifiers, so only the
+  // widgets that show them rebuild. The screen itself rebuilds on finish.
+  late final ValueNotifier<Duration> _elapsed;
+  late final ValueNotifier<BreathPhase> _phase;
+  late final ValueNotifier<int> _cycles;
+  late final ValueNotifier<int> _sceneIndex;
+  late final ValueNotifier<int> _remainingSeconds;
+  final ValueNotifier<bool> _playing = ValueNotifier(false);
+  final ValueNotifier<bool> _controlsVisible = ValueNotifier(true);
+
+  Timer? _hideControls;
+  Duration _lastTick = Duration.zero;
+  Duration _lastResumeSave = Duration.zero;
+  Duration _lastVideoSync = Duration.zero;
+  bool _started = false;
+  bool _recorded = false;
+  bool _finished = false;
+  bool _scrubbing = false;
+  final ValueNotifier<_Summary> _summary = ValueNotifier(const _Summary());
+  DateTime? _sittingStart;
+  Duration _sittingOffset = Duration.zero;
+  Duration _sittingLength = Duration.zero;
+
+  DateTime _now() => (widget.clock ?? DateTime.now)();
 
   @override
   void initState() {
     super.initState();
     _progress = ref.read(merkabaProgressRepositoryProvider);
+    final initial = widget.initialElapsed >= merkabaDuration
+        ? merkabaDuration
+        : (widget.initialElapsed.isNegative
+              ? Duration.zero
+              : widget.initialElapsed);
+    final frame = merkabaFrameAt(initial);
+    _elapsed = ValueNotifier(initial);
+    _phase = ValueNotifier(frame.phase);
+    _cycles = ValueNotifier(frame.completedCycles);
+    _sceneIndex = ValueNotifier(merkabaScenes.indexOf(frame.scene));
+    _remainingSeconds = ValueNotifier(_secondsLeft(initial));
+    _finished = frame.isFinished;
+    _sittingLength = merkabaDuration;
+
     _ticker = createTicker(_handleTick);
     WidgetsBinding.instance.addObserver(this);
+    if (widget.replacementVisual == null) {
+      final source = ref.read(merkabaVideoSourceProvider);
+      _video = ref.read(merkabaVideoPlaybackFactoryProvider)(source)..load();
+    }
+    unawaited(_holdScreen());
     unawaited(_restoreResume());
   }
 
@@ -90,7 +139,37 @@ class _MerkabaMeditationScreenState
         state != AppLifecycleState.paused) {
       return;
     }
-    unawaited(_rememberPlace());
+    if (_playing.value) _pause();
+  }
+
+  /// Keeps the screen awake and upright for the whole session.
+  Future<void> _holdScreen() async {
+    try {
+      await SystemChrome.setPreferredOrientations(const [
+        DeviceOrientation.portraitUp,
+      ]);
+      await WakelockPlus.enable();
+    } catch (error, stackTrace) {
+      log(
+        'Merkaba could not hold the screen',
+        name: 'hikaru.merkaba',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  Future<void> _releaseScreen() async {
+    try {
+      await WakelockPlus.disable();
+    } catch (error, stackTrace) {
+      log(
+        'Merkaba could not release the screen',
+        name: 'hikaru.merkaba',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
   }
 
   Future<void> _restoreResume() async {
@@ -98,15 +177,16 @@ class _MerkabaMeditationScreenState
     final elapsed = await _progress.readResume();
     if (!mounted || elapsed == null || _started || _recorded) return;
     if (elapsed <= Duration.zero || elapsed >= merkabaDuration) return;
-    setState(() => _elapsed = elapsed);
+    _publish(elapsed, cue: false);
   }
 
   Future<void> _rememberPlace() async {
-    if (!_started || _recorded || _frame.isFinished) return;
-    if (_elapsed <= Duration.zero) return;
-    _lastResumeSave = _elapsed;
+    final elapsed = _elapsed.value;
+    if (!_started || _recorded || _finished) return;
+    if (elapsed <= Duration.zero) return;
+    _lastResumeSave = elapsed;
     try {
-      await _progress.saveResume(_elapsed);
+      await _progress.saveResume(elapsed);
     } catch (error, stackTrace) {
       log(
         'Merkaba resume point was not saved',
@@ -118,19 +198,22 @@ class _MerkabaMeditationScreenState
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_womanPrecached) return;
-    _womanPrecached = true;
-    unawaited(precacheImage(const AssetImage(merkabaWomanAsset), context));
-  }
-
-  @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _hideControls?.cancel();
     unawaited(_saveSession(completed: false));
     _ticker.dispose();
     unawaited(_sound.dispose());
+    _video?.dispose();
+    unawaited(_releaseScreen());
+    _elapsed.dispose();
+    _phase.dispose();
+    _cycles.dispose();
+    _sceneIndex.dispose();
+    _remainingSeconds.dispose();
+    _playing.dispose();
+    _controlsVisible.dispose();
+    _summary.dispose();
     super.dispose();
   }
 
@@ -138,19 +221,20 @@ class _MerkabaMeditationScreenState
     if (_recorded) return;
     if (!completed && !_started) return;
     _recorded = true;
-    final frame = merkabaFrameAt(_elapsed);
+    final elapsed = _elapsed.value;
+    final frame = merkabaFrameAt(elapsed);
     try {
       if (completed) {
         await _progress.clearResume();
       } else {
-        await _progress.saveResume(_elapsed);
+        await _progress.saveResume(elapsed);
       }
       await _progress.recordSession(
         MerkabaSessionRecord(
           date: DateTime.now(),
           completedCycles: frame.completedCycles,
           completed: completed,
-          elapsed: _elapsed,
+          elapsed: elapsed,
         ),
       );
     } catch (error, stackTrace) {
@@ -163,70 +247,183 @@ class _MerkabaMeditationScreenState
     }
   }
 
+  static int _secondsLeft(Duration elapsed) =>
+      ((merkabaDuration - elapsed).inMilliseconds / 1000).ceil().clamp(
+        0,
+        merkabaDuration.inSeconds,
+      );
+
+  /// Moves the session clock to [next] and updates only the values that
+  /// changed, so most frames notify nobody but the breath orb.
+  void _publish(Duration next, {required bool cue}) {
+    final frame = merkabaFrameAt(next);
+    _elapsed.value = next;
+    if (_phase.value != frame.phase) {
+      _phase.value = frame.phase;
+      if (cue) _cuePhase(frame.phase);
+    }
+    _cycles.value = frame.completedCycles;
+    _sceneIndex.value = merkabaScenes.indexOf(frame.scene);
+    _remainingSeconds.value = _secondsLeft(next);
+  }
+
   void _cuePhase(BreathPhase phase, {Duration into = Duration.zero}) {
     widget.onPhaseCue?.call(phase);
     unawaited(_sound.cue(phase, into: into));
   }
 
   void _handleTick(Duration sinceStart) {
-    if (!_playing) return;
-    final delta = sinceStart - _lastTick;
+    if (!_playing.value) return;
+    var delta = sinceStart - _lastTick;
     _lastTick = sinceStart;
-    final next = _elapsed + delta;
+    // While the bar is being dragged the person leads, not the clock.
+    if (_scrubbing) return;
+    if (delta.isNegative) delta = Duration.zero;
+    if (delta > _maxTickStep) delta = _maxTickStep;
+    final next = _elapsed.value + delta;
     if (next >= merkabaDuration) {
       _completeSession();
       return;
     }
-    final previous = merkabaFrameAt(_elapsed);
-    final frame = merkabaFrameAt(next);
-    if (previous.phase != frame.phase) {
-      _cuePhase(frame.phase);
+    _publish(next, cue: true);
+    if (next - _lastVideoSync >= _videoSyncEvery) {
+      _lastVideoSync = next;
+      unawaited(_video?.sync(next));
     }
-    setState(() => _elapsed = next);
-    if (next - _lastResumeSave >= const Duration(seconds: 5)) {
+    if (next - _lastResumeSave >= _resumeSaveEvery) {
       unawaited(_rememberPlace());
     }
   }
 
   void _completeSession() {
+    if (_finished) return;
     _ticker.stop();
+    _publish(merkabaDuration, cue: false);
+    _playing.value = false;
+    _hideControls?.cancel();
+    final start = _sittingStart;
     setState(() {
-      _elapsed = merkabaDuration;
-      _playing = false;
+      _finished = true;
+      _sittingLength = start == null
+          ? merkabaDuration
+          : _sittingOffset + _now().difference(start);
     });
     unawaited(_sound.finish());
-    unawaited(_saveSession(completed: true));
-    unawaited(ref.read(ritualCycleControllerProvider.notifier).markMerkaba());
+    final video = _video;
+    if (video != null) {
+      unawaited(video.pause());
+      unawaited(video.keepForNextTime());
+    }
+    unawaited(_recordCompletion());
+  }
+
+  /// Saves the sitting, marks today's Merkaba in the ritual and tells the
+  /// closing screen what was stored.
+  Future<void> _recordCompletion() async {
+    _summary.value = const _Summary(status: _SaveStatus.saving);
+    await _saveSession(completed: true);
+    var saved = true;
+    try {
+      await ref.read(ritualCycleControllerProvider.notifier).markMerkaba();
+    } catch (error, stackTrace) {
+      saved = false;
+      log(
+        'Merkaba completion was not recorded in the ritual',
+        name: 'hikaru.merkaba',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+    if (!mounted) return;
+    // markMerkaba keeps an unsent change on the device instead of throwing,
+    // so ask whether the backend actually has today's sitting.
+    try {
+      if (await ref.read(ritualCycleRepositoryProvider).hasPending()) {
+        saved = false;
+      }
+    } catch (_) {}
+    if (!mounted) return;
+    var practicedDays = 1;
+    try {
+      final history = await _progress.history();
+      final onDevice = history
+          .where((record) => record.completed)
+          .map((record) => dateOnly(record.date))
+          .toSet()
+          .length;
+      // The backend counts the days from every phone; the device only knows
+      // its own. The larger of the two is the honest number.
+      final inBackend = await ref.read(merkabaPracticedDaysReaderProvider)();
+      practicedDays = inBackend != null && inBackend > onDevice
+          ? inBackend
+          : onDevice;
+    } catch (error, stackTrace) {
+      log(
+        'Merkaba history could not be read',
+        name: 'hikaru.merkaba',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+    if (!mounted) return;
+    _summary.value = _Summary(
+      status: saved ? _SaveStatus.saved : _SaveStatus.onDevice,
+      cycleDay: ref.read(journeyProgressProvider).currentDay,
+      practicedDays: practicedDays < 1 ? 1 : practicedDays,
+    );
   }
 
   void _handlePlayPause() {
-    if (_frame.isFinished) return;
-    _started = true;
-    if (_playing) {
-      setState(() => _playing = false);
-      _ticker.stop();
-      unawaited(_sound.pause());
-      unawaited(_rememberPlace());
-      return;
+    if (_finished) return;
+    if (_playing.value) {
+      _pause();
+    } else {
+      _play();
     }
-    final frame = _frame;
-    setState(() => _playing = true);
+  }
+
+  void _play() {
+    _started = true;
+    final elapsed = _elapsed.value;
+    if (_sittingStart == null) {
+      _sittingStart = _now();
+      _sittingOffset = elapsed;
+    }
+    final frame = merkabaFrameAt(elapsed);
+    _playing.value = true;
+    _lastVideoSync = elapsed;
     unawaited(_sound.startAmbient());
     _cuePhase(frame.phase, into: frame.phaseElapsed);
+    unawaited(_video?.play(elapsed));
     _lastTick = Duration.zero;
     _ticker.start();
+    _scheduleHide();
+  }
+
+  void _pause() {
+    _playing.value = false;
+    _ticker.stop();
+    _hideControls?.cancel();
+    _controlsVisible.value = true;
+    unawaited(_sound.pause());
+    unawaited(_video?.pause());
+    unawaited(_rememberPlace());
   }
 
   void _handleRepeat() {
     _recorded = false;
     _lastResumeSave = Duration.zero;
+    _sittingStart = null;
+    _sittingOffset = Duration.zero;
     unawaited(_progress.clearResume());
-    setState(() => _elapsed = Duration.zero);
-    _handlePlayPause();
+    _publish(Duration.zero, cue: false);
+    setState(() => _finished = false);
+    _play();
   }
 
   void _handleBack() {
     unawaited(_saveSession(completed: false));
+    unawaited(_video?.pause());
     if (context.canPop()) {
       context.pop();
       return;
@@ -238,401 +435,243 @@ class _MerkabaMeditationScreenState
     context.go(AppRoutes.cycle(AppRoutes.ritualFace));
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final frame = _frame;
-    final visual = widget.replacementVisual?.call(frame);
-    final reduceMotion = MediaQuery.disableAnimationsOf(context);
-    final breath = reduceMotion ? merkabaRestingBreath : frame.breathLevel;
-    final sceneFade = reduceMotion ? Duration.zero : _sceneFade;
-
-    return Scaffold(
-      backgroundColor: AppColors.darkIndigoBlue,
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          const Image(
-            image: AssetImage(merkabaStarryNightAsset),
-            fit: BoxFit.cover,
-            excludeFromSemantics: true,
-          ),
-          SafeArea(
-            child: frame.isFinished
-                ? _Finished(
-                    onBack: _handleBack,
-                    onRepeat: _handleRepeat,
-                    onContinue: widget.inCycle ? _handleCycleContinue : null,
-                  )
-                : Column(
-                    children: [
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: _TextControl(
-                          label: l10n.commonBack,
-                          onPressed: _handleBack,
-                        ),
-                      ),
-                      _SceneTitle(scene: frame.scene, fade: sceneFade),
-                      Expanded(
-                        child: MerkabaStage(frame: frame, replacement: visual),
-                      ),
-                      _BreathPanel(
-                        frame: frame,
-                        breath: breath,
-                        sceneFade: sceneFade,
-                        playing: _playing,
-                        onPlayPause: _handlePlayPause,
-                      ),
-                    ],
-                  ),
-          ),
-        ],
-      ),
-    );
+  void _handleSeekStart() {
+    _scrubbing = true;
+    _hideControls?.cancel();
+    _controlsVisible.value = true;
   }
-}
 
-/// Title of the current scene, at the top of the screen.
-class _SceneTitle extends StatelessWidget {
-  const _SceneTitle({required this.scene, required this.fade});
+  void _handleSeek(Duration to) => _publish(to, cue: false);
 
-  final MerkabaScene scene;
-  final Duration fade;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final number = merkabaScenes.indexOf(scene) + 1;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s24),
-      child: AnimatedSwitcher(
-        duration: fade,
-        child: Semantics(
-          key: ValueKey(scene.title),
-          header: true,
-          child: Column(
-            children: [
-              Text(
-                l10n.merkabaSceneOf(number, merkabaScenes.length),
-                style: AppTypography.subheadline.copyWith(
-                  color: AppColors.champagneGold,
-                  fontSize: AppFontSizes.s10,
-                  letterSpacing: 2,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.s4),
-              Text(
-                l10n.merkabaSceneTitle(scene),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                style: AppTypography.headline.copyWith(
-                  color: AppColors.white,
-                  fontSize: AppFontSizes.s20,
-                  height: 1.2,
-                  letterSpacing: 1.2,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Bottom card: breathing mudra, breath count, cycle progress, phase ring,
-/// session bar and the play control.
-class _BreathPanel extends StatelessWidget {
-  const _BreathPanel({
-    required this.frame,
-    required this.breath,
-    required this.sceneFade,
-    required this.playing,
-    required this.onPlayPause,
-  });
-
-  final MerkabaFrame frame;
-  final double breath;
-  final Duration sceneFade;
-  final bool playing;
-  final VoidCallback onPlayPause;
-
-  @override
-  Widget build(BuildContext context) {
-    final clock =
-        '${formatMerkabaClock(frame.elapsed)} / ${formatMerkabaClock(merkabaDuration)}';
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.s16,
-        AppSpacing.s8,
-        AppSpacing.s16,
-        AppSpacing.s8,
-      ),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppRadii.r20),
-          border: Border.all(
-            color: AppColors.champagneGold.withValues(alpha: 0.45),
-            width: 0.75,
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.s16,
-            AppSpacing.s14,
-            AppSpacing.s16,
-            AppSpacing.s4,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  _BreathingMudra(
-                    scene: frame.scene,
-                    breath: breath,
-                    fade: sceneFade,
-                  ),
-                  const SizedBox(width: AppSpacing.s14),
-                  Expanded(child: _BreathCount(frame: frame)),
-                  _BreathGuide(frame: frame),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.s12),
-              _SessionProgressBar(progress: frame.sessionProgress),
-              Row(
-                children: [
-                  Text(
-                    clock,
-                    style: AppTypography.subheadline.copyWith(
-                      color: AppColors.white,
-                      fontSize: AppFontSizes.s12,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                  const Spacer(),
-                  _TextControl(
-                    label: playing
-                        ? AppLocalizations.of(context).merkabaPause
-                        : AppLocalizations.of(context).merkabaPlay,
-                    onPressed: onPlayPause,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Mudra of the scene. It swells and glows with each inhale, stays full on
-/// the hold and settles on the exhale; a new scene fades in its mudra.
-class _BreathingMudra extends StatelessWidget {
-  const _BreathingMudra({
-    required this.scene,
-    required this.breath,
-    required this.fade,
-  });
-
-  static const double _haloSize = 72;
-  static const double _iconSize = 44;
-
-  final MerkabaScene scene;
-  final double breath;
-  final Duration fade;
-
-  @override
-  Widget build(BuildContext context) {
-    final eased = Curves.easeInOut.transform(breath.clamp(0.0, 1.0));
-    final l10n = AppLocalizations.of(context);
-
-    return Semantics(
-      label: '${scene.mudra}. ${l10n.merkabaScenePurpose(scene)}',
-      excludeSemantics: true,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox.square(
-            dimension: _haloSize,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    AppColors.champagneGold.withValues(
-                      alpha: 0.08 + 0.3 * eased,
-                    ),
-                    AppColors.champagneGold.withValues(alpha: 0),
-                  ],
-                ),
-              ),
-              child: Center(
-                child: Transform.scale(
-                  scale: 0.88 + 0.16 * eased,
-                  child: AnimatedSwitcher(
-                    duration: fade,
-                    child: SvgPicture.asset(
-                      scene.mudraAsset,
-                      key: ValueKey(scene.mudraAsset),
-                      width: _iconSize,
-                      height: _iconSize,
-                      excludeFromSemantics: true,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.s2),
-          AnimatedSwitcher(
-            duration: fade,
-            child: Text(
-              scene.mudra,
-              key: ValueKey(scene.mudra),
-              style: AppTypography.subheadline.copyWith(
-                color: AppColors.champagneGold,
-                fontSize: AppFontSizes.s10,
-                letterSpacing: 0.6,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Breaths done so far out of the session total, and how far into the
-/// current 4-4-6 cycle the user is.
-class _BreathCount extends StatelessWidget {
-  const _BreathCount({required this.frame});
-
-  final MerkabaFrame frame;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final cyclePercent = (frame.cycleProgress * 100).floor();
-
-    return Semantics(
-      label: l10n.merkabaBreathsSemantics(
-        frame.completedCycles,
-        merkabaTotalBreaths,
-        cyclePercent,
-      ),
-      excludeSemantics: true,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.merkabaBreaths,
-            style: AppTypography.subheadline.copyWith(
-              color: AppColors.champagneGold,
-              fontSize: AppFontSizes.s10,
-              letterSpacing: 2,
-            ),
-          ),
-          Text(
-            '${frame.completedCycles} / $merkabaTotalBreaths',
-            style: AppTypography.title.copyWith(
-              color: AppColors.white,
-              fontSize: AppFontSizes.s26,
-              height: 1.2,
-            ),
-          ),
-          Text(
-            l10n.merkabaCycle(cyclePercent),
-            style: AppTypography.subheadline.copyWith(
-              color: AppColors.fog,
-              fontSize: AppFontSizes.s11,
-              letterSpacing: 1.1,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SessionProgressBar extends StatelessWidget {
-  const _SessionProgressBar({required this.progress});
-
-  final double progress;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Semantics(
-      label: l10n.merkabaSessionProgress,
-      value: l10n.merkabaPercentValue((progress * 100).round()),
-      child: SizedBox(
-        height: 8,
-        width: double.infinity,
-        child: CustomPaint(
-          painter: _SessionBarPainter(progress: progress),
-          child: const SizedBox.expand(),
-        ),
-      ),
-    );
-  }
-}
-
-class _SessionBarPainter extends CustomPainter {
-  const _SessionBarPainter({required this.progress});
-
-  final double progress;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final total = merkabaDuration.inMilliseconds;
-    if (total == 0 || size.width <= 0) return;
-    const gap = 3.0;
-    final usable = size.width - gap * (merkabaScenes.length - 1);
-    final radius = Radius.circular(size.height / 2);
-    final track = Paint()
-      ..color = AppColors.champagneGold.withValues(alpha: 0.28);
-    final fill = Paint()..color = AppColors.champagneGold;
-    var x = 0.0;
-    final clamped = progress.clamp(0.0, 1.0);
-    for (final scene in merkabaScenes) {
-      final span = (scene.end - scene.start).inMilliseconds / total;
-      final width = usable * span;
-      final rect = RRect.fromRectAndRadius(
-        Rect.fromLTWH(x, 0, width, size.height),
-        radius,
-      );
-      canvas.drawRRect(rect, track);
-      final start = scene.start.inMilliseconds / total;
-      final local = span == 0
-          ? 0.0
-          : ((clamped - start) / span).clamp(0.0, 1.0);
-      if (local > 0) {
-        canvas.save();
-        canvas.clipRRect(rect);
-        canvas.drawRect(Rect.fromLTWH(x, 0, width * local, size.height), fill);
-        canvas.restore();
-      }
-      x += width + gap;
+  void _handleSeekEnd(Duration to) {
+    _publish(to, cue: false);
+    _scrubbing = false;
+    _lastVideoSync = to;
+    _lastResumeSave = to;
+    unawaited(_video?.seek(to));
+    if (_playing.value) {
+      final frame = merkabaFrameAt(to);
+      _cuePhase(frame.phase, into: frame.phaseElapsed);
+      _scheduleHide();
     }
   }
 
+  void _handleSurfaceTap() {
+    _controlsVisible.value = true;
+    _scheduleHide();
+  }
+
+  void _scheduleHide() {
+    _hideControls?.cancel();
+    if (!_playing.value) return;
+    if (MediaQuery.maybeAccessibleNavigationOf(context) ?? false) return;
+    _hideControls = Timer(_controlsHideAfter, () {
+      if (_playing.value) _controlsVisible.value = false;
+    });
+  }
+
+  Widget _buildStage() {
+    final custom = widget.replacementVisual;
+    if (custom != null) {
+      return ValueListenableBuilder<Duration>(
+        valueListenable: _elapsed,
+        builder: (context, elapsed, _) {
+          final frame = merkabaFrameAt(elapsed);
+          return MerkabaStage(frame: frame, replacement: custom(frame));
+        },
+      );
+    }
+    final painter = ValueListenableBuilder<Duration>(
+      valueListenable: _elapsed,
+      builder: (context, elapsed, _) =>
+          MerkabaStage(frame: merkabaFrameAt(elapsed)),
+    );
+    return MerkabaStage(
+      frame: merkabaFrameAt(_elapsed.value),
+      replacement: MerkabaVideoLayer(playback: _video!, fallback: painter),
+    );
+  }
+
   @override
-  bool shouldRepaint(covariant _SessionBarPainter oldDelegate) =>
-      oldDelegate.progress != progress;
+  Widget build(BuildContext context) {
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    final video = _video;
+
+    return Scaffold(
+      backgroundColor: AppColors.darkIndigoBlue,
+      body: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: _handleSurfaceTap,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            const Image(
+              image: AssetImage(merkabaStarryNightAsset),
+              fit: BoxFit.cover,
+              excludeFromSemantics: true,
+            ),
+            Positioned.fill(
+              child: Offstage(offstage: _finished, child: _buildStage()),
+            ),
+            const MerkabaSanctuaryFrame(),
+            Positioned.fill(
+              child: Offstage(
+                offstage: _finished,
+                child: video == null
+                    ? MerkabaBreathOrb(
+                        elapsed: _elapsed,
+                        reduceMotion: reduceMotion,
+                      )
+                    : ListenableBuilder(
+                        listenable: video,
+                        builder: (context, _) =>
+                            video.status == MerkabaVideoStatus.ready
+                            ? MerkabaBreathOrb(
+                                elapsed: _elapsed,
+                                reduceMotion: reduceMotion,
+                              )
+                            : const SizedBox.shrink(),
+                      ),
+              ),
+            ),
+            SafeArea(
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Offstage(
+                    offstage: _finished,
+                    child: _Session(
+                      sceneIndex: _sceneIndex,
+                      phase: _phase,
+                      cycles: _cycles,
+                      remainingSeconds: _remainingSeconds,
+                      playing: _playing,
+                      elapsed: _elapsed,
+                      controlsVisible: _controlsVisible,
+                      reduceMotion: reduceMotion,
+                      onPlayPause: _handlePlayPause,
+                      onLeave: _handleBack,
+                      onSeekStart: _handleSeekStart,
+                      onSeek: _handleSeek,
+                      onSeekEnd: _handleSeekEnd,
+                    ),
+                  ),
+                  Offstage(
+                    offstage: !_finished,
+                    child: _Finished(
+                      length: _sittingLength,
+                      summary: _summary,
+                      onBack: _handleBack,
+                      onRepeat: _handleRepeat,
+                      onContinue: widget.inCycle ? _handleCycleContinue : null,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Mudra on top; breath text, counter, time left and controls below. The
+/// middle stays empty for the figure.
+class _Session extends StatelessWidget {
+  const _Session({
+    required this.sceneIndex,
+    required this.phase,
+    required this.cycles,
+    required this.remainingSeconds,
+    required this.playing,
+    required this.elapsed,
+    required this.controlsVisible,
+    required this.reduceMotion,
+    required this.onPlayPause,
+    required this.onLeave,
+    required this.onSeekStart,
+    required this.onSeek,
+    required this.onSeekEnd,
+  });
+
+  final ValueListenable<int> sceneIndex;
+  final ValueListenable<BreathPhase> phase;
+  final ValueListenable<int> cycles;
+  final ValueListenable<int> remainingSeconds;
+  final ValueListenable<bool> playing;
+  final ValueListenable<Duration> elapsed;
+  final ValueListenable<bool> controlsVisible;
+  final bool reduceMotion;
+  final VoidCallback onPlayPause;
+  final VoidCallback onLeave;
+  final VoidCallback onSeekStart;
+  final ValueChanged<Duration> onSeek;
+  final ValueChanged<Duration> onSeekEnd;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        const SizedBox(height: AppSpacing.s24),
+        MerkabaMudraTitle(sceneIndex: sceneIndex, reduceMotion: reduceMotion),
+        const Spacer(),
+        MerkabaControls(
+          visible: controlsVisible,
+          playing: playing,
+          elapsed: elapsed,
+          onPlayPause: onPlayPause,
+          onLeave: onLeave,
+          onSeekStart: onSeekStart,
+          onSeek: onSeek,
+          onSeekEnd: onSeekEnd,
+          reduceMotion: reduceMotion,
+        ),
+        const SizedBox(height: AppSpacing.s6),
+        MerkabaBreathPanel(
+          phase: phase,
+          elapsed: elapsed,
+          cycles: cycles,
+          remainingSeconds: remainingSeconds,
+          reduceMotion: reduceMotion,
+        ),
+        const SizedBox(height: AppSpacing.s12),
+      ],
+    );
+  }
+}
+
+enum _SaveStatus { idle, saving, saved, onDevice }
+
+/// What the closing screen says about the progress of today.
+class _Summary {
+  const _Summary({
+    this.status = _SaveStatus.idle,
+    this.cycleDay,
+    this.practicedDays = 0,
+  });
+
+  final _SaveStatus status;
+
+  /// Day of the 30-day cycle, once the ritual has been marked.
+  final int? cycleDay;
+
+  /// Distinct days with a finished Merkaba.
+  final int practicedDays;
 }
 
 class _Finished extends StatelessWidget {
   const _Finished({
+    required this.length,
+    required this.summary,
     required this.onBack,
     required this.onRepeat,
     this.onContinue,
   });
 
+  /// How long the sitting really lasted, pauses included.
+  final Duration length;
+  final ValueListenable<_Summary> summary;
   final VoidCallback onBack;
   final VoidCallback onRepeat;
   final VoidCallback? onContinue;
@@ -644,7 +683,7 @@ class _Finished extends StatelessWidget {
       children: [
         Align(
           alignment: Alignment.centerLeft,
-          child: _TextControl(label: l10n.commonBack, onPressed: onBack),
+          child: MerkabaTextControl(label: l10n.commonBack, onPressed: onBack),
         ),
         const Spacer(),
         Text(
@@ -653,122 +692,90 @@ class _Finished extends StatelessWidget {
           style: AppTypography.title.copyWith(
             color: AppColors.white,
             fontSize: AppFontSizes.s32,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.s12),
-        Text(
-          formatMerkabaClock(merkabaDuration),
-          style: AppTypography.subheadline.copyWith(
-            color: AppColors.champagneGold,
-            fontSize: AppFontSizes.s12,
-            letterSpacing: 1.4,
+            fontWeight: FontWeight.w300,
           ),
         ),
         const SizedBox(height: AppSpacing.s24),
+        Text(
+          l10n.merkabaSessionLength,
+          style: AppTypography.subheadline.copyWith(
+            color: AppColors.champagneGold,
+            fontSize: AppFontSizes.s10,
+            letterSpacing: 2.4,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.s4),
+        Text(
+          formatMerkabaClock(length),
+          style: AppTypography.subheadline.copyWith(
+            color: AppColors.cymaticTurquoise,
+            fontSize: AppFontSizes.s16,
+            letterSpacing: 2,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.s24),
+        ValueListenableBuilder<_Summary>(
+          valueListenable: summary,
+          builder: (context, value, _) => _ProgressNote(summary: value),
+        ),
+        const SizedBox(height: AppSpacing.s24),
         if (onContinue != null) ...[
-          _TextControl(label: l10n.commonContinue, onPressed: onContinue!),
+          MerkabaTextControl(
+            label: l10n.commonContinue,
+            onPressed: onContinue!,
+          ),
           const SizedBox(height: AppSpacing.s12),
         ],
-        _TextControl(label: l10n.merkabaRepeat, onPressed: onRepeat),
+        MerkabaTextControl(label: l10n.merkabaRepeat, onPressed: onRepeat),
         const Spacer(),
       ],
     );
   }
 }
 
-class _BreathGuide extends StatelessWidget {
-  const _BreathGuide({required this.frame});
+/// Tells whether today's sitting and the streak were saved.
+class _ProgressNote extends StatelessWidget {
+  const _ProgressNote({required this.summary});
 
-  static const double _size = 84;
-
-  final MerkabaFrame frame;
+  final _Summary summary;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox.square(
-      dimension: _size,
-      child: CustomPaint(
-        painter: _RingPainter(progress: 1 - frame.phaseProgress),
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                AppLocalizations.of(context).merkabaPhaseLabel(frame.phase),
-                style: AppTypography.subheadline.copyWith(
-                  color: AppColors.champagneGold,
-                  fontSize: AppFontSizes.s10,
-                  letterSpacing: 1.1,
-                ),
-              ),
-              Text(
-                '${frame.phaseSecondsRemaining}',
-                style: AppTypography.title.copyWith(
-                  color: AppColors.white,
-                  fontSize: AppFontSizes.s28,
-                  height: 1.1,
-                ),
-              ),
-            ],
+    final l10n = AppLocalizations.of(context);
+    final text = switch (summary.status) {
+      _SaveStatus.idle => null,
+      _SaveStatus.saving => l10n.merkabaSaving,
+      _SaveStatus.saved => l10n.merkabaSaved,
+      _SaveStatus.onDevice => l10n.merkabaSavedOnDevice,
+    };
+    if (text == null) return const SizedBox(height: AppFontSizes.s11 * 2);
+    final cycleDay = summary.cycleDay;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          text,
+          style: AppTypography.subheadline.copyWith(
+            color: AppColors.cymaticIndigoLight.withValues(alpha: 0.75),
+            fontSize: AppFontSizes.s11,
+            letterSpacing: 0.8,
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _RingPainter extends CustomPainter {
-  const _RingPainter({required this.progress});
-
-  final double progress;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final rect = Offset.zero & size;
-    final center = rect.center;
-    final radius = size.shortestSide / 2 - 4;
-    final base = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2
-      ..color = AppColors.champagneGold.withValues(alpha: 0.25);
-    final arc = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2
-      ..strokeCap = StrokeCap.round
-      ..color = AppColors.champagneGold;
-    canvas.drawCircle(center, radius, base);
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      -math.pi / 2,
-      progress.clamp(0.0, 1.0) * math.pi * 2,
-      false,
-      arc,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _RingPainter oldDelegate) =>
-      oldDelegate.progress != progress;
-}
-
-class _TextControl extends StatelessWidget {
-  const _TextControl({required this.label, required this.onPressed});
-
-  final String label;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return TextButton(
-      onPressed: onPressed,
-      child: Text(
-        label,
-        style: AppTypography.subheadline.copyWith(
-          color: AppColors.champagneGold,
-          fontSize: AppFontSizes.s12,
-          letterSpacing: 1.6,
-        ),
-      ),
+        if (summary.status != _SaveStatus.saving) ...[
+          const SizedBox(height: AppSpacing.s4),
+          Text(
+            cycleDay == null
+                ? l10n.merkabaDaysPracticed(summary.practicedDays)
+                : '${l10n.merkabaCycleDay(cycleDay, ritualCycleLength)} · '
+                      '${l10n.merkabaDaysPracticed(summary.practicedDays)}',
+            style: AppTypography.subheadline.copyWith(
+              color: AppColors.champagneGold.withValues(alpha: 0.7),
+              fontSize: AppFontSizes.s11,
+              letterSpacing: 0.6,
+            ),
+          ),
+        ],
+      ],
     );
   }
 }

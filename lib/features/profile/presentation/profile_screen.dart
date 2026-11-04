@@ -35,6 +35,10 @@ class ProfileScreen extends StatelessWidget {
         const LanguageCard(),
         const SizedBox(height: _cardGap),
         const CycleCard(),
+        const SizedBox(height: _cardGap),
+        const SignOutButton(),
+        // Lifts the button above the fade that sits over the navigation bar.
+        const SizedBox(height: AppSpacing.s64),
       ],
     );
   }

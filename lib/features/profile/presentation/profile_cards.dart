@@ -14,6 +14,7 @@ import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../auth/application/sign_out.dart';
 import '../../journey/application/ritual_cycle_controller.dart';
 import '../application/member_profile_controller.dart';
 import '../application/ritual_reminders_controller.dart';
@@ -649,6 +650,132 @@ class _LanguageOption extends StatelessWidget {
                   fontSize: AppFontSizes.s9_7,
                   color: selected ? AppColors.champagneGold : _ink,
                 ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Quiet sign-out at the end of Settings, behind a confirmation.
+class SignOutButton extends ConsumerStatefulWidget {
+  const SignOutButton({super.key});
+
+  @override
+  ConsumerState<SignOutButton> createState() => _SignOutButtonState();
+}
+
+class _SignOutButtonState extends ConsumerState<SignOutButton> {
+  var _busy = false;
+
+  Future<void> _handlePressed() async {
+    if (_busy) return;
+    final l10n = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierColor: AppColors.scrim60,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.darkIndigoBlue,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppJournal.radius),
+          side: BorderSide(color: AppJournal.border, width: 0.9),
+        ),
+        title: Text(
+          l10n.profileSignOutTitle,
+          style: _cardText.copyWith(fontSize: AppFontSizes.s16),
+        ),
+        content: Text(
+          l10n.profileSignOutBody,
+          style: _cardText.copyWith(
+            color: AppColors.fog,
+            fontSize: AppFontSizes.s12,
+            height: 1.45,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(
+              l10n.profileSignOutCancel,
+              style: _sectionLabel.copyWith(
+                color: AppColors.fog,
+                fontSize: AppFontSizes.s11,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(
+              l10n.profileSignOutConfirm,
+              style: _sectionLabel.copyWith(fontSize: AppFontSizes.s11),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _busy = true);
+    try {
+      await signOutMember(ref);
+      if (!mounted) return;
+      context.go(AppRoutes.login);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _busy = false);
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(SnackBar(content: Text(l10n.profileSignOutError)));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
+    // Same dark glass as the cards above, so it reads over any part of the
+    // garden photo, including the bright rocks at the bottom.
+    return Semantics(
+      button: true,
+      label: l10n.profileSignOut,
+      excludeSemantics: true,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppJournal.radius),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(
+            sigmaX: AppJournal.blur,
+            sigmaY: AppJournal.blur,
+          ),
+          child: TextButton.icon(
+            onPressed: _busy ? null : _handlePressed,
+            style: TextButton.styleFrom(
+              foregroundColor: _accent,
+              disabledForegroundColor: _accent,
+              backgroundColor: AppColors.darkIndigoBlue.withValues(alpha: 0.82),
+              minimumSize: const Size.fromHeight(52),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s20),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppJournal.radius),
+                side: const BorderSide(color: _accent, width: 0.9),
+              ),
+            ),
+            icon: _busy
+                ? const SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: _accent,
+                    ),
+                  )
+                : const Icon(Icons.logout, size: 16),
+            label: Text(
+              l10n.profileSignOut,
+              style: _sectionLabel.copyWith(
+                fontSize: AppFontSizes.s12,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),

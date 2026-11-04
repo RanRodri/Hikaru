@@ -56,13 +56,8 @@ LibraryArticle _crystalArticle(Crystal crystal) {
   );
 }
 
-String _frequencyCopy(Crystal crystal) {
-  final tail = crystal.protocol.contains(Crystal.composer)
-      ? '${Crystal.sessionLength}.'
-      : '${Crystal.sessionLength}. ${Crystal.composer}.';
-  return '${crystal.frequency}. ${crystal.frequencyDetail}. '
-      '${crystal.protocol}. $tail';
-}
+String _frequencyCopy(Crystal crystal) =>
+    '${crystal.frequency}. ${crystal.frequencyDetail}. ${crystal.protocol}.';
 
 const Map<Crystal, String> _intentions = {
   Crystal.jade: 'Harmony, Self-Love, Renewal',
@@ -101,9 +96,9 @@ final LibraryArticle _merkaba = LibraryArticle(
     ),
     const LibraryBlock(
       'Cues',
-      'One clear chime cues Inhale (4 seconds). '
-          'A soft sustained shimmer cues Hold (4 seconds). '
-          'A warm lower chime cues Exhale (6 seconds).',
+      'A soft breath and a golden circle of light cue Inhale (4 seconds). '
+          'The light rests and shimmers on Hold (4 seconds). '
+          'The circle gently shrinks on Exhale (6 seconds).',
     ),
   ],
 );

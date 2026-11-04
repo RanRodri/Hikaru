@@ -23,12 +23,16 @@ import '../../crystals/application/selected_crystal_controller.dart';
 import '../../crystals/domain/crystal.dart';
 import '../../crystals/presentation/crystal_texts.dart';
 import '../../journey/application/ritual_cycle_controller.dart';
+import '../../listening_room/application/journey_recommendation_controller.dart';
+import '../application/crystal_track_duration.dart';
 import '../data/crystal_audio_store.dart';
+import '../data/crystal_tutorial_progress.dart';
 import '../data/cymatic_headphones_prompts.dart';
 import '../domain/cymatic_audio.dart';
-import 'crystal_scene_photo.dart';
+import 'crystal_cymatic_portrait.dart';
+import 'crystal_tutorial_player.dart';
 import 'cymatic_audio_loader.dart';
-import 'cymatic_kaleidoscope.dart';
+import 'cymatic_plate.dart';
 import 'cymatic_projection.dart';
 import 'resonance_sections.dart';
 
@@ -38,6 +42,10 @@ final TextStyle _bodyStyle = AppTypography.headline.copyWith(
   height: 1.6,
   letterSpacing: 0.2,
 );
+
+/// Where the crystal screen is in its flow:
+/// overview → tutorial → headphones → projecting → completion.
+enum _ResonancePhase { overview, tutorial, projecting, completion }
 
 class CrystalResonanceScreen extends ConsumerStatefulWidget {
   const CrystalResonanceScreen({super.key, required this.crystal});
@@ -51,27 +59,39 @@ class CrystalResonanceScreen extends ConsumerStatefulWidget {
 
 class _CrystalResonanceScreenState
     extends ConsumerState<CrystalResonanceScreen> {
-  static const double _heroScreenRatio = 0.3;
-  static const double _minHeroHeight = 188;
-  static const double _maxHeroHeight = 280;
+  static const Duration _phaseDuration = Duration(milliseconds: 500);
 
   final AudioPlayer _player = AudioPlayer();
   final ValueNotifier<Duration> _position = ValueNotifier(Duration.zero);
   final CymaticHeadphonesPrompts _prompts = CymaticHeadphonesPrompts(
     SharedPreferencesAsync(),
   );
+  final CrystalTutorialProgress _progress = CrystalTutorialProgress(
+    SharedPreferencesAsync(),
+  );
   late final StreamSubscription<PlayerState> _playerStateSubscription;
   late final StreamSubscription<Duration> _positionSubscription;
+  late final StreamSubscription<void> _playerCompleteSubscription;
+
+  /// Stand-in for the player when there is no audio: the plate keeps its
+  /// simulated pulse and the ritual still ends after the real track length.
+  final Stopwatch _simulatedClock = Stopwatch();
+  Timer? _simulatedEnd;
+
+  _ResonancePhase _phase = _ResonancePhase.overview;
   bool _isPlaying = false;
   bool _isAudioUnavailable = false;
-  bool _projecting = false;
   bool _controlsVisible = false;
   bool _followPlayerPause = false;
   bool _choosing = false;
+  bool _reminding = false;
+  bool _starting = false;
   int _playbackToken = 0;
   CymaticEnvelope? _envelope;
 
   Crystal get _crystal => widget.crystal;
+
+  bool get _projecting => _phase == _ResonancePhase.projecting;
 
   @override
   void initState() {
@@ -82,35 +102,88 @@ class _CrystalResonanceScreenState
     _positionSubscription = _player.onPositionChanged.listen((position) {
       _position.value = position;
     });
+    _playerCompleteSubscription = _player.onPlayerComplete.listen((_) {
+      if (_projecting) unawaited(_finishResonance());
+    });
     _loadEnvelope();
-    unawaited(loadCymaticKaleidoscope());
+    unawaited(loadCymaticPlate(_crystal));
   }
 
   @override
   void dispose() {
+    _simulatedEnd?.cancel();
     unawaited(_restorePortraitChrome());
     _playerStateSubscription.cancel();
     _positionSubscription.cancel();
+    _playerCompleteSubscription.cancel();
     _position.dispose();
     _player.dispose();
     super.dispose();
   }
 
-  Future<void> _handlePlayProjection() async {
+  // ---------------------------------------------------------------- flow ---
+
+  void _openTutorial() {
     if (!mounted) return;
-    final proceed = await _HeadphonesDialog.show(context);
-    if (!mounted || proceed != true) return;
-    await _prompts.recordShown();
-    await _enterProjection();
+    setState(() => _phase = _ResonancePhase.tutorial);
+  }
+
+  void _showOverview() {
+    if (!mounted) return;
+    setState(() => _phase = _ResonancePhase.overview);
+  }
+
+  /// START YOUR FREQUENCY: asks about the tutorial first, unless it was
+  /// already watched.
+  Future<void> _handleStartFrequencyPressed() async {
+    if (_reminding) return;
+    _reminding = true;
+    try {
+      final watched = await _progress.hasWatched(_crystal);
+      if (!mounted) return;
+      if (watched) {
+        await _beginResonance();
+        return;
+      }
+      final choice = await _TutorialReminderDialog.show(context);
+      if (!mounted) return;
+      switch (choice) {
+        case _TutorialReminderChoice.watch:
+          _openTutorial();
+        case _TutorialReminderChoice.continueAnyway:
+          await _beginResonance();
+        case null:
+          break;
+      }
+    } finally {
+      _reminding = false;
+    }
+  }
+
+  /// Headphones note, then the cymatic. Also the entry from the tutorial.
+  Future<void> _beginResonance() async {
+    if (!mounted || _starting || _projecting) return;
+    _starting = true;
+    try {
+      final proceed = await _HeadphonesDialog.show(context);
+      if (!mounted || proceed != true) return;
+      await _prompts.recordShown();
+      if (!mounted) return;
+      await _enterProjection();
+    } finally {
+      _starting = false;
+    }
   }
 
   Future<void> _enterProjection() async {
     final token = ++_playbackToken;
     _followPlayerPause = false;
+    _stopSimulatedClock(reset: true);
     setState(() {
-      _projecting = true;
+      _phase = _ResonancePhase.projecting;
       _controlsVisible = false;
       _isPlaying = true;
+      _isAudioUnavailable = false;
     });
     unawaited(ref.read(ritualCycleControllerProvider.notifier).markFrequency());
     await _allowRotationImmersive();
@@ -118,22 +191,46 @@ class _CrystalResonanceScreenState
     await _startFrequency(token);
   }
 
+  /// Back from the projection: leaves without the closing screen.
   Future<void> _exitProjection() async {
     _playbackToken++;
     _followPlayerPause = false;
+    _stopSimulatedClock(reset: true);
     if (mounted) {
       setState(() {
-        _projecting = false;
+        _phase = _ResonancePhase.overview;
         _controlsVisible = false;
         _isPlaying = false;
         _isAudioUnavailable = false;
       });
     }
     await _restorePortraitChrome();
+    await _stopPlayer('Cymatic stop');
+  }
+
+  /// The track ended, or Stop was pressed: on to the closing screen.
+  Future<void> _finishResonance() async {
+    if (!_projecting) return;
+    _playbackToken++;
+    _followPlayerPause = false;
+    _stopSimulatedClock(reset: true);
+    if (mounted) {
+      setState(() {
+        _phase = _ResonancePhase.completion;
+        _controlsVisible = false;
+        _isPlaying = false;
+        _isAudioUnavailable = false;
+      });
+    }
+    await _restorePortraitChrome();
+    await _stopPlayer('Cymatic finish');
+  }
+
+  Future<void> _stopPlayer(String action) async {
     try {
       await _player.stop();
     } catch (error, stackTrace) {
-      reportAudioFailure('Cymatic stop', error, stackTrace);
+      reportAudioFailure(action, error, stackTrace);
     }
   }
 
@@ -170,19 +267,19 @@ class _CrystalResonanceScreenState
     setState(() => _isPlaying = playing);
   }
 
+  // --------------------------------------------------------------- audio ---
+
   Future<void> _startFrequency(int token) async {
     try {
-      await _player.setReleaseMode(ReleaseMode.loop);
+      // One pass: the ritual ends when the track does.
+      await _player.setReleaseMode(ReleaseMode.release);
       if (!mounted || token != _playbackToken) return;
       final path = await ref
           .read(crystalAudioCacheProvider)
           .resolve(_crystal.audioAsset);
       if (!mounted || token != _playbackToken) return;
       if (path == null) {
-        setState(() {
-          _isAudioUnavailable = true;
-          _isPlaying = true;
-        });
+        _useSimulatedPlayback(token);
         return;
       }
       await _player.play(DeviceFileSource(path));
@@ -190,16 +287,54 @@ class _CrystalResonanceScreenState
       reportAudioFailure('Cymatic play', error, stackTrace);
       if (!mounted || token != _playbackToken) return;
       // No player here: the projection keeps the simulated rhythm.
-      setState(() {
-        _isAudioUnavailable = true;
-        _isPlaying = true;
-      });
+      _useSimulatedPlayback(token);
     }
+  }
+
+  void _useSimulatedPlayback(int token) {
+    setState(() {
+      _isAudioUnavailable = true;
+      _isPlaying = true;
+    });
+    _simulatedClock
+      ..reset()
+      ..start();
+    _scheduleSimulatedEnd(token);
+  }
+
+  /// Closes the ritual after the real track length when there is no audio.
+  /// Without an envelope the length is unknown and Stop is the way out.
+  void _scheduleSimulatedEnd(int token) {
+    _simulatedEnd?.cancel();
+    final total = _envelope?.duration;
+    if (total == null || total == Duration.zero) return;
+    final remaining = total - _simulatedClock.elapsed;
+    _simulatedEnd = Timer(
+      remaining.isNegative ? Duration.zero : remaining,
+      () {
+        if (!mounted || token != _playbackToken) return;
+        unawaited(_finishResonance());
+      },
+    );
+  }
+
+  void _stopSimulatedClock({bool reset = false}) {
+    _simulatedEnd?.cancel();
+    _simulatedEnd = null;
+    _simulatedClock.stop();
+    if (reset) _simulatedClock.reset();
   }
 
   Future<void> _handleTogglePlayback() async {
     if (_isAudioUnavailable) {
-      setState(() => _isPlaying = !_isPlaying);
+      final resuming = !_isPlaying;
+      setState(() => _isPlaying = resuming);
+      if (resuming) {
+        _simulatedClock.start();
+        _scheduleSimulatedEnd(_playbackToken);
+      } else {
+        _stopSimulatedClock();
+      }
       return;
     }
     if (_isPlaying) {
@@ -221,12 +356,11 @@ class _CrystalResonanceScreenState
     } catch (error, stackTrace) {
       reportAudioFailure('Cymatic resume', error, stackTrace);
       if (!mounted) return;
-      setState(() {
-        _isAudioUnavailable = true;
-        _isPlaying = true;
-      });
+      _useSimulatedPlayback(_playbackToken);
     }
   }
+
+  // ------------------------------------------------------------- actions ---
 
   /// Updates the active crystal for Home / sound. Does not rewrite the
   /// Listening Garden skin-care protocol stored in journey recommendation.
@@ -257,133 +391,504 @@ class _CrystalResonanceScreenState
     context.go(AppRoutes.home);
   }
 
+  /// `go`, not `push`: the Library topic lives inside Home's shell branch.
+  /// Pushing it from this top-level route reserves that branch's Navigator
+  /// key a second time and crashes with `!keyReservation.contains(key)`.
+  void _openLibrary() {
+    context.go(AppRoutes.libraryTopicFor(_crystal.name));
+  }
+
+  void _handlePopBlocked() {
+    switch (_phase) {
+      case _ResonancePhase.projecting:
+        unawaited(_exitProjection());
+      case _ResonancePhase.tutorial:
+      case _ResonancePhase.completion:
+        _showOverview();
+      case _ResonancePhase.overview:
+        break;
+    }
+  }
+
+  // --------------------------------------------------------------- build ---
+
+  Widget _buildPhase(bool isSelected) {
+    return switch (_phase) {
+      _ResonancePhase.overview => _CrystalOverview(
+        crystal: _crystal,
+        isSelected: isSelected,
+        choosing: _choosing,
+        onBack: _handleBackPressed,
+        onTutorial: _openTutorial,
+        onStart: () => unawaited(_handleStartFrequencyPressed()),
+        onLibrary: _openLibrary,
+        onChoose: () => unawaited(_handleChooseCrystal()),
+      ),
+      _ResonancePhase.tutorial => CrystalTutorialPlayer(
+        crystal: _crystal,
+        onContinueToResonance: () => unawaited(_beginResonance()),
+        onClose: _showOverview,
+      ),
+      _ResonancePhase.projecting => _ProjectionStage(
+        crystal: _crystal,
+        playing: _isPlaying,
+        controlsVisible: _controlsVisible,
+        envelope: _isAudioUnavailable ? null : _envelope,
+        playbackPosition: _position,
+        onSurfaceTap: _handleSurfaceTap,
+        onTogglePlayback: _handleTogglePlayback,
+        onStop: () => unawaited(_finishResonance()),
+      ),
+      _ResonancePhase.completion => _ResonanceCompletion(
+        crystal: _crystal,
+        onComplete: () => context.go(AppRoutes.home),
+        onExplore: () => context.go(AppRoutes.fourTemples),
+        onWhy: _openLibrary,
+      ),
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final mediaQuery = MediaQuery.of(context);
-    final insets = mediaQuery.padding;
-    final heroHeight = (mediaQuery.size.height * _heroScreenRatio).clamp(
-      _minHeroHeight,
-      _maxHeroHeight,
-    );
     final isSelected = ref.watch(selectedCrystalProvider).value == _crystal;
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
 
     return PopScope(
-      canPop: !_projecting,
+      canPop: _phase == _ResonancePhase.overview,
       onPopInvokedWithResult: (didPop, _) {
-        if (didPop || !_projecting) return;
-        unawaited(_exitProjection());
+        if (didPop) return;
+        _handlePopBlocked();
       },
       child: Scaffold(
         backgroundColor: _projecting
             ? AppColors.indigoBlue
             : resonanceChamberColor,
-        body: _projecting
-            ? CymaticProjection(
-                crystal: _crystal,
-                playing: _isPlaying,
-                controlsVisible: _controlsVisible,
-                envelope: _isAudioUnavailable ? null : _envelope,
-                playbackPosition: _position,
-                onSurfaceTap: _handleSurfaceTap,
-                onTogglePlayback: _handleTogglePlayback,
-                onExit: () => unawaited(_exitProjection()),
-              )
-            : Column(
-                children: [
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      AppSpacing.s24,
-                      insets.top + AppSpacing.s4,
-                      AppSpacing.s24,
-                      AppSpacing.s8,
-                    ),
-                    child: Column(
-                      children: [
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: _BackButton(onPressed: _handleBackPressed),
-                        ),
-                        _CrystalIntroduction(crystal: _crystal),
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    height: heroHeight,
-                    width: double.infinity,
-                    child: CrystalScenePhoto(crystal: _crystal),
-                  ),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.s24,
-                        AppSpacing.s8,
-                        AppSpacing.s24,
-                        AppSpacing.s20,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _FrequencyPlayer(
-                            crystal: _crystal,
-                            onToggle: () => unawaited(_handlePlayProjection()),
-                          ),
-                          const SizedBox(height: AppSpacing.s20),
-                          const _QuietRule(),
-                          const SizedBox(height: AppSpacing.s18),
-                          _DetailGrid(
-                            facts: [
-                              _Fact(
-                                l10n.crystalDetailSymbolicMeaning,
-                                _crystal.localizedSymbolicTitle(l10n),
-                              ),
-                              _Fact(
-                                l10n.crystalDetailAssociatedIntention,
-                                _crystal.localizedDefaultIntention(l10n),
-                              ),
-                              _Fact(
-                                l10n.crystalDetailTherapeuticPurpose,
-                                _crystal.localizedPurpose(l10n),
-                              ),
-                              _Fact(
-                                l10n.crystalDetailSkinBenefit,
-                                _crystal.localizedSkinBenefit(l10n),
-                              ),
-                              _Fact(
-                                l10n.crystalDetailMeridians,
-                                _crystal.localizedMeridians(l10n),
-                              ),
-                              _Fact(
-                                l10n.crystalDetailEnvironment,
-                                _crystal.localizedEnvironment(l10n),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      AppSpacing.s32,
-                      AppSpacing.s12,
-                      AppSpacing.s32,
-                      math.max(AppSpacing.s24, insets.bottom + AppSpacing.s12),
-                    ),
-                    child: isSelected
-                        ? _YourCrystalBadge(crystal: _crystal)
-                        : HikaruPillButton(
-                            label: l10n.crystalChoose,
-                            busy: _choosing,
-                            onPressed: _handleChooseCrystal,
-                          ),
-                  ),
-                ],
-              ),
+        body: AnimatedSwitcher(
+          duration: reduceMotion ? Duration.zero : _phaseDuration,
+          switchInCurve: Curves.easeOutCubic,
+          switchOutCurve: Curves.easeIn,
+          layoutBuilder: (current, previous) => Stack(
+            fit: StackFit.expand,
+            children: [...previous, ?current],
+          ),
+          child: KeyedSubtree(
+            key: ValueKey(_phase),
+            child: _buildPhase(isSelected),
+          ),
+        ),
       ),
     );
   }
 }
+
+/// Crystal photo that softly gives way to the cymatic.
+class _ProjectionStage extends StatelessWidget {
+  const _ProjectionStage({
+    required this.crystal,
+    required this.playing,
+    required this.controlsVisible,
+    required this.envelope,
+    required this.playbackPosition,
+    required this.onSurfaceTap,
+    required this.onTogglePlayback,
+    required this.onStop,
+  });
+
+  static const Duration _crossfade = Duration(milliseconds: 1000);
+
+  final Crystal crystal;
+  final bool playing;
+  final bool controlsVisible;
+  final CymaticEnvelope? envelope;
+  final ValueNotifier<Duration> playbackPosition;
+  final VoidCallback onSurfaceTap;
+  final VoidCallback onTogglePlayback;
+  final VoidCallback onStop;
+
+  @override
+  Widget build(BuildContext context) {
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        CymaticProjection(
+          crystal: crystal,
+          playing: playing,
+          controlsVisible: controlsVisible,
+          envelope: envelope,
+          playbackPosition: playbackPosition,
+          onSurfaceTap: onSurfaceTap,
+          onTogglePlayback: onTogglePlayback,
+          onStop: onStop,
+        ),
+        if (!reduceMotion)
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0, end: 1),
+            duration: _crossfade,
+            curve: Curves.easeInOut,
+            builder: (context, t, _) {
+              if (t >= 1) return const SizedBox.shrink();
+              return IgnorePointer(
+                child: Opacity(
+                  opacity: 1 - t,
+                  child: Transform.scale(
+                    scale: 1 + 0.08 * t,
+                    child: ColoredBox(
+                      color: resonanceChamberColor,
+                      child: CrystalCymaticPortrait(crystal: crystal),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+      ],
+    );
+  }
+}
+
+/// Lets a column fill the viewport, or scroll when it needs more room.
+class _FillOrScroll extends StatelessWidget {
+  const _FillOrScroll({required this.minHeight, required this.child});
+
+  final double minHeight;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        child: SizedBox(
+          height: math.max(constraints.maxHeight, minHeight),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+/// Room the fixed parts of a screen need at the current text scale, so the
+/// photo is what gives way first.
+double _fixedContentHeight(BuildContext context, double base) {
+  final scale = MediaQuery.textScalerOf(context).scale(10) / 10;
+  return base + 140 * (scale - 1);
+}
+
+class _CrystalOverview extends ConsumerWidget {
+  const _CrystalOverview({
+    required this.crystal,
+    required this.isSelected,
+    required this.choosing,
+    required this.onBack,
+    required this.onTutorial,
+    required this.onStart,
+    required this.onLibrary,
+    required this.onChoose,
+  });
+
+  static const double _minPhotoHeight = 140;
+
+  final Crystal crystal;
+  final bool isSelected;
+  final bool choosing;
+  final VoidCallback onBack;
+  final VoidCallback onTutorial;
+  final VoidCallback onStart;
+  final VoidCallback onLibrary;
+  final VoidCallback onChoose;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final insets = MediaQuery.paddingOf(context);
+    final duration = ref.watch(crystalTrackDurationProvider(crystal)).value;
+
+    return _FillOrScroll(
+      minHeight:
+          _fixedContentHeight(context, 440) + _minPhotoHeight + insets.vertical,
+      child: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.s24,
+              insets.top + AppSpacing.s4,
+              AppSpacing.s24,
+              AppSpacing.s4,
+            ),
+            child: Column(
+              children: [
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: _BackButton(onPressed: onBack),
+                ),
+                _CrystalIntroduction(crystal: crystal, isSelected: isSelected),
+              ],
+            ),
+          ),
+          Expanded(
+            child: SizedBox(
+              width: double.infinity,
+              child: CrystalCymaticPortrait(crystal: crystal),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.s32,
+              AppSpacing.s4,
+              AppSpacing.s32,
+              AppSpacing.s20,
+            ),
+            child: _FrequencyInfo(crystal: crystal, duration: duration),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s40),
+            child: Column(
+              children: [
+                _GhostPillButton(
+                  label: l10n.crystalTutorialButton,
+                  icon: Icons.play_circle_outline_rounded,
+                  onPressed: onTutorial,
+                ),
+                const SizedBox(height: AppSpacing.s12),
+                HikaruPillButton(
+                  label: l10n.crystalStartFrequencyButton,
+                  onPressed: onStart,
+                  buttonHeight: _actionHeight,
+                  blurRadius: 14,
+                  shadowAlpha: 0.22,
+                  labelStyle: _actionLabel,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.s14),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s40),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: _QuietLink(
+                    label: l10n.crystalYourCrystalLibraryButton,
+                    icon: Icons.auto_stories_outlined,
+                    onPressed: onLibrary,
+                  ),
+                ),
+                if (!isSelected) ...[
+                  const SizedBox(width: AppSpacing.s10),
+                  Expanded(
+                    child: _QuietLink(
+                      label: l10n.crystalChoose,
+                      icon: Icons.favorite_border_rounded,
+                      onPressed: choosing ? null : onChoose,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          SizedBox(height: math.max(AppSpacing.s8, insets.bottom)),
+        ],
+      ),
+    );
+  }
+}
+
+/// Slimmer than the default pill, so the two actions feel lighter.
+const double _actionHeight = AppSpacing.s44 + AppSpacing.s4;
+
+final TextStyle _actionLabel = AppTypography.pillLabel.copyWith(
+  fontSize: AppFontSizes.s11,
+  letterSpacing: 2.2,
+);
+
+/// "YOUR FREQUENCY · 5:20", the frequency name and what it supports.
+class _FrequencyInfo extends StatelessWidget {
+  const _FrequencyInfo({required this.crystal, required this.duration});
+
+  final Crystal crystal;
+  final Duration? duration;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final length = duration == null ? null : formatTrackDuration(duration!);
+    final eyebrow = length == null
+        ? l10n.resonanceYourFrequency
+        : '${l10n.resonanceYourFrequency}  ·  $length';
+
+    return Column(
+      children: [
+        Semantics(
+          label: length == null
+              ? l10n.resonanceYourFrequency
+              : '${l10n.resonanceYourFrequency}. '
+                    '${l10n.crystalTrackDurationSemantics(length)}',
+          excludeSemantics: true,
+          child: Text(
+            eyebrow,
+            textAlign: TextAlign.center,
+            style: AppTypography.subheadline.copyWith(
+              color: AppColors.champagneGold,
+              fontSize: AppFontSizes.s9,
+              letterSpacing: 2.2,
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.s6),
+        Text(
+          crystal.localizedFrequency(l10n),
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: AppTypography.headline.copyWith(
+            color: AppColors.white,
+            fontSize: AppFontSizes.s16,
+            fontWeight: FontWeight.w300,
+            height: 1.3,
+            letterSpacing: 0.4,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.s4),
+        Text(
+          crystal.localizedFrequencyDetail(l10n),
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: _bodyStyle.copyWith(
+            color: AppColors.fog.withValues(alpha: 0.8),
+            fontSize: AppFontSizes.s11,
+            height: 1.4,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Same size as the gold pill, but light: a thin gold outline over a faint
+/// indigo glass, for the action that comes before the frequency.
+class _GhostPillButton extends StatelessWidget {
+  const _GhostPillButton({
+    required this.label,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  final String label;
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      child: Material(
+        color: AppColors.indigoBlue.withValues(alpha: 0.35),
+        shape: StadiumBorder(
+          side: BorderSide(
+            color: AppColors.champagneGold.withValues(alpha: 0.75),
+            width: 0.8,
+          ),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onPressed,
+          child: SizedBox(
+            height: _actionHeight,
+            width: double.infinity,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(icon, color: AppColors.champagneGold, size: 18),
+                    const SizedBox(width: AppSpacing.s8),
+                    Text(
+                      label,
+                      maxLines: 1,
+                      style: _actionLabel.copyWith(
+                        color: AppColors.champagneGold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Small gold link with an icon, readable but quieter than the buttons.
+class _QuietLink extends StatelessWidget {
+  const _QuietLink({
+    required this.label,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  final String label;
+  final IconData icon;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      child: Material(
+        color: AppColors.champagneGold.withValues(alpha: 0.06),
+        shape: StadiumBorder(
+          side: BorderSide(
+            color: AppColors.champagneGold.withValues(alpha: 0.55),
+            width: 0.8,
+          ),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onPressed,
+          child: SizedBox(
+            height: AppSpacing.s44,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s12),
+              child: Center(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(icon, color: AppColors.champagneGold, size: 18),
+                      const SizedBox(width: AppSpacing.s8),
+                      Text(
+                        label,
+                        maxLines: 1,
+                        style: AppTypography.subheadline.copyWith(
+                          color: AppColors.champagneGold,
+                          fontSize: AppFontSizes.s11,
+                          letterSpacing: 1.6,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+
 
 class _BackButton extends StatelessWidget {
   const _BackButton({required this.onPressed});
@@ -416,8 +921,9 @@ class _BackButton extends StatelessWidget {
   }
 }
 
-class _YourCrystalBadge extends StatelessWidget {
-  const _YourCrystalBadge({required this.crystal});
+/// Small gold tag beside the temple when this is the user's crystal.
+class _YourCrystalChip extends StatelessWidget {
+  const _YourCrystalChip({required this.crystal});
 
   final Crystal crystal;
 
@@ -427,28 +933,27 @@ class _YourCrystalBadge extends StatelessWidget {
     return Semantics(
       label: l10n.crystalIsYoursSemantics(crystal.localizedName(l10n)),
       excludeSemantics: true,
-      child: Center(
-        child: DecoratedBox(
-          decoration: ShapeDecoration(
-            color: AppColors.champagneGold.withValues(alpha: 0.08),
-            shape: StadiumBorder(
-              side: BorderSide(
-                color: AppColors.champagneGold.withValues(alpha: 0.7),
-              ),
+      child: DecoratedBox(
+        decoration: ShapeDecoration(
+          color: AppColors.champagneGold.withValues(alpha: 0.08),
+          shape: StadiumBorder(
+            side: BorderSide(
+              color: AppColors.champagneGold.withValues(alpha: 0.7),
+              width: 0.8,
             ),
           ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.s24,
-              vertical: AppSpacing.s12,
-            ),
-            child: Text(
-              l10n.crystalIsYours,
-              style: AppTypography.subheadline.copyWith(
-                color: AppColors.champagneGold,
-                fontSize: AppFontSizes.s12,
-                letterSpacing: 2.4,
-              ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.s10,
+            vertical: AppSpacing.s3,
+          ),
+          child: Text(
+            l10n.crystalIsYours,
+            style: AppTypography.subheadline.copyWith(
+              color: AppColors.champagneGold,
+              fontSize: AppFontSizes.s9,
+              letterSpacing: 1.6,
             ),
           ),
         ),
@@ -458,211 +963,345 @@ class _YourCrystalBadge extends StatelessWidget {
 }
 
 class _CrystalIntroduction extends StatelessWidget {
-  const _CrystalIntroduction({required this.crystal});
+  const _CrystalIntroduction({required this.crystal, required this.isSelected});
 
   final Crystal crystal;
+  final bool isSelected;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Column(
       children: [
-        const ChamberTitle(),
-        const SizedBox(height: AppSpacing.s8),
-        Text(
-          crystal.localizedName(l10n),
-          textAlign: TextAlign.center,
-          style: AppTypography.headline.copyWith(
-            color: AppColors.white,
-            fontSize: AppFontSizes.s22,
-            height: 1.2,
-            letterSpacing: 4.4,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.s4),
-        Text(
-          crystal.localizedTemple(l10n),
-          textAlign: TextAlign.center,
-          style: AppTypography.footnote.copyWith(
-            color: AppColors.fog,
-            fontSize: AppFontSizes.s12,
-            fontStyle: FontStyle.italic,
-            letterSpacing: 0.6,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _Fact {
-  const _Fact(this.label, this.text);
-
-  final String label;
-  final String text;
-}
-
-class _DetailGrid extends StatelessWidget {
-  const _DetailGrid({required this.facts});
-
-  final List<_Fact> facts;
-
-  @override
-  Widget build(BuildContext context) {
-    final rows = <Widget>[];
-    for (var index = 0; index < facts.length; index += 2) {
-      if (rows.isNotEmpty) rows.add(const SizedBox(height: AppSpacing.s18));
-      final right = index + 1 < facts.length ? facts[index + 1] : null;
-      rows.add(
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(child: _FactCell(fact: facts[index])),
-            const SizedBox(width: AppSpacing.s20),
-            Expanded(
-              child: right == null
-                  ? const SizedBox.shrink()
-                  : _FactCell(fact: right),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            crystal.localizedName(l10n),
+            maxLines: 1,
+            textAlign: TextAlign.center,
+            style: AppTypography.headline.copyWith(
+              color: AppColors.white,
+              fontSize: AppFontSizes.s22,
+              height: 1.2,
+              letterSpacing: 4.4,
             ),
-          ],
+          ),
         ),
-      );
-    }
-    return Column(children: rows);
-  }
-}
-
-class _FactCell extends StatelessWidget {
-  const _FactCell({required this.fact});
-
-  final _Fact fact;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(fact.label, style: _detailLabelStyle),
         const SizedBox(height: AppSpacing.s4),
-        Text(fact.text, style: _bodyStyle.copyWith(fontSize: AppFontSizes.s12)),
-      ],
-    );
-  }
-}
-
-class _FrequencyPlayer extends StatelessWidget {
-  const _FrequencyPlayer({required this.crystal, required this.onToggle});
-
-  static const double _buttonSize = AppSpacing.s44;
-
-  final Crystal crystal;
-  final VoidCallback onToggle;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+        Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: AppSpacing.s8,
+          runSpacing: AppSpacing.s4,
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(l10n.resonanceYourFrequency, style: _detailLabelStyle),
-                  const SizedBox(height: AppSpacing.s4),
-                  Text(
-                    crystal.localizedFrequency(l10n),
-                    style: AppTypography.headline.copyWith(
-                      color: AppColors.white,
-                      fontSize: AppFontSizes.s22,
-                      height: 1.2,
-                      fontWeight: FontWeight.w300,
-                    ),
-                  ),
-                ],
+            Text(
+              crystal.localizedTemple(l10n),
+              textAlign: TextAlign.center,
+              style: AppTypography.footnote.copyWith(
+                color: AppColors.fog,
+                fontSize: AppFontSizes.s12,
+                fontStyle: FontStyle.italic,
+                letterSpacing: 0.6,
               ),
             ),
-            const SizedBox(width: AppSpacing.s12),
-            Semantics(
-              button: true,
-              label: l10n.crystalFrequencyPlay,
-              excludeSemantics: true,
-              child: InkResponse(
-                onTap: onToggle,
-                radius: _buttonSize / 2,
-                child: Container(
-                  width: _buttonSize,
-                  height: _buttonSize,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.champagneGold.withValues(alpha: 0.08),
-                    border: Border.all(
-                      color: AppColors.champagneGold.withValues(alpha: 0.85),
-                      width: 0.8,
+            if (isSelected) _YourCrystalChip(crystal: crystal),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// Closing screen once the track ends or Stop is pressed.
+class _ResonanceCompletion extends ConsumerWidget {
+  const _ResonanceCompletion({
+    required this.crystal,
+    required this.onComplete,
+    required this.onExplore,
+    required this.onWhy,
+  });
+
+  static const double _minPhotoHeight = 140;
+
+  final Crystal crystal;
+  final VoidCallback onComplete;
+  final VoidCallback onExplore;
+  final VoidCallback onWhy;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final insets = MediaQuery.paddingOf(context);
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    final isRecommended =
+        ref.watch(journeyRecommendationControllerProvider).value?.crystal ==
+        crystal;
+    final whyLabel = isRecommended
+        ? l10n.libraryCrystalHeadingWhyRecommended
+        : l10n.resonanceDiscoverInLibraryLink;
+
+    return _FillOrScroll(
+      minHeight:
+          _fixedContentHeight(context, 380) + _minPhotoHeight + insets.vertical,
+      child: Column(
+        children: [
+          SizedBox(height: insets.top + AppSpacing.s16),
+          Expanded(
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: 1),
+              duration: reduceMotion
+                  ? Duration.zero
+                  : const Duration(milliseconds: 900),
+              curve: Curves.easeOutCubic,
+              builder: (context, opacity, child) =>
+                  Opacity(opacity: opacity, child: child),
+              child: SizedBox(
+                width: double.infinity,
+                child: CrystalCymaticPortrait(crystal: crystal),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.s32,
+              AppSpacing.s12,
+              AppSpacing.s32,
+              AppSpacing.s20,
+            ),
+            child: Column(
+              children: [
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    l10n.resonanceReturnTitle,
+                    maxLines: 1,
+                    textAlign: TextAlign.center,
+                    style: AppTypography.headline.copyWith(
+                      color: AppColors.white,
+                      fontSize: AppFontSizes.s16,
+                      letterSpacing: 3.2,
                     ),
                   ),
-                  child: const Icon(
-                    Icons.play_arrow_rounded,
+                ),
+                const SizedBox(height: AppSpacing.s8),
+                Text(
+                  l10n.resonanceReturnSubtitle,
+                  textAlign: TextAlign.center,
+                  style: _bodyStyle.copyWith(
                     color: AppColors.champagneGold,
-                    size: 26,
+                    height: 1.4,
+                    letterSpacing: 0.6,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s32),
+            child: Column(
+              children: [
+                HikaruPillButton(
+                  label: l10n.resonanceCompleteRitual,
+                  onPressed: onComplete,
+                  buttonHeight: AppSpacing.s56,
+                ),
+                const SizedBox(height: AppSpacing.s12),
+                HikaruOutlineButton(
+                  label: l10n.resonanceExploreAnotherTemple,
+                  onPressed: onExplore,
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.s24,
+              vertical: AppSpacing.s8,
+            ),
+            child: TextButton(
+              onPressed: onWhy,
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.champagneGold,
+                minimumSize: Size.zero,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.s12,
+                  vertical: AppSpacing.s6,
+                ),
+              ),
+              child: Text(
+                whyLabel,
+                textAlign: TextAlign.center,
+                style: AppTypography.subheadline.copyWith(
+                  color: AppColors.champagneGold.withValues(alpha: 0.85),
+                  fontSize: AppFontSizes.s10,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: math.max(AppSpacing.s8, insets.bottom)),
+        ],
+      ),
+    );
+  }
+}
+
+// ------------------------------------------------------------- dialogs ---
+
+const Duration _dialogTransition = Duration(milliseconds: 280);
+const double _dialogBackdropBlur = 6;
+
+/// Blurred, fading dialog shared by the headphones note and the tutorial
+/// reminder. Honors reduce motion.
+Future<T?> _showResonanceDialog<T>(BuildContext context, Widget dialog) {
+  final reduceMotion = MediaQuery.disableAnimationsOf(context);
+  return showGeneralDialog<T>(
+    context: context,
+    barrierDismissible: false,
+    barrierColor: AppColors.darkIndigoBlue.withValues(alpha: 0.55),
+    transitionDuration: reduceMotion ? Duration.zero : _dialogTransition,
+    pageBuilder: (context, animation, secondaryAnimation) => dialog,
+    transitionBuilder: (context, animation, secondaryAnimation, child) {
+      final eased = CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeOutCubic,
+      );
+      return BackdropFilter(
+        filter: ImageFilter.blur(
+          sigmaX: _dialogBackdropBlur * animation.value,
+          sigmaY: _dialogBackdropBlur * animation.value,
+        ),
+        child: FadeTransition(
+          opacity: eased,
+          child: ScaleTransition(
+            scale: Tween(begin: 0.96, end: 1.0).animate(eased),
+            child: child,
+          ),
+        ),
+      );
+    },
+  );
+}
+
+/// Smaller pill label so the dialog buttons hold their text at large scales.
+final TextStyle _dialogPillLabel = AppTypography.pillLabel.copyWith(
+  fontSize: AppFontSizes.s10,
+  letterSpacing: 1.2,
+);
+
+/// Card shared by the dialogs of this screen.
+class _ResonanceDialogCard extends StatelessWidget {
+  const _ResonanceDialogCard({
+    required this.semanticsLabel,
+    required this.children,
+  });
+
+  static const double _maxWidth = 328;
+
+  final String semanticsLabel;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.s16),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: _maxWidth),
+          child: Semantics(
+            scopesRoute: true,
+            namesRoute: true,
+            explicitChildNodes: true,
+            label: semanticsLabel,
+            child: Material(
+              type: MaterialType.transparency,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(AppRadii.r28),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      AppColors.indigoBlue.withValues(alpha: 0.96),
+                      resonanceChamberColor.withValues(alpha: 0.98),
+                    ],
+                  ),
+                  border: Border.all(
+                    color: AppColors.champagneGold.withValues(alpha: 0.45),
+                    width: 0.6,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.champagneGold.withValues(alpha: 0.12),
+                      blurRadius: 32,
+                    ),
+                  ],
+                ),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.s20,
+                    AppSpacing.s32,
+                    AppSpacing.s20,
+                    AppSpacing.s24,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: children,
                   ),
                 ),
               ),
             ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.s8),
-        Text(
-          crystal.localizedFrequencyDetail(l10n),
-          style: _bodyStyle.copyWith(
-            color: AppColors.fog,
-            fontSize: AppFontSizes.s12,
-            height: 1.4,
           ),
         ),
-        const SizedBox(height: AppSpacing.s12),
-        Text(
-          crystal.localizedProtocol(l10n),
-          style: _bodyStyle.copyWith(fontSize: AppFontSizes.s12, height: 1.4),
-        ),
-        const SizedBox(height: AppSpacing.s4),
-        Text(Crystal.sessionLength, style: _detailLabelStyle),
-        const SizedBox(height: AppSpacing.s8),
-        Text(
-          l10n.crystalCompositionCredit,
-          style: _bodyStyle.copyWith(
-            color: AppColors.fog,
-            fontSize: AppFontSizes.s11,
-            height: 1.45,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
 
-final TextStyle _detailLabelStyle = AppTypography.subheadline.copyWith(
-  color: AppColors.champagneGold,
-  fontSize: AppFontSizes.s9,
-  height: 1.3,
-  letterSpacing: 1.35,
-);
+enum _TutorialReminderChoice { watch, continueAnyway }
 
-class _QuietRule extends StatelessWidget {
-  const _QuietRule();
+/// Shown when the frequency is started before the tutorial was watched.
+class _TutorialReminderDialog extends StatelessWidget {
+  const _TutorialReminderDialog();
+
+  static Future<_TutorialReminderChoice?> show(BuildContext context) =>
+      _showResonanceDialog<_TutorialReminderChoice>(
+        context,
+        const _TutorialReminderDialog(),
+      );
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Container(
-        width: AppSpacing.s28,
-        height: AppSpacing.s0_6,
-        color: AppColors.champagneGold.withValues(alpha: 0.7),
-      ),
+    final l10n = AppLocalizations.of(context);
+    return _ResonanceDialogCard(
+      semanticsLabel: l10n.crystalTutorialButton,
+      children: [
+        Text(
+          l10n.crystalTutorialReminderBody,
+          textAlign: TextAlign.center,
+          style: _bodyStyle.copyWith(
+            color: AppColors.white,
+            fontSize: AppFontSizes.s13,
+            height: 1.5,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.s24),
+        HikaruPillButton(
+          label: l10n.crystalWatchTutorial,
+          onPressed: () =>
+              Navigator.of(context).pop(_TutorialReminderChoice.watch),
+          buttonHeight: AppSpacing.s52,
+          blurRadius: 12,
+          shadowAlpha: 0.25,
+          labelStyle: _dialogPillLabel,
+        ),
+        const SizedBox(height: AppSpacing.s12),
+        HikaruOutlineButton(
+          label: l10n.crystalContinueToResonance,
+          onPressed: () =>
+              Navigator.of(context).pop(_TutorialReminderChoice.continueAnyway),
+        ),
+      ],
     );
   }
 }
@@ -676,45 +1315,14 @@ class _QuietRule extends StatelessWidget {
 class _HeadphonesDialog extends StatefulWidget {
   const _HeadphonesDialog();
 
-  static const Duration _transition = Duration(milliseconds: 280);
-  static const double _maxWidth = 300;
-  static const double _iconRing = AppSpacing.s52;
-  static const double _backdropBlur = 6;
+  static const double _iconRing = 72;
 
   /// A soft chime played when the note appears. Optional: if the asset is
   /// missing playback fails silently and the dialog still shows.
   static const String _chimeAsset = 'audio/notification.m4a';
 
-  static Future<bool?> show(BuildContext context) {
-    final reduceMotion = MediaQuery.disableAnimationsOf(context);
-    return showGeneralDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      barrierColor: AppColors.darkIndigoBlue.withValues(alpha: 0.55),
-      transitionDuration: reduceMotion ? Duration.zero : _transition,
-      pageBuilder: (context, animation, secondaryAnimation) =>
-          const _HeadphonesDialog(),
-      transitionBuilder: (context, animation, secondaryAnimation, child) {
-        final eased = CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOutCubic,
-        );
-        return BackdropFilter(
-          filter: ImageFilter.blur(
-            sigmaX: _backdropBlur * animation.value,
-            sigmaY: _backdropBlur * animation.value,
-          ),
-          child: FadeTransition(
-            opacity: eased,
-            child: ScaleTransition(
-              scale: Tween(begin: 0.96, end: 1.0).animate(eased),
-              child: child,
-            ),
-          ),
-        );
-      },
-    );
-  }
+  static Future<bool?> show(BuildContext context) =>
+      _showResonanceDialog<bool>(context, const _HeadphonesDialog());
 
   @override
   State<_HeadphonesDialog> createState() => _HeadphonesDialogState();
@@ -753,125 +1361,70 @@ class _HeadphonesDialogState extends State<_HeadphonesDialog> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.s32),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(
-            maxWidth: _HeadphonesDialog._maxWidth,
-          ),
-          child: Semantics(
-            scopesRoute: true,
-            namesRoute: true,
-            explicitChildNodes: true,
-            label: l10n.headphonesDialogSemanticsLabel,
-            child: Material(
-              type: MaterialType.transparency,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(AppRadii.r28),
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      AppColors.indigoBlue.withValues(alpha: 0.96),
-                      resonanceChamberColor.withValues(alpha: 0.98),
-                    ],
-                  ),
-                  border: Border.all(
-                    color: AppColors.champagneGold.withValues(alpha: 0.45),
-                    width: 0.6,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.champagneGold.withValues(alpha: 0.12),
-                      blurRadius: 32,
-                    ),
-                  ],
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.s28,
-                    AppSpacing.s32,
-                    AppSpacing.s28,
-                    AppSpacing.s28,
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: _HeadphonesDialog._iconRing,
-                        height: _HeadphonesDialog._iconRing,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: AppColors.champagneGold.withValues(
-                            alpha: 0.08,
-                          ),
-                          border: Border.all(
-                            color: AppColors.champagneGold.withValues(
-                              alpha: 0.6,
-                            ),
-                            width: 0.75,
-                          ),
-                        ),
-                        child: const Icon(
-                          Icons.headphones_outlined,
-                          color: AppColors.champagneGold,
-                          size: AppSpacing.s24,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.s20),
-                      Text(
-                        l10n.headphonesDialogEyebrow,
-                        textAlign: TextAlign.center,
-                        style: AppTypography.subheadline.copyWith(
-                          color: AppColors.champagneGold,
-                          fontSize: AppFontSizes.s10,
-                          letterSpacing: 2.4,
-                          height: 1.4,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.s12),
-                      Text(
-                        l10n.headphonesDialogTitle,
-                        textAlign: TextAlign.center,
-                        style: AppTypography.headline.copyWith(
-                          color: AppColors.white,
-                          fontSize: AppFontSizes.s18,
-                          fontWeight: FontWeight.w300,
-                          height: 1.4,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.s10),
-                      Text(
-                        l10n.headphonesDialogBody,
-                        textAlign: TextAlign.center,
-                        style: _bodyStyle.copyWith(
-                          color: AppColors.fog,
-                          fontSize: AppFontSizes.s11,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.s28),
-                      HikaruPillButton(
-                        label: l10n.headphonesDialogReady,
-                        onPressed: _handleContinue,
-                        buttonHeight: AppSpacing.s44,
-                        blurRadius: 12,
-                        shadowAlpha: 0.25,
-                      ),
-                      const SizedBox(height: AppSpacing.s12),
-                      HikaruOutlineButton(
-                        label: l10n.headphonesDialogContinueWithout,
-                        onPressed: _handleContinue,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+    return _ResonanceDialogCard(
+      semanticsLabel: l10n.headphonesDialogSemanticsLabel,
+      children: [
+        Container(
+          width: _HeadphonesDialog._iconRing,
+          height: _HeadphonesDialog._iconRing,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.champagneGold.withValues(alpha: 0.08),
+            border: Border.all(
+              color: AppColors.champagneGold.withValues(alpha: 0.6),
+              width: 0.75,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.champagneGold.withValues(alpha: 0.28),
+                blurRadius: 28,
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: const Icon(
+            Icons.headphones_outlined,
+            color: AppColors.champagneGold,
+            size: AppSpacing.s32,
           ),
         ),
-      ),
+        const SizedBox(height: AppSpacing.s24),
+        Text(
+          l10n.headphonesDialogEyebrow,
+          textAlign: TextAlign.center,
+          style: AppTypography.subheadline.copyWith(
+            color: AppColors.champagneGold,
+            fontSize: AppFontSizes.s11,
+            letterSpacing: 2.4,
+            height: 1.4,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.s12),
+        Text(
+          l10n.headphonesDialogBody,
+          textAlign: TextAlign.center,
+          style: _bodyStyle.copyWith(
+            color: AppColors.white,
+            fontSize: AppFontSizes.s14,
+            fontWeight: FontWeight.w300,
+            height: 1.5,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.s28),
+        HikaruPillButton(
+          label: l10n.headphonesDialogReady,
+          onPressed: _handleContinue,
+          buttonHeight: AppSpacing.s52,
+          blurRadius: 12,
+          shadowAlpha: 0.25,
+          labelStyle: _dialogPillLabel,
+        ),
+        const SizedBox(height: AppSpacing.s12),
+        HikaruOutlineButton(
+          label: l10n.headphonesDialogContinueWithout,
+          onPressed: _handleContinue,
+        ),
+      ],
     );
   }
 }

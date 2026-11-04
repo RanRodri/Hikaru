@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+﻿import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,7 +10,10 @@ import 'package:hikaru/features/crystals/application/selected_crystal_controller
 import 'package:hikaru/features/crystals/domain/crystal.dart';
 import 'package:hikaru/core/router/app_routes.dart';
 import 'package:hikaru/features/four_temples/presentation/four_temples_screen.dart';
+import 'package:hikaru/features/harmony_garden/data/home_crystal_glow.dart';
 import 'package:hikaru/features/harmony_garden/presentation/harmony_garden_screen.dart';
+import 'package:hikaru/l10n/app_localizations_en.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hikaru/features/library/domain/library_article.dart';
 import 'package:hikaru/features/library/presentation/library_detail_screen.dart';
 import 'package:hikaru/features/library/presentation/library_screen.dart';
@@ -52,8 +55,11 @@ void main() {
         InMemorySharedPreferencesAsync.empty();
   });
 
-  Future<GoRouter> pumpGarden(WidgetTester tester) async {
-    tester.view.physicalSize = const Size(390, 844);
+  Future<GoRouter> pumpGarden(
+    WidgetTester tester, {
+    Size size = const Size(390, 844),
+  }) async {
+    tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -309,10 +315,7 @@ void main() {
       expect(find.text('LIBRARY'), findsOneWidget);
     }
 
-    await openTopic(
-      'MERKABA, Geometry & Energy',
-      'Inhale 4 seconds. Hold 4 seconds. Exhale 6 seconds.',
-    );
+    await openTopic('MERKABA, Geometry & Energy', 'BREATHING 4 - 4 - 6');
     await openTopic('JADE, Balance & Harmony', 'Temple of Harmony');
     await openTopic(
       'WHITE QUARTZ, Clarity & Renewal',
@@ -360,91 +363,105 @@ void main() {
     expect(find.text('LIBRARY'), findsOneWidget);
   });
 
-  testWidgets('home accesses follow the reference layout around her head', (
-    tester,
-  ) async {
-    await pumpGarden(tester);
 
-    final face = tester.getSize(find.bySemanticsLabel('Hikaru Ritual Face'));
-    expect(
-      tester.getSize(find.bySemanticsLabel('Merkaba')),
-      const Size(merkabaCircleDiameter, merkabaCircleDiameter),
-    );
-    expect(tester.getSize(find.bySemanticsLabel('Your crystal')), face);
-    expect(tester.getSize(find.bySemanticsLabel('Hikaru Ritual Body')), face);
-    expect(face, const Size(homeCircleDiameter, homeCircleDiameter));
-    expect(face.width, face.height);
-    final librarySizes = [
-      for (final element in tester.elementList(
-        find.bySemanticsLabel('Library'),
-      ))
-        tester.getSize(
-          find.byElementPredicate((candidate) => identical(candidate, element)),
-        ),
-    ];
-    expect(librarySizes, contains(face));
+  group('home layout', () {
+    Offset captionCenter(WidgetTester tester, String text) =>
+        tester.getCenter(find.text(text));
 
-    final merkaba = tester.getCenter(find.bySemanticsLabel('Merkaba'));
-    expect(merkaba.dx, closeTo(390 / 2, 0.5));
-    final faceCenter = tester.getCenter(
-      find.bySemanticsLabel('Hikaru Ritual Face'),
-    );
-    final bodyCenter = tester.getCenter(
-      find.bySemanticsLabel('Hikaru Ritual Body'),
-    );
-    final crystal = tester.getCenter(find.bySemanticsLabel('Your crystal'));
-    expect(merkaba.dy, lessThan(faceCenter.dy));
-    expect(faceCenter.dx, lessThan(merkaba.dx));
-    expect(crystal.dx, greaterThan(merkaba.dx));
-    expect(bodyCenter.dy, greaterThan(faceCenter.dy));
-    expect(bodyCenter.dx, lessThan(merkaba.dx));
-    final libraryElement = tester
-        .elementList(find.bySemanticsLabel('Library'))
-        .firstWhere(
-          (element) =>
-              tester.getSize(
-                find.byElementPredicate(
-                  (candidate) => identical(candidate, element),
-                ),
-              ) ==
-              face,
-        );
-    final library = tester.getCenter(
-      find.byElementPredicate(
-        (candidate) => identical(candidate, libraryElement),
-      ),
-    );
-    expect(library.dy, closeTo(bodyCenter.dy, 0.5));
-    expect(library.dx + bodyCenter.dx, closeTo(390, 0.5));
-    expect(crystal.dy, closeTo(faceCenter.dy, 0.5));
-    expect(crystal.dx + faceCenter.dx, closeTo(390, 0.5));
+    testWidgets('five identical circles run clockwise, numbered 1 to 5', (
+      tester,
+    ) async {
+      await pumpGarden(tester);
+      final l10n = AppLocalizationsEn();
 
-    final orbitCenter = Offset(merkaba.dx, merkaba.dy + 138);
-    for (final point in [faceCenter, bodyCenter, crystal, library]) {
-      expect((point - orbitCenter).distance, closeTo(138, 0.5));
+      // Captions carry the step numbers, in clockwise order.
+      final labels = [
+        '1\nMERKABA',
+        '2\n${l10n.homeRitualFace}',
+        '3\n${l10n.homeRitualBody}',
+        '4\n${l10n.homeYourCrystal}',
+        '5\n${l10n.homeLibrary}',
+      ];
+      for (final label in labels) {
+        expect(find.text(label), findsOneWidget, reason: label);
+      }
+
+      // Same size for every circle, Merkaba included.
+      const size = Size(homeCircleDiameter, homeCircleDiameter);
+      expect(tester.getSize(find.bySemanticsLabel('Merkaba')), size);
+      expect(tester.getSize(find.bySemanticsLabel('Hikaru Ritual Face')), size);
+      expect(tester.getSize(find.bySemanticsLabel('Hikaru Ritual Body')), size);
+      expect(tester.getSize(find.bySemanticsLabel('Your crystal')), size);
+
+      // Captions sit at the same offset inside every circle, so their centers
+      // give the circle positions relative to each other.
+      final merkaba = tester.getCenter(find.bySemanticsLabel('Merkaba'));
+      final face = tester.getCenter(find.bySemanticsLabel('Hikaru Ritual Face'));
+      final body = tester.getCenter(find.bySemanticsLabel('Hikaru Ritual Body'));
+      final crystal = tester.getCenter(find.bySemanticsLabel('Your crystal'));
+      final captionShift =
+          captionCenter(tester, labels[1]) - face; // caption → circle center
+      final library = captionCenter(tester, labels[4]) - captionShift;
+
+      final orbit = Offset(merkaba.dx, merkaba.dy + 138);
+      double degrees(Offset point) =>
+          (math.atan2(point.dy - orbit.dy, point.dx - orbit.dx) * 180 / math.pi +
+              360) %
+          360;
+      expect(degrees(merkaba), closeTo(270, 1));
+      expect(degrees(face), closeTo(335, 1));
+      expect(degrees(body), closeTo(25, 1));
+      expect(degrees(crystal), closeTo(155, 1));
+      expect(degrees(library), closeTo(205, 1));
+      for (final point in [face, body, crystal, library]) {
+        expect((point - orbit).distance, closeTo(138, 1));
+      }
+    });
+
+    for (final screen in const [
+      Size(390, 844),
+      Size(360, 640),
+      Size(430, 932),
+    ]) {
+      testWidgets(
+        'Merkaba stays above her head at ${screen.width.toInt()}x${screen.height.toInt()}',
+        (tester) async {
+          await pumpGarden(tester, size: screen);
+
+          final backgroundScale = math.max(
+            screen.width / 1024,
+            screen.height / 1536,
+          );
+          final backgroundTop = (screen.height - 1536 * backgroundScale) / 2;
+          final headTop = backgroundTop + 1536 * backgroundScale * 0.31;
+          expect(
+            tester.getBottomLeft(find.bySemanticsLabel('Merkaba')).dy,
+            lessThan(headTop),
+          );
+          expect(
+            tester.getCenter(find.bySemanticsLabel('Merkaba')).dx,
+            closeTo(screen.width / 2, 0.5),
+          );
+        },
+      );
     }
 
-    final screen = tester.view.physicalSize / tester.view.devicePixelRatio;
-    final backgroundScale = math.max(screen.width / 1024, screen.height / 1536);
-    final backgroundTop = (screen.height - 1536 * backgroundScale) / 2;
-    final headTop = backgroundTop + 1536 * backgroundScale * 0.31;
-    expect(
-      tester.getBottomLeft(find.bySemanticsLabel('Merkaba')).dy,
-      lessThan(headTop),
-    );
-
-    expect(find.text('3\nYOUR CRYSTAL'), findsOneWidget);
-    expect(find.text('Listening Sanctuary'), findsNothing);
-    expect(find.text('THE HARMONY GARDEN'), findsOneWidget);
-    expect(find.text('Your Journey Begins Within'), findsOneWidget);
+    testWidgets('without a crystal the slot still shows step 4', (
+      tester,
+    ) async {
+      await pumpGarden(tester);
+      expect(find.text('4\nYOUR CRYSTAL'), findsOneWidget);
+    });
   });
 
-  testWidgets('the crystal circle shows the selected crystal', (tester) async {
+  testWidgets('the crystal circle shows the selected crystal and opens the '
+      'Four Temples map', (tester) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
+    await SharedPreferencesAsync().setBool(HomeCrystalGlow.seenKey, true);
     final container = ProviderContainer();
     addTearDown(container.dispose);
     await container.read(selectedCrystalProvider.notifier).select(Crystal.jade);
@@ -455,6 +472,12 @@ void main() {
         GoRoute(
           path: AppRoutes.home,
           builder: (context, state) => const HarmonyGardenScreen(),
+          routes: [
+            GoRoute(
+              path: 'four-temples',
+              builder: (context, state) => const FourTemplesScreen(),
+            ),
+          ],
         ),
       ],
     );
@@ -485,8 +508,83 @@ void main() {
       ),
       findsOneWidget,
     );
-    expect(find.text('3\nJADE'), findsOneWidget);
-    expect(find.text('Balance · Harmony'), findsNothing);
+    expect(find.text('4\nJADE'), findsOneWidget);
     expect(find.text('RED JASPER'), findsNothing);
+
+    await tester.tap(find.bySemanticsLabel('Your crystal JADE'));
+    await tester.pumpAndSettle();
+    expect(find.byType(FourTemplesScreen), findsOneWidget);
+  });
+
+  group('first-visit crystal glow', () {
+    /// A halo with spread is only drawn by the first-visit pulse.
+    Finder halo() => find.descendant(
+      of: find.byType(HarmonyGardenScreen),
+      matching: find.byWidgetPredicate((widget) {
+        if (widget is! DecoratedBox) return false;
+        final decoration = widget.decoration;
+        return decoration is BoxDecoration &&
+            (decoration.boxShadow ?? const []).any(
+              (shadow) => shadow.spreadRadius > 0,
+            );
+      }),
+    );
+
+    Future<void> assignJade(WidgetTester tester) async {
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(HarmonyGardenScreen)),
+      );
+      await container
+          .read(selectedCrystalProvider.notifier)
+          .select(Crystal.jade);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+    }
+
+    testWidgets('glows on the first visit after the reveal', (tester) async {
+      await pumpGarden(tester);
+      await assignJade(tester);
+      expect(halo(), findsOneWidget);
+    });
+
+    testWidgets('does not glow when the crystal has not been assigned', (
+      tester,
+    ) async {
+      await pumpGarden(tester);
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(halo(), findsNothing);
+    });
+
+    testWidgets('does not glow once it was seen', (tester) async {
+      await SharedPreferencesAsync().setBool(HomeCrystalGlow.seenKey, true);
+      await pumpGarden(tester);
+      await assignJade(tester);
+      expect(halo(), findsNothing);
+    });
+
+    testWidgets('tapping the circle ends it and remembers it', (tester) async {
+      await pumpGarden(tester);
+      await assignJade(tester);
+      expect(halo(), findsOneWidget);
+
+      await tester.tap(find.bySemanticsLabel('Your crystal JADE'));
+      await tester.pumpAndSettle();
+
+      expect(await SharedPreferencesAsync().getBool(HomeCrystalGlow.seenKey),
+          isTrue);
+    });
+
+    testWidgets('leaving Home ends it and remembers it', (tester) async {
+      final router = await pumpGarden(tester);
+      await assignJade(tester);
+      expect(await SharedPreferencesAsync().getBool(HomeCrystalGlow.seenKey),
+          isNull);
+
+      router.go(AppRoutes.library);
+      await tester.pumpAndSettle();
+
+      expect(await SharedPreferencesAsync().getBool(HomeCrystalGlow.seenKey),
+          isTrue);
+    });
   });
 }

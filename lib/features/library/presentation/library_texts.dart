@@ -1,6 +1,7 @@
 import '../../../l10n/app_localizations.dart';
 import '../../crystals/domain/crystal.dart';
 import '../../crystals/presentation/crystal_texts.dart';
+import '../../listening_room/domain/journey_recommendation.dart';
 import '../domain/library_article.dart';
 import '../domain/library_collection.dart';
 
@@ -12,19 +13,24 @@ import '../domain/library_collection.dart';
 extension LibraryCollectionTexts on LibraryCollection {
   /// Crystal collections reuse the crystal name; the others have their own.
   String localizedName(AppLocalizations l10n) {
+    if (libraryInfographicOnlyIds.contains(id)) return name;
     final crystal = Crystal.fromName(id);
     return crystal?.localizedName(l10n) ?? l10n.libraryTextCollectionName(id);
   }
 
   /// Two-line detail, as shown inside the collection circles.
   String localizedDetail(AppLocalizations l10n) =>
-      l10n.libraryTextCollectionDetail(id);
+      libraryInfographicOnlyIds.contains(id)
+      ? detail
+      : l10n.libraryTextCollectionDetail(id);
 
   String localizedInlineDetail(AppLocalizations l10n) =>
       localizedDetail(l10n).replaceAll('\n', ' ');
 
   String localizedCategory(AppLocalizations l10n) =>
-      l10n.libraryTextCollectionCategory(id);
+      libraryInfographicOnlyIds.contains(id)
+      ? category
+      : l10n.libraryTextCollectionCategory(id);
 
   String localizedSemanticsLabel(AppLocalizations l10n) =>
       '${localizedName(l10n)}, ${localizedInlineDetail(l10n)}';
@@ -35,12 +41,25 @@ extension LibraryCollectionTexts on LibraryCollection {
 /// Articles for crystals are composed from the crystal's own copy, and the
 /// Merkaba and Rituals articles come from the ARB files. An unknown id is
 /// returned unchanged.
+///
+/// When [recommendation] is the user's saved recommendation and it is for the
+/// same crystal as [article], the article opens with a "why we recommended
+/// this crystal" chapter. Any other crystal keeps its usual chapters.
 LibraryArticle localizedLibraryArticle(
   AppLocalizations l10n,
-  LibraryArticle article,
-) {
+  LibraryArticle article, {
+  JourneyRecommendation? recommendation,
+}) {
   final crystal = Crystal.fromName(article.id);
-  if (crystal != null) return _crystalArticle(l10n, crystal);
+  if (crystal != null) {
+    return _crystalArticle(
+      l10n,
+      crystal,
+      recommendation: recommendation?.crystal == crystal
+          ? recommendation
+          : null,
+    );
+  }
 
   return switch (article.id) {
     libraryMerkabaId => _merkabaArticle(l10n),
@@ -49,11 +68,20 @@ LibraryArticle localizedLibraryArticle(
   };
 }
 
-LibraryArticle _crystalArticle(AppLocalizations l10n, Crystal crystal) {
+LibraryArticle _crystalArticle(
+  AppLocalizations l10n,
+  Crystal crystal, {
+  JourneyRecommendation? recommendation,
+}) {
   return LibraryArticle(
     id: crystal.name,
     title: crystal.localizedName(l10n),
     blocks: [
+      if (recommendation != null)
+        LibraryBlock(
+          l10n.libraryCrystalHeadingWhyRecommended,
+          _whyRecommendedCopy(l10n, crystal, recommendation),
+        ),
       LibraryBlock(
         l10n.libraryCrystalHeadingTemple,
         crystal.localizedTemple(l10n),
@@ -86,16 +114,27 @@ LibraryArticle _crystalArticle(AppLocalizations l10n, Crystal crystal) {
   );
 }
 
-/// Same composition as the domain article: the composer is only added when
-/// the protocol name does not already carry it.
-String _frequencyCopy(AppLocalizations l10n, Crystal crystal) {
-  final protocol = crystal.localizedProtocol(l10n);
-  final tail = protocol.contains(Crystal.composer)
-      ? '${Crystal.sessionLength}.'
-      : '${Crystal.sessionLength}. ${Crystal.composer}.';
-  return '${crystal.localizedFrequency(l10n)}. '
-      '${crystal.localizedFrequencyDetail(l10n)}. $protocol. $tail';
-}
+/// The revelation text and the protocol rows from the reveal screen, each
+/// on its own line. Reuses existing copy only.
+String _whyRecommendedCopy(
+  AppLocalizations l10n,
+  Crystal crystal,
+  JourneyRecommendation recommendation,
+) => [
+  crystal.localizedRevelation(l10n),
+  '${l10n.resonanceProtocolIntention}: '
+      '${l10n.recommendationIntention(recommendation.intention)}',
+  '${l10n.resonanceProtocolSkinFocus}: '
+      '${l10n.recommendationSkinFocus(recommendation.skinFocus)}',
+  '${l10n.resonanceProtocolFacialRitual}: '
+      '${l10n.recommendationFacialRitual(recommendation.facialRitual)}',
+].join('\n');
+
+/// Same composition as the domain article: frequency, detail and protocol.
+String _frequencyCopy(AppLocalizations l10n, Crystal crystal) =>
+    '${crystal.localizedFrequency(l10n)}. '
+    '${crystal.localizedFrequencyDetail(l10n)}. '
+    '${crystal.localizedProtocol(l10n)}.';
 
 LibraryArticle _merkabaArticle(AppLocalizations l10n) {
   return LibraryArticle(

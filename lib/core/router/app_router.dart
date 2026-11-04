@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -16,8 +17,9 @@ import '../../features/four_temples/presentation/four_temples_screen.dart';
 import '../../features/harmony_garden/presentation/harmony_garden_screen.dart';
 import '../../features/journey/presentation/journey_screen.dart';
 import '../../features/library/domain/library_article.dart';
-import '../../features/library/presentation/library_detail_screen.dart';
+import '../../features/library/domain/library_topic_content.dart';
 import '../../features/library/presentation/library_screen.dart';
+import '../../features/library/presentation/library_topic_page.dart';
 import '../../features/massage/domain/massage_ritual.dart';
 import '../../features/massage/presentation/massage_screen.dart';
 import '../../features/merkaba/presentation/merkaba_screen.dart';
@@ -159,14 +161,38 @@ GoRouter appRouter(Ref ref) {
                     redirect: (context, state) {
                       final topic =
                           state.pathParameters[AppRoutes.libraryTopicParam];
-                      return libraryArticleFor(topic) == null
-                          ? AppRoutes.library
-                          : null;
+                      final known =
+                          libraryArticleFor(topic) != null ||
+                          libraryTopicSources.containsKey(topic);
+                      return known ? null : AppRoutes.library;
                     },
-                    builder: (context, state) => LibraryDetailScreen(
-                      article: libraryArticleFor(
-                        state.pathParameters[AppRoutes.libraryTopicParam],
-                      )!,
+                    pageBuilder: (context, state) => CustomTransitionPage<void>(
+                      key: state.pageKey,
+                      transitionDuration: const Duration(milliseconds: 380),
+                      reverseTransitionDuration: const Duration(
+                        milliseconds: 280,
+                      ),
+                      child: LibraryTopicPage(
+                        topicId:
+                            state.pathParameters[AppRoutes.libraryTopicParam]!,
+                      ),
+                      transitionsBuilder:
+                          (context, animation, secondary, child) {
+                            final curved = CurvedAnimation(
+                              parent: animation,
+                              curve: Curves.easeOutCubic,
+                            );
+                            return FadeTransition(
+                              opacity: curved,
+                              child: SlideTransition(
+                                position: Tween<Offset>(
+                                  begin: const Offset(0, 0.025),
+                                  end: Offset.zero,
+                                ).animate(curved),
+                                child: child,
+                              ),
+                            );
+                          },
                     ),
                   ),
                 ],

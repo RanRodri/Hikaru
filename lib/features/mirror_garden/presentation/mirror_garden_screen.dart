@@ -221,7 +221,6 @@ class _MirrorGardenScreenState extends ConsumerState<MirrorGardenScreen> {
 class _Vignettes extends StatelessWidget {
   const _Vignettes();
 
-  static const double _topHeight = 220;
   static const double _bottomHeight = 284;
 
   @override
@@ -229,24 +228,6 @@ class _Vignettes extends StatelessWidget {
     return IgnorePointer(
       child: Stack(
         children: [
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: _topHeight,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    AppColors.indigoBlue.withValues(alpha: 0.6),
-                    AppColors.indigoBlue.withValues(alpha: 0),
-                  ],
-                ),
-              ),
-            ),
-          ),
           Positioned(
             bottom: 0,
             left: 0,

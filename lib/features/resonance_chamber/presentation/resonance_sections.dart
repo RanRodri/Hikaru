@@ -229,14 +229,6 @@ class _FrequencyColumn extends ConsumerWidget {
           ],
         ),
         _FrequencyWaveform(crystal: crystal),
-        Text(
-          l10n.crystalCompositionCredit,
-          textAlign: TextAlign.center,
-          style: _chamberText.copyWith(
-            fontSize: AppFontSizes.s9_5,
-            height: 1.4,
-          ),
-        ),
       ],
     );
   }
@@ -347,8 +339,7 @@ class _CymaticColumn extends ConsumerWidget {
           height: _signatureSize,
           child: CymaticSignature(
             crystal: crystal,
-            playing: false,
-            fillBackground: false,
+            playing: true,
             semanticLabel: AppLocalizations.of(
               context,
             ).resonanceCymaticSignatureSemantics,

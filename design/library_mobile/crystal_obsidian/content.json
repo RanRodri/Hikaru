@@ -1,0 +1,79 @@
+{
+ "library_id": "obsidian (existing)",
+ "source": "src/adjunto (6).png",
+ "chrome_note": "Original shows back arrow and \"02 / 04\" progress (UI chrome).",
+ "sections": [
+  {
+   "type": "brand",
+   "text": "HIKARU LIFT"
+  },
+  {
+   "type": "eyebrow",
+   "text": "THE CRYSTAL SANCTUARY"
+  },
+  {
+   "type": "title",
+   "text": "OBSIDIAN"
+  },
+  {
+   "type": "subtitle",
+   "text": "THE PSYCHIC GEM"
+  },
+  {
+   "type": "tagline",
+   "text": "Releases • Transforms • Renews"
+  },
+  {
+   "type": "paragraph",
+   "text": "A powerful psychic crystal that brings to the surface and helps release stored emotions and unresolved trauma, which can often be the root of skin imbalances. (emphasis/italic gold: \"stored emotions and unresolved trauma\", \"root of skin imbalances\")"
+  },
+  {
+   "type": "image",
+   "asset": "crystal_photo.webp"
+  },
+  {
+   "type": "cards",
+   "layout": "grid2",
+   "items": [
+    {
+     "icon": "lotus",
+     "label": "EMOTIONAL RELEASE",
+     "desc": "Helps surface, process, and let go of stored emotions"
+    },
+    {
+     "icon": "spiral",
+     "label": "TRAUMA TRANSFORMATION",
+     "desc": "Supports the release of old patterns and energetic imprints"
+    },
+    {
+     "icon": "stones",
+     "label": "SKIN BALANCE",
+     "desc": "By addressing emotional roots, helps create a more clear, calm, and balanced skin"
+    },
+    {
+     "icon": "shield",
+     "label": "PROTECTION & GROUNDING",
+     "desc": "Creates a sense of safety, stability, and inner strength"
+    }
+   ]
+  },
+  {
+   "type": "card",
+   "heading": "THE ESSENCE",
+   "asset": "flower_of_life.webp",
+   "text": "Obsidian is a deep-clearing crystal that transforms what no longer serves you, bringing emotional clarity, energetic protection, and renewal from within."
+  },
+  {
+   "type": "card",
+   "heading": "YOUR RITUAL",
+   "icon": "meditation",
+   "text": "Use Obsidian when you want to release emotional weight, restore balance, and support a clear, radiant complexion."
+  },
+  {
+   "type": "cta",
+   "text": "SELECT THIS CRYSTAL →"
+  }
+ ],
+ "typos_fixed": [],
+ "topic": "crystal_obsidian"
+}

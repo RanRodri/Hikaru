@@ -2,17 +2,17 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
-import '../../../core/design_system/tokens/app_font_sizes.dart';
 import '../../../core/design_system/tokens/app_spacing.dart';
-import '../../../core/design_system/tokens/app_typography.dart';
+import '../../../core/media/starry_night.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../crystals/domain/crystal.dart';
-import '../../crystals/presentation/crystal_texts.dart';
 import '../domain/cymatic_audio.dart';
 import 'cymatic_signature.dart';
 
-/// Full-viewport cymatic for projection, in portrait or landscape.
-/// Caption and controls stay hidden until the surface is tapped.
+/// Full-viewport cymatic over the starry night, in portrait or landscape.
+///
+/// Nothing is written over the plate. Pause and Stop appear only while the
+/// surface is tapped.
 class CymaticProjection extends StatelessWidget {
   const CymaticProjection({
     super.key,
@@ -23,16 +23,11 @@ class CymaticProjection extends StatelessWidget {
     required this.playbackPosition,
     required this.onSurfaceTap,
     required this.onTogglePlayback,
-    required this.onExit,
+    required this.onStop,
   });
 
-  static const BoxDecoration _vignette = BoxDecoration(
-    gradient: RadialGradient(
-      radius: 1.1,
-      colors: [AppColors.indigoBlue, AppColors.darkIndigoBlue],
-      stops: [0.4, 1],
-    ),
-  );
+  /// Soft indigo veil so the plate stays the brightest element.
+  static final Color _veil = AppColors.darkIndigoBlue.withValues(alpha: 0.35);
 
   final Crystal crystal;
   final bool playing;
@@ -41,7 +36,7 @@ class CymaticProjection extends StatelessWidget {
   final ValueListenable<Duration> playbackPosition;
   final VoidCallback onSurfaceTap;
   final VoidCallback onTogglePlayback;
-  final VoidCallback onExit;
+  final VoidCallback onStop;
 
   @override
   Widget build(BuildContext context) {
@@ -49,31 +44,31 @@ class CymaticProjection extends StatelessWidget {
     final insets = mediaQuery.padding;
     final isLandscape = mediaQuery.size.width > mediaQuery.size.height;
 
-    final caption = _ProjectionCaption(crystal: crystal);
     final controls = _ProjectionControls(
       direction: isLandscape ? Axis.vertical : Axis.horizontal,
       playing: playing,
       onTogglePlayback: onTogglePlayback,
-      onExit: onExit,
+      onStop: onStop,
     );
 
     return Stack(
       fit: StackFit.expand,
       children: [
+        const Image(
+          image: AssetImage(merkabaStarryNightAsset),
+          fit: BoxFit.cover,
+          excludeFromSemantics: true,
+        ),
+        ColoredBox(color: _veil),
         GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: onSurfaceTap,
-          child: DecoratedBox(
-            decoration: _vignette,
-            child: CymaticSignature(
-              crystal: crystal,
-              playing: playing,
-              style: CymaticStyle.kaleidoscope,
-              fillBackground: false,
-              envelope: envelope,
-              playbackPosition: playbackPosition,
-              semanticLabel: AppLocalizations.of(context).cymaticSemantics,
-            ),
+          child: CymaticSignature(
+            crystal: crystal,
+            playing: playing,
+            envelope: envelope,
+            playbackPosition: playbackPosition,
+            semanticLabel: AppLocalizations.of(context).cymaticSemantics,
           ),
         ),
         _FadingChrome(
@@ -85,10 +80,11 @@ class CymaticProjection extends StatelessWidget {
               insets.right + AppSpacing.s32,
               insets.bottom + AppSpacing.s32,
             ),
-            child: Flex(
-              direction: isLandscape ? Axis.horizontal : Axis.vertical,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [caption, controls],
+            child: Align(
+              alignment: isLandscape
+                  ? Alignment.centerRight
+                  : Alignment.bottomCenter,
+              child: controls,
             ),
           ),
         ),
@@ -107,53 +103,14 @@ class _FadingChrome extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
     return IgnorePointer(
       ignoring: !visible,
       child: AnimatedOpacity(
         opacity: visible ? 1 : 0,
-        duration: _fadeDuration,
+        duration: reduceMotion ? Duration.zero : _fadeDuration,
         curve: Curves.easeOut,
         child: child,
-      ),
-    );
-  }
-}
-
-class _ProjectionCaption extends StatelessWidget {
-  const _ProjectionCaption({required this.crystal});
-
-  static const double _maxWidth = 200;
-
-  final Crystal crystal;
-
-  @override
-  Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: _maxWidth),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            crystal.localizedName(AppLocalizations.of(context)),
-            textAlign: TextAlign.center,
-            style: AppTypography.headline.copyWith(
-              color: AppColors.white,
-              fontSize: AppFontSizes.s14,
-              height: 1.2,
-              letterSpacing: 4.2,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.s4),
-          Text(
-            '${crystal.hertz} Hz',
-            textAlign: TextAlign.center,
-            style: AppTypography.subheadline.copyWith(
-              color: AppColors.champagneGold,
-              fontSize: AppFontSizes.s11,
-              letterSpacing: 1.8,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -164,13 +121,13 @@ class _ProjectionControls extends StatelessWidget {
     required this.direction,
     required this.playing,
     required this.onTogglePlayback,
-    required this.onExit,
+    required this.onStop,
   });
 
   final Axis direction;
   final bool playing;
   final VoidCallback onTogglePlayback;
-  final VoidCallback onExit;
+  final VoidCallback onStop;
 
   @override
   Widget build(BuildContext context) {
@@ -186,9 +143,9 @@ class _ProjectionControls extends StatelessWidget {
           onPressed: onTogglePlayback,
         ),
         _ProjectionButton(
-          label: l10n.commonExit,
-          icon: Icons.close_rounded,
-          onPressed: onExit,
+          label: l10n.cymaticStop,
+          icon: Icons.stop_rounded,
+          onPressed: onStop,
         ),
       ],
     );

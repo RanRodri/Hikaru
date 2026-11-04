@@ -50,6 +50,58 @@ const LibraryCollection ritualsCollection = LibraryCollection(
   photoHeight: 56,
 );
 
+const String libraryMeridiansId = 'meridians';
+const String libraryLymphaticId = 'lymphatic';
+const String libraryFasciaId = 'fascia';
+const String libraryGuaShaId = 'gua_sha';
+
+const String _methodGuide = 'METHOD GUIDE';
+
+const LibraryCollection meridiansCollection = LibraryCollection(
+  id: libraryMeridiansId,
+  name: 'MERIDIANS',
+  detail: 'Energy Flow',
+  category: _methodGuide,
+  imageAsset: 'assets/images/library_meridians.png',
+  photoHeight: 54,
+);
+
+const LibraryCollection lymphaticCollection = LibraryCollection(
+  id: libraryLymphaticId,
+  name: 'LYMPHATIC',
+  detail: 'Detox & Renew',
+  category: _methodGuide,
+  imageAsset: 'assets/images/library_lymphatic.png',
+  photoHeight: 54,
+);
+
+const LibraryCollection fasciaCollection = LibraryCollection(
+  id: libraryFasciaId,
+  name: 'FASCIA',
+  detail: 'Living Matrix',
+  category: _methodGuide,
+  imageAsset: 'assets/images/library_fascia.png',
+  photoHeight: 54,
+);
+
+const LibraryCollection guaShaCollection = LibraryCollection(
+  id: libraryGuaShaId,
+  name: 'GUA SHA',
+  detail: 'History & Sculpt',
+  category: _methodGuide,
+  imageAsset: 'assets/images/library_gua_sha.png',
+  photoHeight: 54,
+);
+
+/// Topics added from the client infographics. They have no ARB copy yet, so
+/// their name, detail and category come straight from the domain.
+const Set<String> libraryInfographicOnlyIds = {
+  libraryMeridiansId,
+  libraryLymphaticId,
+  libraryFasciaId,
+  libraryGuaShaId,
+};
+
 const Map<Crystal, LibraryCollection> crystalCollections = {
   Crystal.jade: LibraryCollection(
     id: 'jade',
@@ -94,8 +146,32 @@ final List<LibraryCollection> libraryCollections = [
   ritualsCollection,
 ];
 
+/// Pages of The Hikaru Ritual, in swipe order. The ritual itself comes
+/// first; the four method topics follow as its chapters rather than as
+/// separate circles in the library.
+const List<LibraryCollection> libraryRitualPages = [
+  ritualsCollection,
+  guaShaCollection,
+  meridiansCollection,
+  lymphaticCollection,
+  fasciaCollection,
+];
+
+/// Short tab label of each ritual page.
+const Map<String, String> libraryRitualPageLabels = {
+  libraryRitualsId: 'THE RITUAL',
+  libraryGuaShaId: 'GUA SHA',
+  libraryMeridiansId: 'MERIDIANS',
+  libraryLymphaticId: 'LYMPHATIC',
+  libraryFasciaId: 'FASCIA',
+};
+
+/// Index of [id] among the ritual pages, or -1.
+int libraryRitualPageIndex(String id) =>
+    libraryRitualPages.indexWhere((page) => page.id == id);
+
 LibraryCollection? libraryCollectionFor(String id) {
-  for (final collection in libraryCollections) {
+  for (final collection in [...libraryCollections, ...libraryRitualPages]) {
     if (collection.id == id) return collection;
   }
   return null;

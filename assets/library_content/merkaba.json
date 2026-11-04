@@ -1,0 +1,205 @@
+{
+ "library_id": "libraryMerkabaId (existing merkabaCollection; screen lib/features/library/presentation/library_merkaba_guide.dart)",
+ "source": "src/x1.jpg",
+ "chrome_note": "Original shows back arrow (left) and home icon (right) (UI chrome).",
+ "conflicts": [
+  "MUDRAS: infographic lists Gyan, Apana, Prana, Dhyana, Anjali; app Merkaba session (lib/l10n/app_localizations_*.dart) uses Gyan, Vayu, Lotus, Akash, Anjali. Transcribed verbatim; client must decide which set is correct."
+ ],
+ "sections": [
+  {
+   "type": "eyebrow",
+   "text": "HIKARU SANCTUARY"
+  },
+  {
+   "type": "title",
+   "text": "THE MERKABA"
+  },
+  {
+   "type": "tagline",
+   "text": "ACTIVATION • BALANCE • COHERENCE"
+  },
+  {
+   "type": "image",
+   "asset": "hero_merkaba.webp"
+  },
+  {
+   "type": "card",
+   "heading": "WHAT IS THE MERKABA?",
+   "text": "The Merkaba is a sacred geometric field of light that represents the union of body, mind and spirit. It is a multidimensional vehicle of consciousness that helps us return to balance, clarity and inner harmony."
+  },
+  {
+   "type": "heading",
+   "text": "BENEFITS"
+  },
+  {
+   "type": "rows",
+   "items": [
+    {
+     "icon": "lotus",
+     "label": "Calms the nervous system",
+     "desc": ""
+    },
+    {
+     "icon": "triangle",
+     "label": "Brings coherence to body and mind",
+     "desc": ""
+    },
+    {
+     "icon": "spiral",
+     "label": "Increases energy and vitality",
+     "desc": ""
+    },
+    {
+     "icon": "circles",
+     "label": "Supports emotional balance",
+     "desc": ""
+    },
+    {
+     "icon": "star",
+     "label": "Expands intuition and inner guidance",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "type": "heading",
+   "text": "THE FOUR ELEMENTS"
+  },
+  {
+   "type": "cards",
+   "layout": "grid2",
+   "items": [
+    {
+     "asset": "element_fire.webp",
+     "label": "FIRE",
+     "desc": "TRANSFORMATION\nActivates will, clarity and direction.",
+     "icon_note": "alchemical triangle △"
+    },
+    {
+     "asset": "element_water.webp",
+     "label": "WATER",
+     "desc": "EMOTION\nBrings flow, healing and receptivity."
+    },
+    {
+     "asset": "element_air.webp",
+     "label": "AIR",
+     "desc": "MENTAL CLARITY\nEnhances focus, communication and insight."
+    },
+    {
+     "asset": "element_earth.webp",
+     "label": "EARTH",
+     "desc": "GROUNDING\nProvides stability, nourishment and embodiment."
+    }
+   ]
+  },
+  {
+   "type": "heading",
+   "text": "HOW IT WORKS"
+  },
+  {
+   "type": "paragraph",
+   "text": "The Merkaba is created by the counter-rotating fields of two tetrahedrons. This geometric field harmonizes the flow of energy within and around you, connecting you to higher states of awareness."
+  },
+  {
+   "type": "image",
+   "asset": "how_it_works_figure.webp",
+   "note": "Labels baked in image: SPIRIT, MIND, ENERGY, BODY, BREATH(?) — consider overlaying as Text"
+  },
+  {
+   "type": "heading",
+   "text": "PRACTICE"
+  },
+  {
+   "type": "numbered",
+   "items": [
+    {
+     "label": "Find a quiet space",
+     "desc": ""
+    },
+    {
+     "label": "Sit comfortably",
+     "desc": ""
+    },
+    {
+     "label": "Breathe 4 – 4 – 6",
+     "desc": ""
+    },
+    {
+     "label": "Visualize the Merkaba surrounding you",
+     "desc": ""
+    },
+    {
+     "label": "Set your intention",
+     "desc": ""
+    }
+   ]
+  },
+  {
+   "type": "heading",
+   "text": "THE FIVE MUDRAS",
+   "sub": "NOTE: differs from the app session mudras (see conflicts)"
+  },
+  {
+   "type": "cards",
+   "layout": "hscroll",
+   "items": [
+    {
+     "asset": "mudra_gyan.webp",
+     "label": "GYAN",
+     "desc": "Wisdom"
+    },
+    {
+     "asset": "mudra_apana.webp",
+     "label": "APANA",
+     "desc": "Release"
+    },
+    {
+     "asset": "mudra_prana.webp",
+     "label": "PRANA",
+     "desc": "Vitality"
+    },
+    {
+     "asset": "mudra_dhyana.webp",
+     "label": "DHYANA",
+     "desc": "Meditation"
+    },
+    {
+     "asset": "mudra_anjali.webp",
+     "label": "ANJALI",
+     "desc": "Connection"
+    }
+   ]
+  },
+  {
+   "type": "heading",
+   "text": "BREATHING 4 – 4 – 6"
+  },
+  {
+   "type": "numbered",
+   "note": "Build as animated circular diagram (vector), not image",
+   "items": [
+    {
+     "label": "INHALE",
+     "desc": "4 COUNT"
+    },
+    {
+     "label": "HOLD",
+     "desc": "4 COUNT"
+    },
+    {
+     "label": "EXHALE",
+     "desc": "6 COUNT"
+    }
+   ]
+  },
+  {
+   "type": "card",
+   "heading": "GUIDED MERKABA ACTIVATION",
+   "asset": "video_thumb.webp",
+   "text": "5 MIN VIDEO\nBreath, mudras and visualization to activate your Merkaba.",
+   "action": "Tap → navigate to the existing Merkaba guided session (5 min). Show play icon overlay + chevron."
+  }
+ ],
+ "typos_fixed": [],
+ "topic": "merkaba"
+}

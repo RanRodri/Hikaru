@@ -4,15 +4,20 @@ import 'crystal.dart';
 
 /// Proposed personalization weights (not scientific or diagnostic).
 ///
-/// Emotional / intention answers carry 60% and skin / cosmetic outcome 30%.
-/// Ritual time preference (Q9) is stored for the journey but does not score
-/// crystals, so active buckets are renormalized to sum to 1.0. Q10 is
-/// informative screening only and never votes.
+/// Intention answers (Q7–Q9) carry 60% and skin / face answers (Q1–Q6) 30%.
+/// Active buckets are renormalized to sum to 1.0. Q10 (ritual familiarity) is
+/// informative only and never votes.
+///
+/// Crystal themes used for the signals:
+/// - Jade: calm, hydration, soothing, harmony.
+/// - White Quartz: clarity, radiance, renewal.
+/// - Red Jasper: vitality, lift, firmness, grounding.
+/// - Obsidian: protection, purifying, looking beneath the surface.
 const double emotionWeight = 0.60;
 const double skinWeight = 0.30;
 
-const List<int> emotionQuestions = [3, 4, 6, 7, 8];
-const List<int> skinQuestions = [1, 2, 5];
+const List<int> emotionQuestions = [7, 8, 9];
+const List<int> skinQuestions = [1, 2, 3, 4, 5, 6];
 
 const List<Crystal> crystalTieBreakOrder = [
   Crystal.jade,
@@ -23,41 +28,62 @@ const List<Crystal> crystalTieBreakOrder = [
 
 /// Option id → crystal signal for scoring.
 const Map<String, Crystal> quizCrystalSignals = {
-  // Skin / cosmetic outcome (30%)
-  QuizOptionIds.q1CalmComfort: Crystal.jade,
-  QuizOptionIds.q1LiftedFirm: Crystal.redJasper,
-  QuizOptionIds.q1HydrationSoftness: Crystal.jade,
-  QuizOptionIds.q1RadianceVitality: Crystal.whiteQuartz,
+  // Skin / face (30%)
+  // Q1 — what to see in the mirror (multi-select).
+  QuizOptionIds.q1ReducePuffiness: Crystal.redJasper,
+  QuizOptionIds.q1DefineContours: Crystal.redJasper,
+  QuizOptionIds.q1SmoothFineLines: Crystal.whiteQuartz,
+  QuizOptionIds.q1RestoreGlow: Crystal.whiteQuartz,
+  QuizOptionIds.q1DeeplyHydrate: Crystal.jade,
+  // Q2 — how the skin feels.
+  QuizOptionIds.q2ComfortableBalanced: Crystal.whiteQuartz,
+  QuizOptionIds.q2Tight: Crystal.redJasper,
+  QuizOptionIds.q2Dry: Crystal.jade,
+  QuizOptionIds.q2Oily: Crystal.obsidian,
   QuizOptionIds.q2Sensitive: Crystal.jade,
-  QuizOptionIds.q2TightDry: Crystal.jade,
-  QuizOptionIds.q2PuffyTired: Crystal.redJasper,
-  QuizOptionIds.q2ComfortableLackingRadiance: Crystal.whiteQuartz,
-  QuizOptionIds.q5ChangesUnknown: Crystal.obsidian,
-  QuizOptionIds.q5LossBrightness: Crystal.whiteQuartz,
-  QuizOptionIds.q5StressTension: Crystal.jade,
-  QuizOptionIds.q5FirmnessVitality: Crystal.redJasper,
+  // Q3 — when the skin needs extra care.
+  QuizOptionIds.q3Morning: Crystal.redJasper,
+  QuizOptionIds.q3AfterTravel: Crystal.obsidian,
+  QuizOptionIds.q3LongWorkdays: Crystal.whiteQuartz,
+  QuizOptionIds.q3HormonalChanges: Crystal.jade,
+  QuizOptionIds.q3RestlessNight: Crystal.redJasper,
+  // Q4 — where the facial tension is.
+  QuizOptionIds.q4Jaw: Crystal.obsidian,
+  QuizOptionIds.q4Cheeks: Crystal.jade,
+  QuizOptionIds.q4BetweenEyebrows: Crystal.whiteQuartz,
+  QuizOptionIds.q4Forehead: Crystal.whiteQuartz,
+  QuizOptionIds.q4Neck: Crystal.redJasper,
+  // Q5 — area to focus.
+  QuizOptionIds.q5Jawline: Crystal.redJasper,
+  QuizOptionIds.q5Cheekbones: Crystal.whiteQuartz,
+  QuizOptionIds.q5Neck: Crystal.redJasper,
+  QuizOptionIds.q5EyeArea: Crystal.obsidian,
+  QuizOptionIds.q5OverallHarmony: Crystal.jade,
+  // Q6 — how the skin is responding.
+  QuizOptionIds.q6CalmBalanced: Crystal.whiteQuartz,
+  QuizOptionIds.q6SlightlySensitive: Crystal.jade,
+  QuizOptionIds.q6RedIrritated: Crystal.jade,
+  QuizOptionIds.q6ActiveBreakout: Crystal.obsidian,
+  QuizOptionIds.q6RecoveringTreatment: Crystal.jade,
 
-  // Emotional state / intention (60%)
-  QuizOptionIds.q3EmotionallyOverwhelmed: Crystal.obsidian,
-  QuizOptionIds.q3MentallyBusy: Crystal.whiteQuartz,
-  QuizOptionIds.q3DisconnectedBody: Crystal.redJasper,
-  QuizOptionIds.q3CalmBalanced: Crystal.jade,
-  QuizOptionIds.q4UncertaintyTension: Crystal.obsidian,
-  QuizOptionIds.q4MentalNoise: Crystal.whiteQuartz,
-  QuizOptionIds.q4StressPressure: Crystal.jade,
-  QuizOptionIds.q4FatigueHeaviness: Crystal.redJasper,
-  QuizOptionIds.q6SpaceReflect: Crystal.obsidian,
-  QuizOptionIds.q6MomentClarity: Crystal.whiteQuartz,
-  QuizOptionIds.q6GentlenessBalance: Crystal.jade,
-  QuizOptionIds.q6GroundingStrength: Crystal.redJasper,
-  QuizOptionIds.q7UnderstandBeneath: Crystal.obsidian,
-  QuizOptionIds.q7GreaterClarity: Crystal.whiteQuartz,
-  QuizOptionIds.q7ReturnHarmony: Crystal.jade,
-  QuizOptionIds.q7InnerStrength: Crystal.redJasper,
-  QuizOptionIds.q8SelfAware: Crystal.obsidian,
-  QuizOptionIds.q8ClearRefreshed: Crystal.whiteQuartz,
-  QuizOptionIds.q8CalmNurtured: Crystal.jade,
-  QuizOptionIds.q8GroundedEnergized: Crystal.redJasper,
+  // Intention (60%)
+  // Q7 — how to feel at the end of the ritual.
+  QuizOptionIds.q7MoreSculpted: Crystal.redJasper,
+  QuizOptionIds.q7MoreRadiant: Crystal.whiteQuartz,
+  QuizOptionIds.q7Refreshed: Crystal.jade,
+  QuizOptionIds.q7DeeplyRelaxed: Crystal.jade,
+  QuizOptionIds.q7Grounded: Crystal.obsidian,
+  // Q8 — intention for today's ritual.
+  QuizOptionIds.q8Clarity: Crystal.whiteQuartz,
+  QuizOptionIds.q8Harmony: Crystal.jade,
+  QuizOptionIds.q8Grounding: Crystal.redJasper,
+  QuizOptionIds.q8Protection: Crystal.obsidian,
+  QuizOptionIds.q8Vitality: Crystal.redJasper,
+  // Q9 — what to cultivate over the next 20 days.
+  QuizOptionIds.q9ClarityRenewal: Crystal.whiteQuartz,
+  QuizOptionIds.q9BalanceHarmony: Crystal.jade,
+  QuizOptionIds.q9GroundingProtection: Crystal.obsidian,
+  QuizOptionIds.q9VitalityConfidence: Crystal.redJasper,
 };
 
 Map<Crystal, double> _bucketScores(QuizAnswers answers, List<int> questions) {

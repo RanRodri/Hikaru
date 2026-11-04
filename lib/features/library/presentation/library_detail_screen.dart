@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
@@ -14,6 +15,8 @@ import '../../../core/design_system/widgets/hikaru_scroll_page.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../crystals/domain/crystal.dart';
+import '../../listening_room/application/journey_recommendation_controller.dart';
+import '../../resonance_chamber/application/crystal_track_duration.dart';
 import '../domain/library_article.dart';
 import '../domain/library_collection.dart';
 import 'library_merkaba_guide.dart';
@@ -35,16 +38,17 @@ final TextStyle _bodyStyle = AppTypography.body.copyWith(
 
 String _chapterNumber(int number) => number.toString().padLeft(2, '0');
 
-class LibraryDetailScreen extends StatefulWidget {
+class LibraryDetailScreen extends ConsumerStatefulWidget {
   const LibraryDetailScreen({super.key, required this.article});
 
   final LibraryArticle article;
 
   @override
-  State<LibraryDetailScreen> createState() => _LibraryDetailScreenState();
+  ConsumerState<LibraryDetailScreen> createState() =>
+      _LibraryDetailScreenState();
 }
 
-class _LibraryDetailScreenState extends State<LibraryDetailScreen> {
+class _LibraryDetailScreenState extends ConsumerState<LibraryDetailScreen> {
   static const Duration _scrollDuration = Duration(milliseconds: 450);
   static const Duration _switchDuration = Duration(milliseconds: 320);
 
@@ -99,10 +103,20 @@ class _LibraryDetailScreenState extends State<LibraryDetailScreen> {
     }
 
     final l10n = AppLocalizations.of(context);
-    final article = localizedLibraryArticle(l10n, widget.article);
+    final recommendation = ref
+        .watch(journeyRecommendationControllerProvider)
+        .value;
+    final article = localizedLibraryArticle(
+      l10n,
+      widget.article,
+      recommendation: recommendation,
+    );
     final collection = libraryCollectionFor(article.id);
     final next = nextLibraryCollection(article.id);
     final crystal = Crystal.fromName(article.id);
+    final trackDuration = crystal == null
+        ? null
+        : ref.watch(crystalTrackDurationProvider(crystal)).value;
     final chapters = article.blocks;
     final featuredIndex = _featuredIndex;
     final otherChapters = [
@@ -141,6 +155,8 @@ class _LibraryDetailScreenState extends State<LibraryDetailScreen> {
             _MetaPill(label: l10n.libraryChapterCount(chapters.length)),
             _MetaPill(label: l10n.libraryReadingTime(article.readingMinutes)),
             if (crystal != null) _MetaPill(label: crystal.hertzLabel),
+            if (trackDuration != null)
+              _MetaPill(label: formatTrackDuration(trackDuration)),
           ],
         ),
         const SizedBox(height: AppSpacing.s20),

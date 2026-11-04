@@ -110,7 +110,6 @@ class ResonanceChamberScreen extends ConsumerWidget {
 
 Future<void> _enterSanctuary(BuildContext context, WidgetRef ref) async {
   await LaunchGate(SharedPreferencesAsync()).markCrystalRevealed();
-  await prepareHomeBackground(ref.read(remoteImageCacheProvider));
   if (!context.mounted) return;
   context.go(AppRoutes.home);
 }

@@ -719,302 +719,362 @@ abstract class AppLocalizations {
   /// No description provided for @quizQ1Prompt.
   ///
   /// In en, this message translates to:
-  /// **'What is your skin asking for today?'**
+  /// **'What would you like to see reflected in the mirror today?'**
   String get quizQ1Prompt;
+
+  /// No description provided for @quizQ1Instruction.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all that resonate with you'**
+  String get quizQ1Instruction;
 
   /// No description provided for @quizQ2Prompt.
   ///
   /// In en, this message translates to:
-  /// **'How does your skin feel right now?'**
+  /// **'How does your skin feel today?'**
   String get quizQ2Prompt;
+
+  /// No description provided for @quizQ2Instruction.
+  ///
+  /// In en, this message translates to:
+  /// **'Listen to what your skin is telling you'**
+  String get quizQ2Instruction;
 
   /// No description provided for @quizQ3Prompt.
   ///
   /// In en, this message translates to:
-  /// **'How has your inner world been feeling lately?'**
+  /// **'Where does your skin need extra care?'**
   String get quizQ3Prompt;
 
   /// No description provided for @quizQ4Prompt.
   ///
   /// In en, this message translates to:
-  /// **'What would you most like to release?'**
+  /// **'Where do you notice the most facial tension?'**
   String get quizQ4Prompt;
+
+  /// No description provided for @quizQ4Instruction.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the area you notice most'**
+  String get quizQ4Instruction;
 
   /// No description provided for @quizQ5Prompt.
   ///
   /// In en, this message translates to:
-  /// **'When you look in the mirror, what do you notice first?'**
+  /// **'Which area would you like to focus?'**
   String get quizQ5Prompt;
 
   /// No description provided for @quizQ6Prompt.
   ///
   /// In en, this message translates to:
-  /// **'What does your body need more of today?'**
+  /// **'How is your skin responding today?'**
   String get quizQ6Prompt;
 
   /// No description provided for @quizQ7Prompt.
   ///
   /// In en, this message translates to:
-  /// **'Which intention resonates with you?'**
+  /// **'How would you like to feel at the end of today\'s ritual?'**
   String get quizQ7Prompt;
 
   /// No description provided for @quizQ8Prompt.
   ///
   /// In en, this message translates to:
-  /// **'How would you like to feel after your ritual?'**
+  /// **'What intention would you like to set for today\'s ritual?'**
   String get quizQ8Prompt;
 
   /// No description provided for @quizQ9Prompt.
   ///
   /// In en, this message translates to:
-  /// **'How much time would you like to dedicate to yourself?'**
+  /// **'What would you like to cultivate over the next 20 days?'**
   String get quizQ9Prompt;
 
   /// No description provided for @quizQ10Prompt.
   ///
   /// In en, this message translates to:
-  /// **'Is your skin currently experiencing any of these?'**
+  /// **'How familiar are you with facial sculpting rituals?'**
   String get quizQ10Prompt;
 
-  /// No description provided for @quizQ10Instruction.
+  /// No description provided for @quizOptionQ1ReducePuffiness.
   ///
   /// In en, this message translates to:
-  /// **'Select all that apply'**
-  String get quizQ10Instruction;
+  /// **'Reduce puffiness'**
+  String get quizOptionQ1ReducePuffiness;
 
-  /// No description provided for @quizOptionQ1CalmComfort.
+  /// No description provided for @quizOptionQ1DefineContours.
   ///
   /// In en, this message translates to:
-  /// **'Calm and comfort'**
-  String get quizOptionQ1CalmComfort;
+  /// **'Define facial contours'**
+  String get quizOptionQ1DefineContours;
 
-  /// No description provided for @quizOptionQ1LiftedFirm.
+  /// No description provided for @quizOptionQ1SmoothFineLines.
   ///
   /// In en, this message translates to:
-  /// **'A more lifted, firm appearance'**
-  String get quizOptionQ1LiftedFirm;
+  /// **'Smooth fine lines'**
+  String get quizOptionQ1SmoothFineLines;
 
-  /// No description provided for @quizOptionQ1HydrationSoftness.
+  /// No description provided for @quizOptionQ1RestoreGlow.
   ///
   /// In en, this message translates to:
-  /// **'Hydration and softness'**
-  String get quizOptionQ1HydrationSoftness;
+  /// **'Restore glow/radiance'**
+  String get quizOptionQ1RestoreGlow;
 
-  /// No description provided for @quizOptionQ1RadianceVitality.
+  /// No description provided for @quizOptionQ1DeeplyHydrate.
   ///
   /// In en, this message translates to:
-  /// **'Radiance and renewed vitality'**
-  String get quizOptionQ1RadianceVitality;
+  /// **'Deeply hydrate'**
+  String get quizOptionQ1DeeplyHydrate;
+
+  /// No description provided for @quizOptionQ2ComfortableBalanced.
+  ///
+  /// In en, this message translates to:
+  /// **'Comfortable and balanced'**
+  String get quizOptionQ2ComfortableBalanced;
+
+  /// No description provided for @quizOptionQ2Tight.
+  ///
+  /// In en, this message translates to:
+  /// **'Tight'**
+  String get quizOptionQ2Tight;
+
+  /// No description provided for @quizOptionQ2Dry.
+  ///
+  /// In en, this message translates to:
+  /// **'Dry'**
+  String get quizOptionQ2Dry;
+
+  /// No description provided for @quizOptionQ2Oily.
+  ///
+  /// In en, this message translates to:
+  /// **'Oily'**
+  String get quizOptionQ2Oily;
 
   /// No description provided for @quizOptionQ2Sensitive.
   ///
   /// In en, this message translates to:
-  /// **'Sensitive or easily irritated'**
+  /// **'Sensitive'**
   String get quizOptionQ2Sensitive;
 
-  /// No description provided for @quizOptionQ2TightDry.
+  /// No description provided for @quizOptionQ3Morning.
   ///
   /// In en, this message translates to:
-  /// **'Tight or dry'**
-  String get quizOptionQ2TightDry;
+  /// **'In the morning'**
+  String get quizOptionQ3Morning;
 
-  /// No description provided for @quizOptionQ2PuffyTired.
+  /// No description provided for @quizOptionQ3AfterTravel.
   ///
   /// In en, this message translates to:
-  /// **'Puffy or tired'**
-  String get quizOptionQ2PuffyTired;
+  /// **'After travel'**
+  String get quizOptionQ3AfterTravel;
 
-  /// No description provided for @quizOptionQ2ComfortableLackingRadiance.
+  /// No description provided for @quizOptionQ3LongWorkdays.
   ///
   /// In en, this message translates to:
-  /// **'Comfortable, but lacking radiance'**
-  String get quizOptionQ2ComfortableLackingRadiance;
+  /// **'After long workdays'**
+  String get quizOptionQ3LongWorkdays;
 
-  /// No description provided for @quizOptionQ3EmotionallyOverwhelmed.
+  /// No description provided for @quizOptionQ3HormonalChanges.
   ///
   /// In en, this message translates to:
-  /// **'Emotionally overwhelmed'**
-  String get quizOptionQ3EmotionallyOverwhelmed;
+  /// **'During hormonal changes'**
+  String get quizOptionQ3HormonalChanges;
 
-  /// No description provided for @quizOptionQ3MentallyBusy.
+  /// No description provided for @quizOptionQ3RestlessNight.
   ///
   /// In en, this message translates to:
-  /// **'Mentally busy or distracted'**
-  String get quizOptionQ3MentallyBusy;
+  /// **'After a restless night'**
+  String get quizOptionQ3RestlessNight;
 
-  /// No description provided for @quizOptionQ3DisconnectedBody.
+  /// No description provided for @quizOptionQ4Jaw.
   ///
   /// In en, this message translates to:
-  /// **'Disconnected from my body'**
-  String get quizOptionQ3DisconnectedBody;
+  /// **'Jaw'**
+  String get quizOptionQ4Jaw;
 
-  /// No description provided for @quizOptionQ3CalmBalanced.
+  /// No description provided for @quizOptionQ4Cheeks.
+  ///
+  /// In en, this message translates to:
+  /// **'Cheeks'**
+  String get quizOptionQ4Cheeks;
+
+  /// No description provided for @quizOptionQ4BetweenEyebrows.
+  ///
+  /// In en, this message translates to:
+  /// **'Between eyebrows'**
+  String get quizOptionQ4BetweenEyebrows;
+
+  /// No description provided for @quizOptionQ4Forehead.
+  ///
+  /// In en, this message translates to:
+  /// **'Forehead'**
+  String get quizOptionQ4Forehead;
+
+  /// No description provided for @quizOptionQ4Neck.
+  ///
+  /// In en, this message translates to:
+  /// **'Neck'**
+  String get quizOptionQ4Neck;
+
+  /// No description provided for @quizOptionQ5Jawline.
+  ///
+  /// In en, this message translates to:
+  /// **'Jawline'**
+  String get quizOptionQ5Jawline;
+
+  /// No description provided for @quizOptionQ5Cheekbones.
+  ///
+  /// In en, this message translates to:
+  /// **'Cheekbones'**
+  String get quizOptionQ5Cheekbones;
+
+  /// No description provided for @quizOptionQ5Neck.
+  ///
+  /// In en, this message translates to:
+  /// **'Neck'**
+  String get quizOptionQ5Neck;
+
+  /// No description provided for @quizOptionQ5EyeArea.
+  ///
+  /// In en, this message translates to:
+  /// **'Eye area'**
+  String get quizOptionQ5EyeArea;
+
+  /// No description provided for @quizOptionQ5OverallHarmony.
+  ///
+  /// In en, this message translates to:
+  /// **'Overall facial harmony'**
+  String get quizOptionQ5OverallHarmony;
+
+  /// No description provided for @quizOptionQ6CalmBalanced.
   ///
   /// In en, this message translates to:
   /// **'Calm and balanced'**
-  String get quizOptionQ3CalmBalanced;
+  String get quizOptionQ6CalmBalanced;
 
-  /// No description provided for @quizOptionQ4UncertaintyTension.
+  /// No description provided for @quizOptionQ6SlightlySensitive.
   ///
   /// In en, this message translates to:
-  /// **'Uncertainty or hidden tension'**
-  String get quizOptionQ4UncertaintyTension;
+  /// **'Slightly sensitive'**
+  String get quizOptionQ6SlightlySensitive;
 
-  /// No description provided for @quizOptionQ4MentalNoise.
+  /// No description provided for @quizOptionQ6RedIrritated.
   ///
   /// In en, this message translates to:
-  /// **'Mental noise and overthinking'**
-  String get quizOptionQ4MentalNoise;
+  /// **'Red or irritated'**
+  String get quizOptionQ6RedIrritated;
 
-  /// No description provided for @quizOptionQ4StressPressure.
+  /// No description provided for @quizOptionQ6ActiveBreakout.
   ///
   /// In en, this message translates to:
-  /// **'Stress and emotional pressure'**
-  String get quizOptionQ4StressPressure;
+  /// **'Experiencing an active breakout'**
+  String get quizOptionQ6ActiveBreakout;
 
-  /// No description provided for @quizOptionQ4FatigueHeaviness.
+  /// No description provided for @quizOptionQ6RecoveringTreatment.
   ///
   /// In en, this message translates to:
-  /// **'Fatigue and heaviness'**
-  String get quizOptionQ4FatigueHeaviness;
+  /// **'Recovering from a cosmetic treatment'**
+  String get quizOptionQ6RecoveringTreatment;
 
-  /// No description provided for @quizOptionQ5ChangesUnknown.
+  /// No description provided for @quizOptionQ7MoreSculpted.
   ///
   /// In en, this message translates to:
-  /// **'Changes I don\'t fully understand'**
-  String get quizOptionQ5ChangesUnknown;
+  /// **'More sculpted'**
+  String get quizOptionQ7MoreSculpted;
 
-  /// No description provided for @quizOptionQ5LossBrightness.
+  /// No description provided for @quizOptionQ7MoreRadiant.
   ///
   /// In en, this message translates to:
-  /// **'A loss of brightness'**
-  String get quizOptionQ5LossBrightness;
+  /// **'More radiant'**
+  String get quizOptionQ7MoreRadiant;
 
-  /// No description provided for @quizOptionQ5StressTension.
+  /// No description provided for @quizOptionQ7Refreshed.
   ///
   /// In en, this message translates to:
-  /// **'Signs of stress or tension'**
-  String get quizOptionQ5StressTension;
+  /// **'Refreshed'**
+  String get quizOptionQ7Refreshed;
 
-  /// No description provided for @quizOptionQ5FirmnessVitality.
+  /// No description provided for @quizOptionQ7DeeplyRelaxed.
   ///
   /// In en, this message translates to:
-  /// **'Changes in firmness or vitality'**
-  String get quizOptionQ5FirmnessVitality;
+  /// **'Deeply relaxed'**
+  String get quizOptionQ7DeeplyRelaxed;
 
-  /// No description provided for @quizOptionQ6SpaceReflect.
+  /// No description provided for @quizOptionQ7Grounded.
   ///
   /// In en, this message translates to:
-  /// **'Space to reflect'**
-  String get quizOptionQ6SpaceReflect;
+  /// **'Grounded'**
+  String get quizOptionQ7Grounded;
 
-  /// No description provided for @quizOptionQ6MomentClarity.
+  /// No description provided for @quizOptionQ8Clarity.
   ///
   /// In en, this message translates to:
-  /// **'A moment of clarity'**
-  String get quizOptionQ6MomentClarity;
+  /// **'Clarity'**
+  String get quizOptionQ8Clarity;
 
-  /// No description provided for @quizOptionQ6GentlenessBalance.
+  /// No description provided for @quizOptionQ8Harmony.
   ///
   /// In en, this message translates to:
-  /// **'Gentleness and balance'**
-  String get quizOptionQ6GentlenessBalance;
+  /// **'Harmony'**
+  String get quizOptionQ8Harmony;
 
-  /// No description provided for @quizOptionQ6GroundingStrength.
+  /// No description provided for @quizOptionQ8Grounding.
   ///
   /// In en, this message translates to:
-  /// **'Grounding and strength'**
-  String get quizOptionQ6GroundingStrength;
+  /// **'Grounding'**
+  String get quizOptionQ8Grounding;
 
-  /// No description provided for @quizOptionQ7UnderstandBeneath.
+  /// No description provided for @quizOptionQ8Protection.
   ///
   /// In en, this message translates to:
-  /// **'Understand what lies beneath the surface'**
-  String get quizOptionQ7UnderstandBeneath;
+  /// **'Protection'**
+  String get quizOptionQ8Protection;
 
-  /// No description provided for @quizOptionQ7GreaterClarity.
+  /// No description provided for @quizOptionQ8Vitality.
   ///
   /// In en, this message translates to:
-  /// **'See myself with greater clarity'**
-  String get quizOptionQ7GreaterClarity;
+  /// **'Vitality'**
+  String get quizOptionQ8Vitality;
 
-  /// No description provided for @quizOptionQ7ReturnHarmony.
+  /// No description provided for @quizOptionQ9ClarityRenewal.
   ///
   /// In en, this message translates to:
-  /// **'Return to harmony'**
-  String get quizOptionQ7ReturnHarmony;
+  /// **'Clarity and renewal'**
+  String get quizOptionQ9ClarityRenewal;
 
-  /// No description provided for @quizOptionQ7InnerStrength.
+  /// No description provided for @quizOptionQ9BalanceHarmony.
   ///
   /// In en, this message translates to:
-  /// **'Reconnect with my inner strength'**
-  String get quizOptionQ7InnerStrength;
+  /// **'Balance and harmony'**
+  String get quizOptionQ9BalanceHarmony;
 
-  /// No description provided for @quizOptionQ8SelfAware.
+  /// No description provided for @quizOptionQ9GroundingProtection.
   ///
   /// In en, this message translates to:
-  /// **'More self-aware'**
-  String get quizOptionQ8SelfAware;
+  /// **'Grounding and protection'**
+  String get quizOptionQ9GroundingProtection;
 
-  /// No description provided for @quizOptionQ8ClearRefreshed.
+  /// No description provided for @quizOptionQ9VitalityConfidence.
   ///
   /// In en, this message translates to:
-  /// **'Clear and refreshed'**
-  String get quizOptionQ8ClearRefreshed;
+  /// **'Vitality and confidence'**
+  String get quizOptionQ9VitalityConfidence;
 
-  /// No description provided for @quizOptionQ8CalmNurtured.
+  /// No description provided for @quizOptionQ10FirstRitual.
   ///
   /// In en, this message translates to:
-  /// **'Calm and nurtured'**
-  String get quizOptionQ8CalmNurtured;
+  /// **'Today is my very first ritual'**
+  String get quizOptionQ10FirstRitual;
 
-  /// No description provided for @quizOptionQ8GroundedEnergized.
+  /// No description provided for @quizOptionQ10ExploredFewTimes.
   ///
   /// In en, this message translates to:
-  /// **'Grounded and energized'**
-  String get quizOptionQ8GroundedEnergized;
+  /// **'I\'ve explored it a few times'**
+  String get quizOptionQ10ExploredFewTimes;
 
-  /// No description provided for @quizOptionQ9ThreeMinutes.
+  /// No description provided for @quizOptionQ10Routine.
   ///
   /// In en, this message translates to:
-  /// **'3 minutes'**
-  String get quizOptionQ9ThreeMinutes;
-
-  /// No description provided for @quizOptionQ9FiveMinutes.
-  ///
-  /// In en, this message translates to:
-  /// **'5 minutes'**
-  String get quizOptionQ9FiveMinutes;
-
-  /// No description provided for @quizOptionQ9TenMinutes.
-  ///
-  /// In en, this message translates to:
-  /// **'10 minutes'**
-  String get quizOptionQ9TenMinutes;
-
-  /// No description provided for @quizOptionQ10OpenBroken.
-  ///
-  /// In en, this message translates to:
-  /// **'Open or broken skin'**
-  String get quizOptionQ10OpenBroken;
-
-  /// No description provided for @quizOptionQ10ActiveIrritation.
-  ///
-  /// In en, this message translates to:
-  /// **'Active irritation or painful inflammation'**
-  String get quizOptionQ10ActiveIrritation;
-
-  /// No description provided for @quizOptionQ10UnexplainedChange.
-  ///
-  /// In en, this message translates to:
-  /// **'A new or unexplained skin change'**
-  String get quizOptionQ10UnexplainedChange;
-
-  /// No description provided for @quizOptionQ10None.
-  ///
-  /// In en, this message translates to:
-  /// **'None of the above'**
-  String get quizOptionQ10None;
+  /// **'It is part of my regular routine'**
+  String get quizOptionQ10Routine;
 
   /// No description provided for @commonContinue.
   ///
@@ -1280,42 +1340,6 @@ abstract class AppLocalizations {
   /// **'Cymatic'**
   String get cymaticSemantics;
 
-  /// No description provided for @crystalDetailSymbolicMeaning.
-  ///
-  /// In en, this message translates to:
-  /// **'SYMBOLIC MEANING'**
-  String get crystalDetailSymbolicMeaning;
-
-  /// No description provided for @crystalDetailAssociatedIntention.
-  ///
-  /// In en, this message translates to:
-  /// **'ASSOCIATED INTENTION'**
-  String get crystalDetailAssociatedIntention;
-
-  /// No description provided for @crystalDetailTherapeuticPurpose.
-  ///
-  /// In en, this message translates to:
-  /// **'THERAPEUTIC PURPOSE'**
-  String get crystalDetailTherapeuticPurpose;
-
-  /// No description provided for @crystalDetailSkinBenefit.
-  ///
-  /// In en, this message translates to:
-  /// **'SKIN BENEFIT'**
-  String get crystalDetailSkinBenefit;
-
-  /// No description provided for @crystalDetailMeridians.
-  ///
-  /// In en, this message translates to:
-  /// **'ILLUMINATED MERIDIANS'**
-  String get crystalDetailMeridians;
-
-  /// No description provided for @crystalDetailEnvironment.
-  ///
-  /// In en, this message translates to:
-  /// **'VISUAL ENVIRONMENT'**
-  String get crystalDetailEnvironment;
-
   /// No description provided for @crystalChoose.
   ///
   /// In en, this message translates to:
@@ -1340,30 +1364,6 @@ abstract class AppLocalizations {
   /// **'{crystal} is now your crystal.'**
   String crystalChosenSnackbar(String crystal);
 
-  /// No description provided for @crystalFrequencyPlay.
-  ///
-  /// In en, this message translates to:
-  /// **'Play frequency'**
-  String get crystalFrequencyPlay;
-
-  /// No description provided for @crystalFrequencyPause.
-  ///
-  /// In en, this message translates to:
-  /// **'Pause frequency'**
-  String get crystalFrequencyPause;
-
-  /// No description provided for @crystalFrequencyUnavailable.
-  ///
-  /// In en, this message translates to:
-  /// **'Frequency unavailable right now'**
-  String get crystalFrequencyUnavailable;
-
-  /// No description provided for @crystalCompositionCredit.
-  ///
-  /// In en, this message translates to:
-  /// **'Composed by Maestro Jorge Alfano with Japanese instruments'**
-  String get crystalCompositionCredit;
-
   /// No description provided for @crystalTextName.
   ///
   /// In en, this message translates to:
@@ -1379,7 +1379,7 @@ abstract class AppLocalizations {
   /// No description provided for @crystalTextProtocol.
   ///
   /// In en, this message translates to:
-  /// **'{crystal, select, whiteQuartz{Quartz Illumination Protocol — Maestro Jorge Alfano} jade{Jade Harmony Protocol} obsidian{Obsidian Transformation Protocol} redJasper{Jasper Vitality Protocol — Maestro Jorge Alfano} other{}}'**
+  /// **'{crystal, select, whiteQuartz{Quartz Illumination Protocol} jade{Jade Harmony Protocol} obsidian{Obsidian Transformation Protocol} redJasper{Jasper Vitality Protocol} other{}}'**
   String crystalTextProtocol(String crystal);
 
   /// No description provided for @crystalTextFrequency.
@@ -2012,6 +2012,42 @@ abstract class AppLocalizations {
   /// **'END CYCLE'**
   String get profileCycleEnd;
 
+  /// No description provided for @profileSignOut.
+  ///
+  /// In en, this message translates to:
+  /// **'SIGN OUT'**
+  String get profileSignOut;
+
+  /// No description provided for @profileSignOutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out?'**
+  String get profileSignOutTitle;
+
+  /// No description provided for @profileSignOutBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your progress is saved to your account and will be here when you sign in again.'**
+  String get profileSignOutBody;
+
+  /// No description provided for @profileSignOutCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'STAY'**
+  String get profileSignOutCancel;
+
+  /// No description provided for @profileSignOutConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'SIGN OUT'**
+  String get profileSignOutConfirm;
+
+  /// No description provided for @profileSignOutError.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t sign you out. Check your connection and try again.'**
+  String get profileSignOutError;
+
   /// No description provided for @libraryTitle.
   ///
   /// In en, this message translates to:
@@ -2089,6 +2125,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'READ'**
   String get libraryRead;
+
+  /// No description provided for @libraryReadMore.
+  ///
+  /// In en, this message translates to:
+  /// **'READ MORE'**
+  String get libraryReadMore;
+
+  /// No description provided for @libraryReadLess.
+  ///
+  /// In en, this message translates to:
+  /// **'READ LESS'**
+  String get libraryReadLess;
 
   /// No description provided for @libraryTextCollectionName.
   ///
@@ -2219,7 +2267,7 @@ abstract class AppLocalizations {
   /// No description provided for @libraryMerkabaCues.
   ///
   /// In en, this message translates to:
-  /// **'One clear chime cues Inhale (4 seconds). A soft sustained shimmer cues Hold (4 seconds). A warm lower chime cues Exhale (6 seconds).'**
+  /// **'A soft breath and a golden circle of light cue Inhale (4 seconds). The light rests and shimmers on Hold (4 seconds). The circle gently shrinks on Exhale (6 seconds).'**
   String get libraryMerkabaCues;
 
   /// No description provided for @libraryRitualsHeadingSequence.
@@ -2264,6 +2312,12 @@ abstract class AppLocalizations {
   /// **'BREATHS'**
   String get merkabaBreaths;
 
+  /// No description provided for @merkabaRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'REMAINING'**
+  String get merkabaRemaining;
+
   /// No description provided for @merkabaCycle.
   ///
   /// In en, this message translates to:
@@ -2299,6 +2353,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Seated woman in meditation'**
   String get merkabaWomanSemantics;
+
+  /// No description provided for @merkabaTimeRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{time} remaining'**
+  String merkabaTimeRemaining(String time);
+
+  /// No description provided for @merkabaSessionLength.
+  ///
+  /// In en, this message translates to:
+  /// **'TIME IN THE ROOM'**
+  String get merkabaSessionLength;
+
+  /// No description provided for @merkabaPreparing.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing the room'**
+  String get merkabaPreparing;
+
+  /// No description provided for @merkabaSaving.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving today\'s progress'**
+  String get merkabaSaving;
+
+  /// No description provided for @merkabaSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s Merkaba is saved'**
+  String get merkabaSaved;
+
+  /// No description provided for @merkabaSavedOnDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved on this device'**
+  String get merkabaSavedOnDevice;
+
+  /// No description provided for @merkabaCycleDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Day {day} of {total}'**
+  String merkabaCycleDay(int day, int total);
+
+  /// No description provided for @merkabaDaysPracticed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day of Merkaba} other{{count} days of Merkaba}}'**
+  String merkabaDaysPracticed(int count);
 
   /// No description provided for @merkabaPhaseInhale.
   ///
@@ -2708,35 +2810,149 @@ abstract class AppLocalizations {
   /// **'Headphones recommended'**
   String get headphonesDialogSemanticsLabel;
 
-  /// Small overline above the headphones dialog title.
+  /// Small gold overline at the top of the headphones dialog, shown before the cymatic starts.
   ///
   /// In en, this message translates to:
-  /// **'FOR THE FULL HIKARU FREQUENCY EXPERIENCE'**
+  /// **'AWAKEN YOUR SENSES'**
   String get headphonesDialogEyebrow;
 
-  /// Main title of the headphones recommendation dialog.
+  /// Single line of copy in the headphones dialog inviting the user to wear headphones.
   ///
   /// In en, this message translates to:
-  /// **'Headphones recommended'**
-  String get headphonesDialogTitle;
-
-  /// Body copy of the headphones dialog, including the comfortable-volume reminder.
-  ///
-  /// In en, this message translates to:
-  /// **'For a more immersive experience, we recommend headphones. Find a comfortable space, set a comfortable volume, and let the sound surround you.'**
+  /// **'Put on your headphones and let the frequency surround you.'**
   String get headphonesDialogBody;
 
-  /// Primary button: continue with headphones ready.
+  /// Primary button of the headphones dialog: starts the frequency and the cymatic.
   ///
   /// In en, this message translates to:
-  /// **'I\'M READY'**
+  /// **'ACTIVATE MY FREQUENCY'**
   String get headphonesDialogReady;
 
-  /// Secondary button: continue without headphones.
+  /// Secondary button of the headphones dialog: continue without headphones.
   ///
   /// In en, this message translates to:
   /// **'CONTINUE WITHOUT HEADPHONES'**
   String get headphonesDialogContinueWithout;
+
+  /// Primary button on the crystal screen that opens the vertical tutorial video.
+  ///
+  /// In en, this message translates to:
+  /// **'VIDEO TUTORIAL'**
+  String get crystalTutorialButton;
+
+  /// Primary button on the crystal screen that starts the frequency and cymatic flow.
+  ///
+  /// In en, this message translates to:
+  /// **'START YOUR FREQUENCY'**
+  String get crystalStartFrequencyButton;
+
+  /// Secondary button on the crystal screen that opens this crystal's page in the Library.
+  ///
+  /// In en, this message translates to:
+  /// **'YOUR CRYSTAL'**
+  String get crystalYourCrystalLibraryButton;
+
+  /// Subtle note on the tutorial placeholder shown while the crystal's video has not been delivered.
+  ///
+  /// In en, this message translates to:
+  /// **'Tutorial video coming soon'**
+  String get crystalTutorialPendingNote;
+
+  /// Message shown after a tutorial video ends, before moving on to the frequency.
+  ///
+  /// In en, this message translates to:
+  /// **'Your crystal ritual is ready. Now enter the frequency.'**
+  String get crystalTutorialReadyTitle;
+
+  /// Button that skips the rest of the tutorial and goes on to the headphones step and the cymatic.
+  ///
+  /// In en, this message translates to:
+  /// **'CONTINUE TO RESONANCE'**
+  String get crystalContinueToResonance;
+
+  /// Body of the reminder dialog shown when the user starts the frequency without having watched the tutorial.
+  ///
+  /// In en, this message translates to:
+  /// **'Have you watched the video tutorial? It shows how to use your roller during the resonance.'**
+  String get crystalTutorialReminderBody;
+
+  /// Primary button of the tutorial reminder dialog: opens the tutorial.
+  ///
+  /// In en, this message translates to:
+  /// **'WATCH TUTORIAL'**
+  String get crystalWatchTutorial;
+
+  /// Accessibility label of the pause button in the tutorial video controls.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get tutorialPause;
+
+  /// Accessibility label of the resume button in the tutorial video controls.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get tutorialResume;
+
+  /// Accessibility label of the replay button in the tutorial video controls.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay'**
+  String get tutorialReplay;
+
+  /// Accessibility label of the close button of the tutorial video.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get tutorialClose;
+
+  /// Accessibility label of the stop button shown over the cymatic projection when the screen is tapped.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get cymaticStop;
+
+  /// Title of the closing screen after the cymatic ends.
+  ///
+  /// In en, this message translates to:
+  /// **'RETURN TO COHERENCE'**
+  String get resonanceReturnTitle;
+
+  /// Subtitle of the closing screen after the cymatic ends.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry this moment of harmony with you'**
+  String get resonanceReturnSubtitle;
+
+  /// Primary button of the closing screen: returns to Home.
+  ///
+  /// In en, this message translates to:
+  /// **'COMPLETE MY RITUAL'**
+  String get resonanceCompleteRitual;
+
+  /// Secondary button of the closing screen: opens the Four Temples map.
+  ///
+  /// In en, this message translates to:
+  /// **'EXPLORE ANOTHER TEMPLE'**
+  String get resonanceExploreAnotherTemple;
+
+  /// Heading of the Library chapter, and label of the closing-screen link, explaining why this crystal was recommended to the user.
+  ///
+  /// In en, this message translates to:
+  /// **'Why we recommended this crystal'**
+  String get libraryCrystalHeadingWhyRecommended;
+
+  /// Link on the closing screen, shown when the crystal is not the user's recommended one, that opens it in the Library.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover this crystal in the Library'**
+  String get resonanceDiscoverInLibraryLink;
+
+  /// Accessibility label for the track length shown next to the frequency, for example 4:32.
+  ///
+  /// In en, this message translates to:
+  /// **'Track length {duration}'**
+  String crystalTrackDurationSemantics(String duration);
 }
 
 class _AppLocalizationsDelegate

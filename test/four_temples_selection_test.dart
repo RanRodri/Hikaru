@@ -33,8 +33,8 @@ void main() {
       final recommendation = buildJourneyRecommendation(
         Crystal.jade,
         const QuizAnswers({
-          1: {QuizOptionIds.q1CalmComfort},
-          9: {QuizOptionIds.q9FiveMinutes},
+          1: {QuizOptionIds.q1DeeplyHydrate},
+          9: {QuizOptionIds.q9BalanceHarmony},
         }),
       );
       await container
@@ -60,9 +60,7 @@ void main() {
       expect(find.text('RECOMMENDED'), findsOneWidget);
       expect(find.text('SELECTED'), findsOneWidget);
       expect(
-        find.bySemanticsLabel(
-          'JADE, Temple of Harmony, recommended for you',
-        ),
+        find.bySemanticsLabel('JADE, Temple of Harmony, recommended for you'),
         findsOneWidget,
       );
       expect(
@@ -77,7 +75,7 @@ void main() {
         journeyRecommendationControllerProvider.future,
       );
       expect(stored!.crystal, Crystal.jade);
-      expect(stored.facialRitual, 'Soothing Comfort Protocol');
+      expect(stored.facialRitual, 'Hydration Protocol');
       expect(
         await container.read(selectedCrystalProvider.future),
         Crystal.obsidian,

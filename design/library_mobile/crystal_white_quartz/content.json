@@ -1,0 +1,79 @@
+{
+ "library_id": "whiteQuartz (existing)",
+ "source": "src/adjunto (4).png",
+ "chrome_note": "Original shows back arrow and \"01 / 04\" progress (UI chrome).",
+ "sections": [
+  {
+   "type": "brand",
+   "text": "HIKARU LIFT"
+  },
+  {
+   "type": "eyebrow",
+   "text": "THE CRYSTAL SANCTUARY"
+  },
+  {
+   "type": "title",
+   "text": "WHITE QUARTZ"
+  },
+  {
+   "type": "subtitle",
+   "text": "TEMPLE OF ILLUMINATION"
+  },
+  {
+   "type": "heading",
+   "text": "THE PRISM CRYSTAL"
+  },
+  {
+   "type": "paragraph",
+   "text": "Carries all frequencies and colors, embracing the full spectrum of energy. (emphasis/italic gold: \"all frequencies and colors\", \"full spectrum\")"
+  },
+  {
+   "type": "image",
+   "asset": "crystal_photo.webp"
+  },
+  {
+   "type": "cards",
+   "layout": "grid2",
+   "items": [
+    {
+     "icon": "sun",
+     "label": "CLARITY",
+     "desc": "Clears the mind and enhances focus"
+    },
+    {
+     "icon": "lotus",
+     "label": "AMPLIFICATION",
+     "desc": "Intensifies the effects of frequencies"
+    },
+    {
+     "icon": "waves",
+     "label": "BALANCE",
+     "desc": "Harmonizes body, mind and energy"
+    },
+    {
+     "icon": "sparkle",
+     "label": "REGENERATION",
+     "desc": "Supports vitality and cellular renewal"
+    }
+   ]
+  },
+  {
+   "type": "card",
+   "heading": "THE ESSENCE",
+   "asset": "flower_of_life.webp",
+   "text": "A master frequency crystal that integrates all colors and vibration ranges, acting as a natural prism of light and energy."
+  },
+  {
+   "type": "card",
+   "heading": "YOUR RITUAL",
+   "icon": "meditation",
+   "text": "Use White Quartz to align, clear, and elevate your energy, and to amplify the frequency of your entire ritual."
+  },
+  {
+   "type": "cta",
+   "text": "SELECT THIS CRYSTAL →"
+  }
+ ],
+ "typos_fixed": [],
+ "topic": "crystal_white_quartz"
+}

@@ -1,3 +1,4 @@
+import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -42,6 +43,9 @@ abstract class AuthGateway {
     required String newPassword,
     required String confirmationCode,
   });
+
+  /// Ends the session on this device.
+  Future<void> signOut();
 }
 
 final authGatewayProvider = Provider<AuthGateway>(
@@ -171,6 +175,18 @@ class AmplifyAuthGateway implements AuthGateway {
       }
     } on AuthException catch (error) {
       throw AuthRequestException(error.message);
+    }
+  }
+
+  @override
+  Future<void> signOut() async {
+    if (!Amplify.isConfigured) return;
+    final result = await Amplify.Auth.signOut();
+    // A partial sign-out (e.g. offline token revocation) still clears the
+    // local session, which is what the app relies on. Only a full failure
+    // keeps the member signed in.
+    if (result is CognitoFailedSignOut) {
+      throw AuthRequestException(result.exception.message);
     }
   }
 }

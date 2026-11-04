@@ -140,17 +140,15 @@ void main() {
 
   test('answers rebuild from backend option ids', () {
     final answers = answersFromOptionIds([
-      QuizOptionIds.q1CalmComfort,
-      QuizOptionIds.q10OpenBroken,
-      QuizOptionIds.q10ActiveIrritation,
+      QuizOptionIds.q1DeeplyHydrate,
+      QuizOptionIds.q9BalanceHarmony,
+      QuizOptionIds.q10Routine,
       'unknown_option',
     ]);
-    expect(answers.selectedIds(1), {QuizOptionIds.q1CalmComfort});
-    expect(answers.selectedIds(10), {
-      QuizOptionIds.q10OpenBroken,
-      QuizOptionIds.q10ActiveIrritation,
-    });
-    expect(answers.selections.length, 2);
+    expect(answers.selectedIds(1), {QuizOptionIds.q1DeeplyHydrate});
+    expect(answers.selectedIds(9), {QuizOptionIds.q9BalanceHarmony});
+    expect(answers.selectedIds(10), {QuizOptionIds.q10Routine});
+    expect(answers.selections.length, 3);
   });
 }
 
