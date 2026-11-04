@@ -12,6 +12,7 @@ import '../../../l10n/app_localizations.dart';
 import '../data/auth_gateway.dart';
 import 'auth_background.dart';
 import 'auth_field.dart';
+import 'auth_page.dart';
 
 class ConfirmSignUpScreen extends ConsumerStatefulWidget {
   const ConfirmSignUpScreen({super.key, required this.pending});
@@ -72,107 +73,93 @@ class _ConfirmSignUpScreenState extends ConsumerState<ConfirmSignUpScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final bottomPadding = MediaQuery.paddingOf(context).bottom;
 
-    return Scaffold(
-      backgroundColor: AppColors.darkIndigoBlue,
-      body: AuthBackground(
-        overlay: AuthBackground.loginOverlay,
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.fromLTRB(
-              AppSpacing.s40,
-              AppSpacing.s24,
-              AppSpacing.s40,
-              bottomPadding > AppSpacing.s16 ? bottomPadding : AppSpacing.s16,
-            ),
-            child: Column(
-              children: [
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton(
-                    onPressed: _busy
-                        ? null
-                        : () {
-                            if (context.canPop()) {
-                              context.pop();
-                              return;
-                            }
-                            context.go(AppRoutes.login);
-                          },
-                    child: Text(
-                      l10n.commonBack,
-                      style: AppTypography.subheadline.copyWith(
-                        color: AppColors.champagneGold,
-                        fontSize: AppFontSizes.s11,
-                        letterSpacing: 1.8,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.s40),
-                Text(
-                  l10n.confirmSignUpTitle,
-                  textAlign: TextAlign.center,
-                  style: AppTypography.title.copyWith(
-                    color: AppColors.white,
-                    fontSize: AppFontSizes.s34,
-                    height: 1.15,
-                    shadows: authTextShadow,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.s10),
-                Text(
-                  l10n.confirmSignUpSubtitle,
-                  textAlign: TextAlign.center,
-                  style: AppTypography.body.copyWith(
-                    color: AppColors.fog.withValues(alpha: 0.85),
-                    fontSize: AppFontSizes.s12,
-                    height: 1.5,
-                    shadows: authTextShadow,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.s28),
-                AuthField(
-                  controller: _codeController,
-                  label: l10n.confirmSignUpCodeLabel,
-                  hint: l10n.confirmSignUpCodeHint,
-                  icon: '#',
-                  keyboardType: TextInputType.number,
-                  textInputAction: TextInputAction.done,
-                  errorText: _codeError,
-                  onChanged: (_) {
-                    if (_codeError == null) return;
-                    setState(() => _codeError = null);
+    return AuthPage(
+      overlay: AuthBackground.loginOverlay,
+      content: [
+        const SizedBox(height: AppSpacing.s24),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton(
+            onPressed: _busy
+                ? null
+                : () {
+                    if (context.canPop()) {
+                      context.pop();
+                      return;
+                    }
+                    context.go(AppRoutes.login);
                   },
-                  onSubmitted: (_) => _handleConfirm(),
-                ),
-                const SizedBox(height: AppSpacing.s22),
-                AuthPillButton(
-                  label: l10n.confirmSignUpAction,
-                  backgroundColor: AppColors.champagneGold,
-                  foregroundColor: AppColors.darkIndigoBlue,
-                  glow: true,
-                  busy: _busy,
-                  onPressed: _handleConfirm,
-                ),
-                if (_formError != null) ...[
-                  const SizedBox(height: AppSpacing.s12),
-                  Text(
-                    _formError!,
-                    textAlign: TextAlign.center,
-                    style: AppTypography.body.copyWith(
-                      color: AppColors.fog,
-                      fontSize: AppFontSizes.s12,
-                      height: 1.4,
-                    ),
-                  ),
-                ],
-              ],
+            child: Text(
+              l10n.commonBack,
+              style: AppTypography.subheadline.copyWith(
+                color: AppColors.champagneGold,
+                fontSize: AppFontSizes.s11,
+                letterSpacing: 1.8,
+              ),
             ),
           ),
         ),
-      ),
+        const SizedBox(height: AppSpacing.s40),
+        Text(
+          l10n.confirmSignUpTitle,
+          textAlign: TextAlign.center,
+          style: AppTypography.title.copyWith(
+            color: AppColors.white,
+            fontSize: AppFontSizes.s34,
+            height: 1.15,
+            shadows: authTextShadow,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.s10),
+        Text(
+          l10n.confirmSignUpSubtitle,
+          textAlign: TextAlign.center,
+          style: AppTypography.body.copyWith(
+            color: AppColors.fog.withValues(alpha: 0.85),
+            fontSize: AppFontSizes.s12,
+            height: 1.5,
+            shadows: authTextShadow,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.s28),
+        AuthField(
+          controller: _codeController,
+          label: l10n.confirmSignUpCodeLabel,
+          hint: l10n.confirmSignUpCodeHint,
+          icon: '#',
+          keyboardType: TextInputType.number,
+          textInputAction: TextInputAction.done,
+          errorText: _codeError,
+          onChanged: (_) {
+            if (_codeError == null) return;
+            setState(() => _codeError = null);
+          },
+          onSubmitted: (_) => _handleConfirm(),
+        ),
+      ],
+      footer: [
+        if (_formError != null) ...[
+          Text(
+            _formError!,
+            textAlign: TextAlign.center,
+            style: AppTypography.body.copyWith(
+              color: AppColors.fog,
+              fontSize: AppFontSizes.s12,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.s12),
+        ],
+        AuthPillButton(
+          label: l10n.confirmSignUpAction,
+          backgroundColor: AppColors.champagneGold,
+          foregroundColor: AppColors.darkIndigoBlue,
+          glow: true,
+          busy: _busy,
+          onPressed: _handleConfirm,
+        ),
+      ],
     );
   }
 }

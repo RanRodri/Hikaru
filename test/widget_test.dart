@@ -18,9 +18,7 @@ import 'support/quiz_driver.dart';
 void main() {
   setUp(() {
     SharedPreferencesAsyncPlatform.instance =
-        InMemorySharedPreferencesAsync.withData({
-          'hikaru_home_tour_seen': true,
-        });
+        InMemorySharedPreferencesAsync.empty();
   });
 
   testWidgets('Shows the splash and then the sanctuary', (

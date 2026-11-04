@@ -966,43 +966,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeGardenSubtitle => 'Your Journey Begins Within';
 
   @override
-  String get homeTourGardenTitle => 'Your sanctuary';
-
-  @override
-  String get homeTourGardenBody =>
-      'These circles are today\'s ritual. The numbers show the order.';
-
-  @override
-  String get homeTourOrderTitle => 'One, then two, then three';
-
-  @override
-  String get homeTourOrderBody =>
-      'Merkaba comes first. Face and body are next. Your crystal is last.';
-
-  @override
-  String get homeTourBeginTitle => 'Begin here';
-
-  @override
-  String get homeTourBeginBody =>
-      'Tap the center symbol to start today\'s ritual in that order.';
-
-  @override
-  String get homeTourBarTitle => 'The rest of Hikaru';
-
-  @override
-  String get homeTourBarBody =>
-      'Journey keeps your day, streak, and photos. Settings keeps your account.';
-
-  @override
-  String get homeTourSkip => 'SKIP';
-
-  @override
-  String get homeTourNext => 'NEXT';
-
-  @override
-  String get homeTourDone => 'DONE';
-
-  @override
   String get homeYourCrystal => 'YOUR CRYSTAL';
 
   @override

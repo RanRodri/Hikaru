@@ -103,6 +103,7 @@ flutter:
   assets:
     - assets/images/
     - assets/images/mudras/
+    - assets/images/merkaba_guide/
     - assets/audio/
 
   fonts:

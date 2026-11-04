@@ -13,9 +13,7 @@ import 'package:hikaru/l10n/app_localizations.dart';
 void main() {
   setUp(() {
     SharedPreferencesAsyncPlatform.instance =
-        InMemorySharedPreferencesAsync.withData({
-          'hikaru_home_tour_seen': true,
-        });
+        InMemorySharedPreferencesAsync.empty();
   });
 
   testWidgets(

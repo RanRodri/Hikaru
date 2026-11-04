@@ -680,7 +680,7 @@ abstract class AppLocalizations {
   /// **'THE LISTENING ROOM'**
   String get quizHeader;
 
-  /// Second header line of the quiz. Its letters are tracked by the style, so words use single spaces.
+  /// Second header line of the quiz. Extra spaces separate the words under the tracked style.
   ///
   /// In en, this message translates to:
   /// **'A  SPACE  TO  BE  HEARD'**
@@ -1585,72 +1585,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your Journey Begins Within'**
   String get homeGardenSubtitle;
-
-  /// No description provided for @homeTourGardenTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Your sanctuary'**
-  String get homeTourGardenTitle;
-
-  /// No description provided for @homeTourGardenBody.
-  ///
-  /// In en, this message translates to:
-  /// **'These circles are today\'s ritual. The numbers show the order.'**
-  String get homeTourGardenBody;
-
-  /// No description provided for @homeTourOrderTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'One, then two, then three'**
-  String get homeTourOrderTitle;
-
-  /// No description provided for @homeTourOrderBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Merkaba comes first. Face and body are next. Your crystal is last.'**
-  String get homeTourOrderBody;
-
-  /// No description provided for @homeTourBeginTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Begin here'**
-  String get homeTourBeginTitle;
-
-  /// No description provided for @homeTourBeginBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Tap the center symbol to start today\'s ritual in that order.'**
-  String get homeTourBeginBody;
-
-  /// No description provided for @homeTourBarTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'The rest of Hikaru'**
-  String get homeTourBarTitle;
-
-  /// No description provided for @homeTourBarBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Journey keeps your day, streak, and photos. Settings keeps your account.'**
-  String get homeTourBarBody;
-
-  /// No description provided for @homeTourSkip.
-  ///
-  /// In en, this message translates to:
-  /// **'SKIP'**
-  String get homeTourSkip;
-
-  /// No description provided for @homeTourNext.
-  ///
-  /// In en, this message translates to:
-  /// **'NEXT'**
-  String get homeTourNext;
-
-  /// No description provided for @homeTourDone.
-  ///
-  /// In en, this message translates to:
-  /// **'DONE'**
-  String get homeTourDone;
 
   /// No description provided for @homeYourCrystal.
   ///

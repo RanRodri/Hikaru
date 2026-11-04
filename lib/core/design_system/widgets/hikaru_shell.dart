@@ -17,8 +17,6 @@ class HikaruShell extends StatelessWidget {
     required this.builder,
     this.backgroundAsset = gardenBackground,
     this.dimBackground = false,
-    this.sanctuaryKey,
-    this.navigationBarKey,
   });
 
   static const double designWidth = 390;
@@ -44,8 +42,6 @@ class HikaruShell extends StatelessWidget {
   final HikaruScaledBuilder builder;
   final String backgroundAsset;
   final bool dimBackground;
-  final Key? sanctuaryKey;
-  final Key? navigationBarKey;
 
   void _handleDestinationSelected(
     BuildContext context,
@@ -113,8 +109,6 @@ class HikaruShell extends StatelessWidget {
                 bottom: 0,
                 child: HikaruNavigationBar(
                   active: active,
-                  sanctuaryKey: sanctuaryKey,
-                  barKey: navigationBarKey,
                   onSelected: (destination) =>
                       _handleDestinationSelected(context, destination),
                 ),

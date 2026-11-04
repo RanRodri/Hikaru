@@ -17,8 +17,6 @@ class HikaruNavigationBar extends StatelessWidget {
     super.key,
     required this.active,
     required this.onSelected,
-    this.sanctuaryKey,
-    this.barKey,
   });
 
   static const double height = 70;
@@ -26,54 +24,48 @@ class HikaruNavigationBar extends StatelessWidget {
 
   final HikaruDestination active;
   final ValueChanged<HikaruDestination> onSelected;
-  final Key? sanctuaryKey;
-  final Key? barKey;
 
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
-    return KeyedSubtree(
-      key: barKey,
-      child: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 9, sigmaY: 9),
-          child: DecoratedBox(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [AppColors.navShadow, AppColors.navScrim],
-              ),
-              border: Border(
-                top: BorderSide(color: AppColors.champagneGold, width: 0.35),
-              ),
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 9, sigmaY: 9),
+        child: DecoratedBox(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [AppColors.navShadow, AppColors.navScrim],
             ),
-            child: Padding(
-              padding: EdgeInsets.only(bottom: bottomInset),
-              child: SizedBox(
-                height: height,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.s9,
-                    vertical: AppSpacing.s12,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      for (final destination in HikaruDestination.values)
-                        destination == HikaruDestination.sanctuary
-                            ? _SanctuaryButton(
-                                key: sanctuaryKey,
-                                onPressed: () => onSelected(destination),
-                              )
-                            : _NavItem(
-                                destination: destination,
-                                active: destination == active,
-                                onPressed: () => onSelected(destination),
-                              ),
-                    ],
-                  ),
+            border: Border(
+              top: BorderSide(color: AppColors.champagneGold, width: 0.35),
+            ),
+          ),
+          child: Padding(
+            padding: EdgeInsets.only(bottom: bottomInset),
+            child: SizedBox(
+              height: height,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.s9,
+                  vertical: AppSpacing.s12,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    for (final destination in HikaruDestination.values)
+                      destination == HikaruDestination.sanctuary
+                          ? _SanctuaryButton(
+                              onPressed: () => onSelected(destination),
+                            )
+                          : _NavItem(
+                              destination: destination,
+                              active: destination == active,
+                              onPressed: () => onSelected(destination),
+                            ),
+                  ],
                 ),
               ),
             ),
@@ -154,7 +146,7 @@ class _NavItem extends StatelessWidget {
 }
 
 class _SanctuaryButton extends StatelessWidget {
-  const _SanctuaryButton({super.key, required this.onPressed});
+  const _SanctuaryButton({required this.onPressed});
 
   final VoidCallback onPressed;
 

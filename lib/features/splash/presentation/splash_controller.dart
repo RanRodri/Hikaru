@@ -64,6 +64,9 @@ Future<String> splashDestination(Ref ref) async {
   if (route == AppRoutes.listeningRoom && ref.mounted) {
     await prepareListeningRoomImages(ref.read(remoteImageCacheProvider));
   }
+  if (route == AppRoutes.home && ref.mounted) {
+    await prepareHomeBackground(ref.read(remoteImageCacheProvider));
+  }
   return route;
 }
 
@@ -80,6 +83,9 @@ Future<String> routeForOpenSession(WidgetRef ref) async {
   );
   if (route == AppRoutes.listeningRoom) {
     await prepareListeningRoomImages(ref.read(remoteImageCacheProvider));
+  }
+  if (route == AppRoutes.home) {
+    await prepareHomeBackground(ref.read(remoteImageCacheProvider));
   }
   return route;
 }

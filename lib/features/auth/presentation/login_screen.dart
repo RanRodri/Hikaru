@@ -18,6 +18,7 @@ import '../data/auth_gateway.dart';
 import '../data/biometric_login.dart';
 import 'auth_background.dart';
 import 'auth_field.dart';
+import 'auth_page.dart';
 
 String _biometricLabel(AppLocalizations l10n, BiometricKind kind) {
   switch (kind) {
@@ -167,203 +168,145 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final l10n = AppLocalizations.of(context);
     final offer = ref.watch(biometricLoginControllerProvider).value;
     final sensorKind = offer != null && offer.showButton ? offer.kind : null;
-    final bottomPadding = MediaQuery.paddingOf(context).bottom;
+    final topGap = MediaQuery.sizeOf(context).height * 0.16;
 
-    return Scaffold(
-      backgroundColor: AppColors.darkIndigoBlue,
-      body: AuthBackground(
-        overlay: AuthBackground.loginOverlay,
-        child: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(
-                  AppSpacing.s40,
-                  AppSpacing.s0,
-                  AppSpacing.s40,
-                  bottomPadding > AppSpacing.s16
-                      ? bottomPadding
-                      : AppSpacing.s16,
-                ),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                  child: Column(
-                    children: [
-                      SizedBox(height: constraints.maxHeight * 0.16),
-                      Text(
-                        l10n.loginTitle,
-                        textAlign: TextAlign.center,
-                        style: AppTypography.title.copyWith(
-                          color: AppColors.white,
-                          fontSize: AppFontSizes.s34,
-                          height: 1.2,
-                          shadows: authTextShadow,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.s10),
-                      Text(
-                        l10n.loginSubtitle,
-                        textAlign: TextAlign.center,
-                        style: AppTypography.body.copyWith(
-                          color: AppColors.fog.withValues(alpha: 0.85),
-                          letterSpacing: 2,
-                          shadows: authTextShadow,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.s40),
-                      AuthField(
-                        controller: _emailController,
-                        label: l10n.authIdentityLabel,
-                        hint: l10n.authIdentityHint,
-                        icon: '@',
-                        keyboardType: TextInputType.emailAddress,
-                        textInputAction: TextInputAction.next,
-                        autofillHints: const [AutofillHints.email],
-                        errorText: _emailError,
-                        onChanged: _handleEmailChanged,
-                      ),
-                      const SizedBox(height: AppSpacing.s12),
-                      AuthField(
-                        controller: _passwordController,
-                        label: l10n.authPasswordLabel,
-                        hint: l10n.authPasswordHint,
-                        icon: '•••',
-                        obscureText: true,
-                        textInputAction: TextInputAction.done,
-                        autofillHints: const [AutofillHints.password],
-                        errorText: _passwordError,
-                        onChanged: _handlePasswordChanged,
-                        onSubmitted: (_) => _handleSignIn(),
-                      ),
-                      const SizedBox(height: AppSpacing.s14),
-                      Row(
-                        children: [
-                          _RememberMe(
-                            checked: _rememberMe,
-                            onPressed: _handleRememberMe,
-                          ),
-                          const SizedBox(width: AppSpacing.s8),
-                          // Longer in Spanish: shrink the link instead of
-                          // overflowing next to "Remember me".
-                          Expanded(
-                            child: Align(
-                              alignment: Alignment.centerRight,
-                              child: TextButton(
-                                onPressed: _busy
-                                    ? null
-                                    : () => context.push(
-                                        AppRoutes.resetPassword,
-                                      ),
-                                style: TextButton.styleFrom(
-                                  foregroundColor: AppColors.champagneGold,
-                                  minimumSize: const Size(44, 44),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: AppSpacing.s4,
-                                  ),
-                                  tapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                ),
-                                child: FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Text(
-                                    l10n.loginForgotPassword,
-                                    maxLines: 1,
-                                    style: AppTypography.bodyAccent.copyWith(
-                                      color: AppColors.champagneGold,
-                                      fontSize: AppFontSizes.s13,
-                                      letterSpacing: 0,
-                                      shadows: authTextShadow,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.s16),
-                      AuthPillButton(
-                        label: l10n.loginSignIn,
-                        backgroundColor: AppColors.champagneGold,
-                        foregroundColor: AppColors.darkIndigoBlue,
-                        glow: true,
-                        busy: _busy,
-                        onPressed: _handleSignIn,
-                      ),
-                      if (_formError != null) ...[
-                        const SizedBox(height: AppSpacing.s12),
-                        Text(
-                          _formError!,
-                          textAlign: TextAlign.center,
-                          style: AppTypography.body.copyWith(
-                            color: AppColors.fog,
-                            fontSize: AppFontSizes.s12,
-                            height: 1.4,
-                          ),
-                        ),
-                      ],
-                      if (sensorKind != null) ...[
-                        const SizedBox(height: AppSpacing.s16),
-                        Text(
-                          l10n.loginOr,
-                          style: AppTypography.body.copyWith(
-                            color: AppColors.fog.withValues(alpha: 0.5),
-                            fontSize: AppFontSizes.s14,
-                            letterSpacing: 0,
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.s24),
-                        HikaruFaceIdButton(
-                          label: _biometricLabel(l10n, sensorKind),
-                          fingerprint: sensorKind != BiometricKind.face,
-                          busy: _busy,
-                          onPressed: _handleBiometricSignIn,
-                        ),
-                      ],
-                      const SizedBox(height: AppSpacing.s8),
-                      Wrap(
-                        alignment: WrapAlignment.center,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          Text(
-                            l10n.loginNoAccount,
-                            style: AppTypography.body.copyWith(
-                              color: AppColors.fog.withValues(alpha: 0.55),
-                              fontSize: AppFontSizes.s12,
-                              letterSpacing: 0,
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: _busy
-                                ? null
-                                : () => context.push(AppRoutes.register),
-                            style: TextButton.styleFrom(
-                              foregroundColor: AppColors.champagneGold,
-                              minimumSize: const Size(44, 36),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: AppSpacing.s4,
-                              ),
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            ),
-                            child: Text(
-                              l10n.loginCreateOne,
-                              style: AppTypography.bodyAccent.copyWith(
-                                color: AppColors.champagneGold,
-                                fontSize: AppFontSizes.s12,
-                                letterSpacing: 0,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
+    return AuthPage(
+      overlay: AuthBackground.loginOverlay,
+      content: [
+        SizedBox(height: topGap),
+        Text(
+          l10n.loginTitle,
+          textAlign: TextAlign.center,
+          style: AppTypography.title.copyWith(
+            color: AppColors.white,
+            fontSize: AppFontSizes.s34,
+            height: 1.2,
+            shadows: authTextShadow,
           ),
         ),
-      ),
+        const SizedBox(height: AppSpacing.s10),
+        Text(
+          l10n.loginSubtitle,
+          textAlign: TextAlign.center,
+          style: AppTypography.body.copyWith(
+            color: AppColors.fog.withValues(alpha: 0.85),
+            letterSpacing: 2,
+            shadows: authTextShadow,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.s40),
+        AuthField(
+          controller: _emailController,
+          label: l10n.authIdentityLabel,
+          hint: l10n.authIdentityHint,
+          icon: '@',
+          keyboardType: TextInputType.emailAddress,
+          textInputAction: TextInputAction.next,
+          autofillHints: const [AutofillHints.email],
+          errorText: _emailError,
+          onChanged: _handleEmailChanged,
+        ),
+        const SizedBox(height: AppSpacing.s12),
+        AuthField(
+          controller: _passwordController,
+          label: l10n.authPasswordLabel,
+          hint: l10n.authPasswordHint,
+          icon: '•••',
+          obscureText: true,
+          textInputAction: TextInputAction.done,
+          autofillHints: const [AutofillHints.password],
+          errorText: _passwordError,
+          onChanged: _handlePasswordChanged,
+          onSubmitted: (_) => _handleSignIn(),
+        ),
+        const SizedBox(height: AppSpacing.s14),
+        Row(
+          children: [
+            _RememberMe(checked: _rememberMe, onPressed: _handleRememberMe),
+            const SizedBox(width: AppSpacing.s8),
+            // Longer in Spanish: shrink the link instead of overflowing next
+            // to "Remember me".
+            Expanded(
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: _busy
+                      ? null
+                      : () => context.push(AppRoutes.resetPassword),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.champagneGold,
+                    minimumSize: const Size(44, 44),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.s4,
+                    ),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      l10n.loginForgotPassword,
+                      maxLines: 1,
+                      style: AppTypography.bodyAccent.copyWith(
+                        color: AppColors.champagneGold,
+                        fontSize: AppFontSizes.s13,
+                        letterSpacing: 0,
+                        shadows: authTextShadow,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+      footer: [
+        if (_formError != null) ...[
+          Text(
+            _formError!,
+            textAlign: TextAlign.center,
+            style: AppTypography.body.copyWith(
+              color: AppColors.fog,
+              fontSize: AppFontSizes.s12,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.s12),
+        ],
+        AuthPillButton(
+          label: l10n.loginSignIn,
+          backgroundColor: AppColors.champagneGold,
+          foregroundColor: AppColors.darkIndigoBlue,
+          glow: true,
+          busy: _busy,
+          onPressed: _handleSignIn,
+        ),
+        if (sensorKind != null) ...[
+          const SizedBox(height: AppSpacing.s12),
+          Text(
+            l10n.loginOr,
+            style: AppTypography.body.copyWith(
+              color: AppColors.fog.withValues(alpha: 0.7),
+              fontSize: AppFontSizes.s14,
+              letterSpacing: 0,
+              shadows: authTextShadow,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.s12),
+          HikaruFaceIdButton(
+            label: _biometricLabel(l10n, sensorKind),
+            fingerprint: sensorKind != BiometricKind.face,
+            busy: _busy,
+            onPressed: _handleBiometricSignIn,
+          ),
+        ],
+        const SizedBox(height: AppSpacing.s8),
+        AuthSwitchPrompt(
+          prompt: l10n.loginNoAccount,
+          action: l10n.loginCreateOne,
+          onPressed: _busy ? null : () => context.push(AppRoutes.register),
+        ),
+      ],
     );
   }
 }

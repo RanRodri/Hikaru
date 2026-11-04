@@ -132,6 +132,18 @@ Future<void> prepareListeningRoomImages(RemoteFileCache cache) async {
   }
 }
 
+/// Puts the Home garden photo on the device before that screen opens.
+Future<void> prepareHomeBackground(RemoteFileCache cache) async {
+  final home = cache.resolve('harmony_garden_background.png');
+  cache.resolve('garden_sunset_reflections.png');
+  cache.resolve('library.png');
+  try {
+    await home.timeout(const Duration(seconds: 6));
+  } on TimeoutException {
+    // Open Home anyway. The photo appears if the download catches up.
+  }
+}
+
 Future<Directory> _cacheDirectory() async {
   final support = await getApplicationSupportDirectory();
   return Directory('${support.path}/crystal-images');

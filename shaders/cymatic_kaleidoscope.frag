@@ -120,59 +120,43 @@ void main() {
   color += deep * 0.35 * nebula * exp(-screenRadius * 0.55);
   color += uHighlight * stars(frag, time) * 0.3;
 
-  vec2 p = rotation(time * 0.06) * (uv / uPulse);
+  vec2 p = rotation(time * 0.04) * (uv / uPulse);
   float radius = length(p);
   vec2 sector = foldSector(p, uFolds);
 
-  float petalFill = 0.0;
-  float petalRims = 0.0;
-  for (int ring = 0; ring < 3; ring++) {
-    float index = float(ring);
-    float center = 0.28 + 0.27 * index;
-    float width = 0.15 - 0.025 * index + 0.04 * uMorph;
-    vec2 local = (sector - vec2(center, 0.0)) /
-      vec2(width * 1.7, width * (0.55 + 0.45 * uMorph));
-    float shape = length(local);
-    petalFill += smoothstep(1.0, 0.1, shape) * (0.6 - 0.12 * index);
-    petalRims += exp(-abs(shape - 1.0) * 34.0) * (0.75 - 0.15 * index);
-  }
+  // A mirrored smoke field: clusters, bright skins, and fine filaments.
+  vec2 flow = sector * (4.2 + 1.6 * uBands.y);
+  flow += vec2(time * 0.14, -time * 0.06);
+  float warp = fbm(flow * 0.7);
+  flow += vec2(warp - 0.5, fbm(flow.yx * 0.85 + 3.7) - 0.5) *
+    (0.85 + 0.5 * uMorph);
 
-  vec2 facet = sector;
-  float facets = 0.0;
-  for (int fold = 0; fold < 4; fold++) {
-    facet = abs(facet) - vec2(0.3 + 0.05 * uMorph, 0.11);
-    facet = rotation(0.55 + 0.12 * sin(time * 0.2)) * facet;
-    facets += exp(-abs(facet.y) * 70.0) * (0.6 - 0.1 * float(fold));
-  }
-  facets *= smoothstep(1.0, 0.5, radius) * (0.5 + 0.8 * uBands.y);
-
-  float angle = atan(sector.y, sector.x);
-  vec2 flowPoint = vec2(angle * 7.0, radius * 6.0 - time * 0.9);
-  float veins = pow(ridges(flowPoint) / 1.1, 7.0);
-  veins *= smoothstep(1.15, 0.3, radius) * smoothstep(0.03, 0.2, radius);
-  veins *= 0.7 + 0.9 * uBands.z + 0.6 * uSpark;
+  float smoke = fbm(flow);
+  float grain = ridges(flow * 1.8 + vec2(time * 0.05, 1.4));
+  float clouds = pow(smoothstep(0.36, 0.74, smoke), 1.25);
+  float skin = pow(smoothstep(0.1, 0.0, abs(smoke - 0.56)), 1.5);
+  float filaments = pow(grain, 3.4);
+  filaments *= 0.65 + 0.9 * uBands.z + 0.45 * uSpark;
 
   float ripples = 0.0;
   for (int wave = 0; wave < 3; wave++) {
-    float travel = fract(time * 0.18 + float(wave) / 3.0);
-    ripples += exp(-abs(radius - travel * 1.1) * 60.0) * sin(travel * PI);
+    float travel = fract(time * 0.11 + float(wave) / 3.0);
+    ripples += exp(-abs(radius - travel * 1.15) * 36.0) *
+      (0.35 + 0.65 * sin(travel * PI));
   }
-  ripples *= 0.2 + 0.6 * uBands.x;
+  ripples *= 0.18 + 0.5 * uBands.x;
 
-  float core = exp(-radius * 14.0) * (0.9 + 1.2 * uSpark);
-  float halo = exp(-radius * 2.6) * 0.18;
-
-  float body = smoothstep(1.12, 0.7, radius);
-  float presence = 0.7 + 0.3 * uMotion;
-  vec3 mandala = deep * (petalFill * 0.9 + halo * 2.0) +
-    rich * (veins * 1.5 + ripples * 0.8) +
-    hot * (petalRims * 0.6 + facets * 0.55);
-  mandala *= body;
-  mandala += hot * core;
-  mandala += rich * exp(-abs(radius - 0.98) * 18.0) * 0.22;
+  float core = exp(-radius * 9.0) * (0.45 + 0.7 * uSpark);
+  float plate = smoothstep(1.28, 0.18, radius);
+  float presence = 0.62 + 0.38 * uMotion;
+  vec3 mandala = deep * clouds * 0.9 +
+    rich * (filaments * 1.35 + ripples) +
+    hot * (skin * 1.55 + filaments * 0.35);
+  mandala *= plate;
+  mandala += hot * core * 0.65;
   color += mandala * presence * uGlow;
 
-  color = vec3(1.0) - exp(-color * 1.35);
-  color = pow(color, vec3(1.12));
+  color = vec3(1.0) - exp(-color * 1.7);
+  color = pow(color, vec3(1.05));
   fragColor = vec4(color, 1.0);
 }

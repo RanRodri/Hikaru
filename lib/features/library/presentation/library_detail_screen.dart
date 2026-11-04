@@ -16,6 +16,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../crystals/domain/crystal.dart';
 import '../domain/library_article.dart';
 import '../domain/library_collection.dart';
+import 'library_merkaba_guide.dart';
 import 'library_screen.dart';
 import 'library_texts.dart';
 
@@ -93,6 +94,10 @@ class _LibraryDetailScreenState extends State<LibraryDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.article.id == libraryMerkabaId) {
+      return LibraryMerkabaGuide(onBack: _handleBackPressed);
+    }
+
     final l10n = AppLocalizations.of(context);
     final article = localizedLibraryArticle(l10n, widget.article);
     final collection = libraryCollectionFor(article.id);

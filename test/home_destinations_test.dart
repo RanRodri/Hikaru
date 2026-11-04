@@ -49,9 +49,7 @@ Finder _ritualLotus() {
 void main() {
   setUp(() {
     SharedPreferencesAsyncPlatform.instance =
-        InMemorySharedPreferencesAsync.withData({
-          'hikaru_home_tour_seen': true,
-        });
+        InMemorySharedPreferencesAsync.empty();
   });
 
   Future<GoRouter> pumpGarden(WidgetTester tester) async {

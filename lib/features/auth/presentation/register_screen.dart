@@ -13,6 +13,7 @@ import '../../../l10n/app_localizations.dart';
 import '../data/auth_gateway.dart';
 import 'auth_background.dart';
 import 'auth_field.dart';
+import 'auth_page.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -187,171 +188,127 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final bottomPadding = MediaQuery.paddingOf(context).bottom;
 
-    return Scaffold(
-      backgroundColor: AppColors.darkIndigoBlue,
-      body: AuthBackground(
-        overlay: AuthBackground.registerOverlay,
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.fromLTRB(
-              AppSpacing.s40,
-              AppSpacing.s0,
-              AppSpacing.s40,
-              bottomPadding > AppSpacing.s16 ? bottomPadding : AppSpacing.s16,
-            ),
-            child: Column(
-              children: [
-                const SizedBox(height: AppSpacing.s100),
-                Text(
-                  l10n.registerTitle,
-                  textAlign: TextAlign.center,
-                  style: AppTypography.title.copyWith(
-                    color: AppColors.white,
-                    fontSize: AppFontSizes.s34,
-                    height: 1.15,
-                    shadows: authTextShadow,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.s8),
-                Text(
-                  l10n.registerSubtitle,
-                  textAlign: TextAlign.center,
-                  style: AppTypography.body.copyWith(
-                    color: AppColors.fog,
-                    fontSize: AppFontSizes.s12,
-                    height: 1.5,
-                    letterSpacing: 0.3,
-                    shadows: authTextShadow,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.s18),
-                AuthField(
-                  surfaceAlpha: 0.62,
-                  controller: _usernameController,
-                  label: l10n.registerUsernameLabel,
-                  hint: l10n.registerUsernameHint,
-                  icon: 'U',
-                  textInputAction: TextInputAction.next,
-                  autofillHints: const [AutofillHints.newUsername],
-                  errorText: _usernameError,
-                  onChanged: (_) {
-                    if (_usernameError == null) return;
-                    setState(() => _usernameError = null);
-                  },
-                ),
-                const SizedBox(height: AppSpacing.s10),
-                AuthField(
-                  surfaceAlpha: 0.62,
-                  controller: _nameController,
-                  label: l10n.registerFullNameLabel,
-                  hint: l10n.registerFullNameHint,
-                  icon: 'A',
-                  textInputAction: TextInputAction.next,
-                  autofillHints: const [AutofillHints.name],
-                  errorText: _nameError,
-                  onChanged: _handleNameChanged,
-                ),
-                const SizedBox(height: AppSpacing.s10),
-                AuthField(
-                  surfaceAlpha: 0.62,
-                  controller: _emailController,
-                  label: l10n.authEmailLabel,
-                  hint: l10n.authEmailHintExample,
-                  icon: '@',
-                  keyboardType: TextInputType.emailAddress,
-                  textInputAction: TextInputAction.next,
-                  autofillHints: const [AutofillHints.email],
-                  errorText: _emailError,
-                  onChanged: _handleEmailChanged,
-                ),
-                const SizedBox(height: AppSpacing.s10),
-                AuthField(
-                  surfaceAlpha: 0.62,
-                  controller: _passwordController,
-                  label: l10n.authPasswordLabel,
-                  hint: '••••••••',
-                  icon: '•••',
-                  obscureText: true,
-                  textInputAction: TextInputAction.next,
-                  autofillHints: const [AutofillHints.newPassword],
-                  errorText: _passwordError,
-                  onChanged: _handlePasswordChanged,
-                ),
-                const SizedBox(height: AppSpacing.s10),
-                AuthField(
-                  surfaceAlpha: 0.62,
-                  controller: _birthdayController,
-                  label: l10n.registerBirthdayLabel,
-                  hint: l10n.registerBirthdayHint,
-                  icon: '☆',
-                  readOnly: true,
-                  onTap: _handleBirthday,
-                  errorText: _birthdayError,
-                  onChanged: (_) {},
-                ),
-                const SizedBox(height: AppSpacing.s22),
-                AuthPillButton(
-                  label: l10n.registerContinue,
-                  backgroundColor: AppColors.champagneGold,
-                  foregroundColor: AppColors.darkIndigoBlue,
-                  glow: true,
-                  busy: _busy,
-                  onPressed: _handleContinue,
-                ),
-                if (_formError != null) ...[
-                  const SizedBox(height: AppSpacing.s12),
-                  Text(
-                    _formError!,
-                    textAlign: TextAlign.center,
-                    style: AppTypography.body.copyWith(
-                      color: AppColors.fog,
-                      fontSize: AppFontSizes.s12,
-                      height: 1.4,
-                    ),
-                  ),
-                ],
-                const SizedBox(height: AppSpacing.s16),
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    Text(
-                      l10n.registerHaveAccount,
-                      style: AppTypography.body.copyWith(
-                        color: AppColors.fog,
-                        shadows: authTextShadow,
-                        fontSize: AppFontSizes.s12,
-                        letterSpacing: 0,
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: _busy ? null : _handleBack,
-                      style: TextButton.styleFrom(
-                        foregroundColor: AppColors.champagneGold,
-                        minimumSize: const Size(44, 36),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.s4,
-                        ),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      child: Text(
-                        l10n.registerLogIn,
-                        style: AppTypography.bodyAccent.copyWith(
-                          color: AppColors.champagneGold,
-                          fontSize: AppFontSizes.s12,
-                          letterSpacing: 0,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+    return AuthPage(
+      overlay: AuthBackground.registerOverlay,
+      content: [
+        const SizedBox(height: AppSpacing.s100),
+        Text(
+          l10n.registerTitle,
+          textAlign: TextAlign.center,
+          style: AppTypography.title.copyWith(
+            color: AppColors.white,
+            fontSize: AppFontSizes.s34,
+            height: 1.15,
+            shadows: authTextShadow,
           ),
         ),
-      ),
+        const SizedBox(height: AppSpacing.s8),
+        Text(
+          l10n.registerSubtitle,
+          textAlign: TextAlign.center,
+          style: AppTypography.body.copyWith(
+            color: AppColors.fog,
+            fontSize: AppFontSizes.s12,
+            height: 1.5,
+            letterSpacing: 0.3,
+            shadows: authTextShadow,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.s18),
+        AuthField(
+          surfaceAlpha: 0.62,
+          controller: _usernameController,
+          label: l10n.registerUsernameLabel,
+          hint: l10n.registerUsernameHint,
+          icon: 'U',
+          textInputAction: TextInputAction.next,
+          autofillHints: const [AutofillHints.newUsername],
+          errorText: _usernameError,
+          onChanged: (_) {
+            if (_usernameError == null) return;
+            setState(() => _usernameError = null);
+          },
+        ),
+        const SizedBox(height: AppSpacing.s10),
+        AuthField(
+          surfaceAlpha: 0.62,
+          controller: _nameController,
+          label: l10n.registerFullNameLabel,
+          hint: l10n.registerFullNameHint,
+          icon: 'A',
+          textInputAction: TextInputAction.next,
+          autofillHints: const [AutofillHints.name],
+          errorText: _nameError,
+          onChanged: _handleNameChanged,
+        ),
+        const SizedBox(height: AppSpacing.s10),
+        AuthField(
+          surfaceAlpha: 0.62,
+          controller: _emailController,
+          label: l10n.authEmailLabel,
+          hint: l10n.authEmailHintExample,
+          icon: '@',
+          keyboardType: TextInputType.emailAddress,
+          textInputAction: TextInputAction.next,
+          autofillHints: const [AutofillHints.email],
+          errorText: _emailError,
+          onChanged: _handleEmailChanged,
+        ),
+        const SizedBox(height: AppSpacing.s10),
+        AuthField(
+          surfaceAlpha: 0.62,
+          controller: _passwordController,
+          label: l10n.authPasswordLabel,
+          hint: '••••••••',
+          icon: '•••',
+          obscureText: true,
+          textInputAction: TextInputAction.next,
+          autofillHints: const [AutofillHints.newPassword],
+          errorText: _passwordError,
+          onChanged: _handlePasswordChanged,
+        ),
+        const SizedBox(height: AppSpacing.s10),
+        AuthField(
+          surfaceAlpha: 0.62,
+          controller: _birthdayController,
+          label: l10n.registerBirthdayLabel,
+          hint: l10n.registerBirthdayHint,
+          icon: '☆',
+          readOnly: true,
+          onTap: _handleBirthday,
+          errorText: _birthdayError,
+          onChanged: (_) {},
+        ),
+      ],
+      footer: [
+        if (_formError != null) ...[
+          Text(
+            _formError!,
+            textAlign: TextAlign.center,
+            style: AppTypography.body.copyWith(
+              color: AppColors.fog,
+              fontSize: AppFontSizes.s12,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.s12),
+        ],
+        AuthPillButton(
+          label: l10n.registerContinue,
+          backgroundColor: AppColors.champagneGold,
+          foregroundColor: AppColors.darkIndigoBlue,
+          glow: true,
+          busy: _busy,
+          onPressed: _handleContinue,
+        ),
+        const SizedBox(height: AppSpacing.s8),
+        AuthSwitchPrompt(
+          prompt: l10n.registerHaveAccount,
+          action: l10n.registerLogIn,
+          onPressed: _busy ? null : _handleBack,
+        ),
+      ],
     );
   }
 }

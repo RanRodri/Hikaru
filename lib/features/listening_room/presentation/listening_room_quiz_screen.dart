@@ -45,8 +45,8 @@ class _ListeningRoomQuizScreenState
   static const String _backgroundAsset = RemoteImages.listeningRoomQuiz;
 
   /// Distance from the top to the progress bar in the design.
-  static const double _contentTop = 16;
-  static const double _topInsetGap = AppSpacing.s8;
+  static const double _contentTop = 36;
+  static const double _topInsetGap = AppSpacing.s28;
   static const double _footerBottom = 28;
   static const double _minInsetGap = AppSpacing.s12;
 
@@ -295,48 +295,56 @@ class _ListeningRoomQuizScreenState
                       ),
                     ),
                   ],
-                  const SizedBox(height: AppSpacing.s20),
                   Expanded(
-                    child: Align(
-                      alignment: Alignment.topCenter,
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(
-                          maxWidth: _optionsPanelWidth,
-                          maxHeight: _optionsPanelMaxHeight,
-                        ),
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: AppColors.scrim60,
-                            borderRadius: BorderRadius.circular(AppRadii.r16),
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(AppRadii.r16),
-                            child: ListView.separated(
-                              controller: _optionsController,
-                              shrinkWrap: true,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: AppSpacing.s12,
-                                vertical: AppSpacing.s8,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Align(
+                          alignment: Alignment.center,
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(
+                              maxWidth: _optionsPanelWidth,
+                              maxHeight: _optionsPanelMaxHeight,
+                            ),
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: AppColors.scrim60,
+                                borderRadius: BorderRadius.circular(
+                                  AppRadii.r16,
+                                ),
                               ),
-                              itemCount: question.options.length,
-                              separatorBuilder: (context, index) =>
-                                  const SizedBox(height: 6),
-                              itemBuilder: (context, index) {
-                                final option = question.options[index];
-                                return _QuizOptionTile(
-                                  title: l10n.quizOptionLabel(option),
-                                  detail: option.detail,
-                                  selected: _answers.isSelected(
-                                    question.number,
-                                    option.id,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(
+                                  AppRadii.r16,
+                                ),
+                                child: ListView.separated(
+                                  controller: _optionsController,
+                                  shrinkWrap: true,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: AppSpacing.s12,
+                                    vertical: AppSpacing.s8,
                                   ),
-                                  onPressed: () => _handleSelect(option.id),
-                                );
-                              },
+                                  itemCount: question.options.length,
+                                  separatorBuilder: (context, index) =>
+                                      const SizedBox(height: 6),
+                                  itemBuilder: (context, index) {
+                                    final option = question.options[index];
+                                    return _QuizOptionTile(
+                                      title: l10n.quizOptionLabel(option),
+                                      detail: option.detail,
+                                      selected: _answers.isSelected(
+                                        question.number,
+                                        option.id,
+                                      ),
+                                      onPressed: () => _handleSelect(option.id),
+                                    );
+                                  },
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
+                      ],
                     ),
                   ),
                   if (_showChoiceError)
@@ -377,19 +385,6 @@ class _ListeningRoomQuizScreenState
                     label: l10n.commonNext,
                     busy: _busy,
                     onPressed: _handleNext,
-                  ),
-                  const SizedBox(height: AppSpacing.s14),
-                  Text(
-                    l10n.radiantFooter,
-                    textAlign: TextAlign.center,
-                    style: AppTypography.body.copyWith(
-                      color: AppColors.white,
-                      fontSize: AppFontSizes.s8,
-                      fontWeight: FontWeight.w300,
-                      letterSpacing: 1.2,
-                      height: 1.2,
-                      shadows: _textShadow,
-                    ),
                   ),
                 ],
               ),

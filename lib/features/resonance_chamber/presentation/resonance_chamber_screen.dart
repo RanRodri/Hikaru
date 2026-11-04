@@ -10,6 +10,8 @@ import '../../../core/design_system/tokens/app_font_sizes.dart';
 import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/design_system/widgets/hikaru_pill_button.dart';
+import '../../../core/media/remote_image.dart';
+import '../../../core/media/remote_image_store.dart';
 import '../../../core/router/app_routes.dart';
 import '../../splash/data/launch_gate.dart';
 import '../../crystals/application/selected_crystal_controller.dart';
@@ -41,6 +43,7 @@ class ResonanceChamberScreen extends ConsumerWidget {
       _maxHeroHeight,
     );
     final recommendation = _resolveRecommendation(ref);
+    ref.read(remoteImageCacheProvider).resolve(RemoteImages.harmonyGarden);
 
     return Scaffold(
       backgroundColor: resonanceChamberColor,
@@ -88,7 +91,7 @@ class ResonanceChamberScreen extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.s24),
                   HikaruPillButton(
                     label: l10n.resonanceEnterSanctuary,
-                    onPressed: () => _enterSanctuary(context),
+                    onPressed: () => _enterSanctuary(context, ref),
                     buttonHeight: AppSpacing.s56,
                     blurRadius: 8,
                     shadowAlpha: 0.25,
@@ -105,8 +108,9 @@ class ResonanceChamberScreen extends ConsumerWidget {
   }
 }
 
-Future<void> _enterSanctuary(BuildContext context) async {
+Future<void> _enterSanctuary(BuildContext context, WidgetRef ref) async {
   await LaunchGate(SharedPreferencesAsync()).markCrystalRevealed();
+  await prepareHomeBackground(ref.read(remoteImageCacheProvider));
   if (!context.mounted) return;
   context.go(AppRoutes.home);
 }
