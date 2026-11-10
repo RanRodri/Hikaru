@@ -171,6 +171,9 @@ class _ProfileGateway implements UserProfileGateway {
 
   @override
   Future<void> saveSelectedCrystal(Crystal crystal) async {}
+
+  @override
+  Future<void> markCrystalRevealed() async {}
 }
 
 class _AuthGateway implements AuthGateway {

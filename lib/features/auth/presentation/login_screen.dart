@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -40,6 +42,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   /// Shown until the first sign-in attempt.
   late bool _expiredNotice = widget.sessionExpired;
+
+  @override
+  void initState() {
+    super.initState();
+    // A session that is still open should not sit on Login.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_openExistingSession());
+    });
+  }
+
+  Future<void> _openExistingSession() async {
+    if (!mounted || _busy) return;
+    if (!await ref.read(authGatewayProvider).hasSession()) return;
+    if (!mounted) return;
+    final route = await routeForOpenSession(ref);
+    if (!mounted || route == AppRoutes.login) return;
+    context.go(route);
+  }
 
   @override
   void dispose() {

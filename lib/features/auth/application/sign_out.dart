@@ -2,23 +2,33 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/notifications/ritual_notifications.dart';
+import '../../crystals/application/selected_crystal_controller.dart';
+import '../../crystals/data/selected_crystal_repository.dart';
 import '../../journey/application/ritual_cycle_controller.dart';
 import '../../journey/data/ritual_cycle_repository.dart';
+import '../../listening_room/application/journey_recommendation_controller.dart';
+import '../../listening_room/data/journey_recommendation_repository.dart';
+import '../../listening_room/data/quiz_answers_repository.dart';
 import '../../profile/application/member_profile_controller.dart';
 import '../../profile/application/ritual_reminders_controller.dart';
+import '../../splash/data/launch_gate.dart';
 import '../data/auth_gateway.dart';
 import '../data/local_data_owner.dart';
 import '../data/session_inactivity.dart';
 import 'biometric_login_controller.dart';
 
-/// Forgets the member's progress, profile and reminders on this phone. Used
-/// on sign-out, and when a different account signs in on a phone that still
-/// holds someone else's data.
+/// Forgets the member's progress, profile, quiz and crystal on this phone.
+/// Used on sign-out, and when a different account signs in on a phone that
+/// still holds someone else's data.
 final localMemberDataClearProvider = Provider<Future<void> Function()>(
   (ref) => () async {
     await ref.read(ritualCycleRepositoryProvider).clear();
     await ref.read(memberProfileRepositoryProvider).clear();
+    await ref.read(quizAnswersRepositoryProvider).clear();
+    await ref.read(journeyRecommendationRepositoryProvider).clear();
+    await ref.read(selectedCrystalRepositoryProvider).clear();
     await ref.read(localDataOwnerProvider).clear();
+    await SharedPreferencesAsync().remove(LaunchGate.legacyCrystalRevealedKey);
     await SharedPreferencesAsync().remove(RitualRemindersController.morningKey);
     await SharedPreferencesAsync().remove(RitualRemindersController.eveningKey);
     await SharedPreferencesAsync().remove(
@@ -34,7 +44,9 @@ final localMemberDataClearProvider = Provider<Future<void> Function()>(
       ..invalidate(ritualCycleControllerProvider)
       ..invalidate(manualStepCompletionUnlockedProvider)
       ..invalidate(memberProfileControllerProvider)
-      ..invalidate(ritualRemindersControllerProvider);
+      ..invalidate(ritualRemindersControllerProvider)
+      ..invalidate(journeyRecommendationControllerProvider)
+      ..invalidate(selectedCrystalProvider);
   },
 );
 
@@ -57,7 +69,9 @@ final claimLocalDataProvider = Provider<Future<void> Function()>(
     ref
       ..invalidate(ritualCycleControllerProvider)
       ..invalidate(memberProfileControllerProvider)
-      ..invalidate(ritualRemindersControllerProvider);
+      ..invalidate(ritualRemindersControllerProvider)
+      ..invalidate(journeyRecommendationControllerProvider)
+      ..invalidate(selectedCrystalProvider);
   },
 );
 
@@ -78,8 +92,10 @@ final memberSignOutProvider = Provider<Future<void> Function()>(
 ///
 /// With a session, progress, profile and reminders are already mirrored to
 /// the backend and come back on the next sign-in. Clearing the local copies
-/// keeps another account on the same phone from seeing them. The selected
-/// crystal and quiz result stay: the backend copy wins on sign-in anyway.
+/// keeps another account on the same phone from seeing them. The quiz draft
+/// and the revealed crystal are cleared too, so the next account fills the
+/// questionnaire and sees the reveal. This account's own progress comes back
+/// from its answers and from `User.isRevealedCrystal`.
 ///
 /// The fingerprint / Face ID credentials are kept on purpose: signing back in
 /// with the sensor is the point of enabling it. They only unlock this phone,

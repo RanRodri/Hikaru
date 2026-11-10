@@ -11,8 +11,11 @@ part 'journey_recommendation_controller.g.dart';
 
 /// Crystal and protocol revealed after the Listening Room.
 ///
-/// Stored locally. When the device has none, the member's backend answers
-/// rebuild it, so a reinstall keeps the same recommendation.
+/// A local copy answers immediately for the account that is signed in. It is
+/// deleted on sign-out and when another account signs in, so that account
+/// cannot skip the questionnaire. When the device has none, this account's
+/// backend answers rebuild it. Whether the reveal was already seen is
+/// `User.isRevealedCrystal`, not this cache.
 @Riverpod(keepAlive: true)
 class JourneyRecommendationController
     extends _$JourneyRecommendationController {

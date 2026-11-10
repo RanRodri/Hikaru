@@ -5,7 +5,8 @@ import '../../../core/router/app_routes.dart';
 /// What follows the splash: the intro once, then login, the questions, or home.
 ///
 /// A signed-in member reaches home only after the quiz assigns a crystal and
-/// they have seen that reveal.
+/// the account's `User.isRevealedCrystal` is true. That flag is not stored
+/// on the phone.
 String routeAfterSplash({
   required bool introSeen,
   required bool sessionOpen,
@@ -20,14 +21,15 @@ String routeAfterSplash({
   );
 }
 
-/// Listening Room until the crystal exists, the reveal until they enter, then home.
+/// Home once this account has seen the crystal, even if the phone does not
+/// have the recommendation yet. Otherwise the questions, then the reveal.
 String routeForMember({
   required bool crystalAssigned,
   required bool crystalRevealed,
 }) {
+  if (crystalRevealed) return AppRoutes.home;
   if (!crystalAssigned) return AppRoutes.listeningRoom;
-  if (!crystalRevealed) return AppRoutes.resonanceChamber;
-  return AppRoutes.home;
+  return AppRoutes.resonanceChamber;
 }
 
 /// Remembers the first opening and whether a sign-in is still open.
@@ -36,7 +38,10 @@ class LaunchGate {
 
   static const String introSeenKey = 'hikaru_intro_seen';
   static const String sessionOpenKey = 'hikaru_session_open';
-  static const String crystalRevealedKey = 'hikaru_crystal_revealed';
+
+  /// Previous on-device reveal flag. Sign-out deletes it; the account flag
+  /// `User.isRevealedCrystal` decides the questionnaire and the reveal now.
+  static const String legacyCrystalRevealedKey = 'hikaru_crystal_revealed';
 
   final SharedPreferencesAsync _preferences;
 
@@ -49,10 +54,4 @@ class LaunchGate {
       await _preferences.getBool(sessionOpenKey) ?? false;
 
   Future<void> openSession() => _preferences.setBool(sessionOpenKey, true);
-
-  Future<bool> crystalRevealed() async =>
-      await _preferences.getBool(crystalRevealedKey) ?? false;
-
-  Future<void> markCrystalRevealed() =>
-      _preferences.setBool(crystalRevealedKey, true);
 }

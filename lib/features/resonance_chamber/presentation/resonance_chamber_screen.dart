@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
 import '../../../core/design_system/tokens/app_font_sizes.dart';
@@ -14,8 +13,11 @@ import '../../../core/media/remote_image.dart';
 import '../../../core/media/remote_image_prefetch.dart';
 import '../../../core/media/remote_image_store.dart';
 import '../../../core/router/app_routes.dart';
-import '../../splash/data/launch_gate.dart';
 import '../../crystals/application/selected_crystal_controller.dart';
+import '../../massage/domain/massage_ritual.dart';
+import '../../merkaba/domain/merkaba_session.dart';
+import '../../profile/data/user_profile_gateway.dart';
+import '../application/crystal_track_duration.dart';
 import '../../listening_room/application/journey_recommendation_controller.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../crystals/presentation/crystal_texts.dart';
@@ -34,9 +36,9 @@ class ResonanceChamberScreen extends ConsumerWidget {
   const ResonanceChamberScreen({super.key});
 
   static const double _horizontalPadding = 24;
-  static const double _heroScreenRatio = 0.3;
-  static const double _minHeroHeight = 200;
-  static const double _maxHeroHeight = 300;
+  static const double _heroScreenRatio = 0.46;
+  static const double _minHeroHeight = 280;
+  static const double _maxHeroHeight = 440;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -56,7 +58,7 @@ class ResonanceChamberScreen extends ConsumerWidget {
       backgroundColor: resonanceChamberColor,
       body: Column(
         children: [
-          SizedBox(height: insets.top + AppSpacing.s16),
+          SizedBox(height: insets.top + AppSpacing.s8),
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: _horizontalPadding),
             child: _ProtocolHeadline(),
@@ -103,12 +105,21 @@ class ResonanceChamberScreen extends ConsumerWidget {
                   else
                     const _MissingCrystal(),
                   if (recommendation != null) ...[
-                    const SizedBox(height: AppSpacing.s20),
+                    const SizedBox(height: AppSpacing.s12),
                     _RitualTitle(title: l10n.resonanceDailyRitual),
-                    const SizedBox(height: AppSpacing.s16),
-                    _DailyRitualSteps(recommendation: recommendation),
+                    const SizedBox(height: AppSpacing.s10),
+                    _DailyRitualSteps(
+                      recommendation: recommendation,
+                      crystalTrack: ref
+                          .watch(
+                            crystalTrackDurationProvider(
+                              recommendation.crystal,
+                            ),
+                          )
+                          .value,
+                    ),
                   ],
-                  const SizedBox(height: AppSpacing.s24),
+                  const SizedBox(height: AppSpacing.s16),
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: AppSpacing.s12,
@@ -135,7 +146,8 @@ class ResonanceChamberScreen extends ConsumerWidget {
 
 Future<void> _enterSanctuary(BuildContext context, WidgetRef ref) async {
   await prepareHomeBackground(ref.read(remoteImageCacheProvider));
-  await LaunchGate(SharedPreferencesAsync()).markCrystalRevealed();
+  // The form is already saved. Seeing this screen and entering is the reveal.
+  await ref.read(userProfileGatewayProvider).markCrystalRevealed();
   if (!context.mounted) return;
   context.go(AppRoutes.home);
 }
@@ -164,7 +176,7 @@ class _ProtocolHeadline extends StatelessWidget {
           textAlign: TextAlign.center,
           style: AppTypography.title.copyWith(
             color: AppColors.white,
-            fontSize: AppFontSizes.s25,
+            fontSize: AppFontSizes.s18,
             fontWeight: FontWeight.w500,
             height: 1.15,
           ),
@@ -200,8 +212,8 @@ class _RitualTitle extends StatelessWidget {
       textAlign: TextAlign.center,
       style: AppTypography.title.copyWith(
         color: AppColors.champagneGold,
-        fontSize: AppFontSizes.s20,
-        letterSpacing: 0.6,
+        fontSize: AppFontSizes.s15,
+        letterSpacing: 0.8,
       ),
     );
   }
@@ -211,17 +223,17 @@ class _RitualTitle extends StatelessWidget {
 double _wave(double phase, double speed, [double offset = 0]) =>
     0.5 + 0.5 * math.sin(2 * math.pi * (phase * speed + offset));
 
-/// 0..1 position of a light sweep that rests for the second half of the loop.
-double _sheenAt(double phase, double offset) => Curves.easeInOut.transform(
-  const Interval(0, 0.55).transform((phase + offset) % 1),
-);
-
-/// The four daily steps as a vertical timeline on a gold thread that flows.
-/// The first step is the featured card, the rest follow as quieter cards.
+/// The four daily steps as a fine vertical timeline. Each card carries the
+/// length of that practice so the protocol reads as a light list under the
+/// crystal.
 class _DailyRitualSteps extends StatefulWidget {
-  const _DailyRitualSteps({required this.recommendation});
+  const _DailyRitualSteps({
+    required this.recommendation,
+    required this.crystalTrack,
+  });
 
   final JourneyRecommendation recommendation;
+  final Duration? crystalTrack;
 
   @override
   State<_DailyRitualSteps> createState() => _DailyRitualStepsState();
@@ -267,7 +279,7 @@ class _DailyRitualStepsState extends State<_DailyRitualSteps>
     return Opacity(
       opacity: t.clamp(0, 1),
       child: Transform.translate(
-        offset: Offset(0, 26 * (1 - t)),
+        offset: Offset(0, 12 * (1 - t)),
         child: Transform.scale(scale: 0.94 + 0.06 * t, child: child),
       ),
     );
@@ -276,19 +288,32 @@ class _DailyRitualStepsState extends State<_DailyRitualSteps>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final track = widget.crystalTrack;
     final steps = [
       (
         RitualStep.merkaba,
         l10n.resonanceStepMerkaba,
-        l10n.resonanceStepMerkabaDetail,
+        null,
+        formatTrackDuration(merkabaDuration),
       ),
       (
         RitualStep.facial,
         l10n.resonanceStepFacial,
         l10n.recommendationFacialRitual(widget.recommendation.facialRitual),
+        formatTrackDuration(faceRitual.videoDuration),
       ),
-      (RitualStep.body, l10n.resonanceStepBody, null),
-      (RitualStep.crystal, l10n.resonanceStepCrystal, null),
+      (
+        RitualStep.body,
+        l10n.resonanceStepBody,
+        null,
+        formatTrackDuration(bodyRitual.videoDuration),
+      ),
+      (
+        RitualStep.crystal,
+        l10n.resonanceStepCrystal,
+        null,
+        track == null ? null : formatTrackDuration(track),
+      ),
     ];
 
     return AnimatedBuilder(
@@ -303,6 +328,7 @@ class _DailyRitualStepsState extends State<_DailyRitualSteps>
                 step: step.$1,
                 name: step.$2,
                 detail: step.$3,
+                duration: step.$4,
                 isLast: index == steps.length - 1,
                 phase: _loop.value,
               ),
@@ -321,53 +347,51 @@ class _TimelineRow extends StatelessWidget {
     required this.isLast,
     required this.phase,
     this.detail,
+    this.duration,
   });
 
   final int index;
   final RitualStep step;
   final String name;
   final String? detail;
+  final String? duration;
   final bool isLast;
   final double phase;
 
   @override
   Widget build(BuildContext context) {
     final extra = detail;
+    final length = duration;
     final number = index + 1;
-    final featured = index == 0;
-    final card = featured
-        ? _FeaturedStepCard(
-            number: number,
-            step: step,
-            name: name,
-            detail: extra,
-            phase: phase,
-          )
-        : _StepCard(
-            index: index,
-            number: number,
-            step: step,
-            name: name,
-            detail: extra,
-            phase: phase,
-          );
+    final spoken = [
+      '$number. $name',
+      if (extra != null) extra,
+      if (length != null) length,
+    ].join(', ');
 
     return Semantics(
-      label: extra == null ? '$number. $name' : '$number. $name, $extra',
+      label: spoken,
       excludeSemantics: true,
       child: IntrinsicHeight(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             SizedBox(
-              width: 24,
+              width: 16,
               child: _TimelineRail(index: index, isLast: isLast, phase: phase),
             ),
-            const SizedBox(width: AppSpacing.s10),
+            const SizedBox(width: AppSpacing.s8),
             Expanded(
               child: Padding(
-                padding: EdgeInsets.only(bottom: isLast ? 0 : AppSpacing.s14),
-                child: card,
+                padding: EdgeInsets.only(bottom: isLast ? 0 : AppSpacing.s8),
+                child: _StepCard(
+                  index: index,
+                  step: step,
+                  name: name,
+                  detail: extra,
+                  duration: length,
+                  phase: phase,
+                ),
               ),
             ),
           ],
@@ -390,55 +414,46 @@ class _TimelineRail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final featured = index == 0;
     final pulse = (phase * 2 + index * 0.25) % 1;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SizedBox(height: 22),
+        const SizedBox(height: 12),
         SizedBox(
-          height: 28,
+          height: 16,
           child: Stack(
             alignment: Alignment.center,
             clipBehavior: Clip.none,
             children: [
               Container(
-                width: 18 + (featured ? 22 : 12) * pulse,
-                height: 18 + (featured ? 22 : 12) * pulse,
+                width: 8 + 8 * pulse,
+                height: 8 + 8 * pulse,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
                     color: AppColors.champagneGold.withValues(
-                      alpha: (featured ? 0.6 : 0.3) * (1 - pulse),
+                      alpha: 0.28 * (1 - pulse),
                     ),
                   ),
                 ),
               ),
               Container(
-                width: 18,
-                height: 18,
+                width: 8,
+                height: 8,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: featured
-                      ? const RadialGradient(
-                          colors: [AppColors.goldGlow, AppColors.champagneGold],
-                        )
-                      : null,
-                  color: featured ? null : AppColors.darkIndigoBlue,
+                  color: AppColors.darkIndigoBlue,
                   border: Border.all(
-                    color: AppColors.champagneGold.withValues(
-                      alpha: featured ? 1 : 0.6,
-                    ),
-                    width: 1.6,
+                    color: AppColors.champagneGold.withValues(alpha: 0.7),
+                    width: 1,
                   ),
                   boxShadow: [
                     BoxShadow(
                       color: AppColors.goldGlow.withValues(
                         alpha:
-                            (featured ? 0.5 : 0.18) *
-                            (0.6 + 0.4 * _wave(phase, 2, index * 0.25)),
+                            0.16 * (0.6 + 0.4 * _wave(phase, 2, index * 0.25)),
                       ),
-                      blurRadius: featured ? 14 : 8,
+                      blurRadius: 6,
                     ),
                   ],
                 ),
@@ -484,7 +499,7 @@ class _FlowingThreadPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = color
-      ..strokeWidth = 2
+      ..strokeWidth = 1
       ..strokeCap = StrokeCap.round;
     final x = size.width / 2;
     var y = -10 + 10 * ((phase * 6) % 1);
@@ -500,15 +515,15 @@ class _FlowingThreadPainter extends CustomPainter {
     final fade = math.sin(math.pi * travel);
     canvas.drawCircle(
       center,
-      5,
+      3,
       Paint()
-        ..color = glow.withValues(alpha: 0.5 * fade)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
+        ..color = glow.withValues(alpha: 0.45 * fade)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3),
     );
     canvas.drawCircle(
       center,
-      2,
-      Paint()..color = glow.withValues(alpha: 0.95 * fade),
+      1.4,
+      Paint()..color = glow.withValues(alpha: 0.9 * fade),
     );
   }
 
@@ -517,360 +532,87 @@ class _FlowingThreadPainter extends CustomPainter {
       oldDelegate.phase != phase || oldDelegate.color != color;
 }
 
-/// A soft band of light that crosses its parent.
-class _Sheen extends StatelessWidget {
-  const _Sheen({required this.position, required this.alpha});
-
-  final double position;
-  final double alpha;
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned.fill(
-      child: IgnorePointer(
-        child: Align(
-          alignment: Alignment(-1.8 + 3.6 * position, 0),
-          child: FractionallySizedBox(
-            widthFactor: 0.35,
-            heightFactor: 1,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.white.withValues(alpha: 0),
-                    AppColors.white.withValues(alpha: alpha),
-                    AppColors.white.withValues(alpha: 0),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _EqualizerBars extends StatelessWidget {
-  const _EqualizerBars({required this.phase, required this.color});
-
-  final double phase;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 22,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          for (var bar = 0; bar < 4; bar++)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 1.5),
-              child: Container(
-                width: 3.5,
-                height: 6 + 14 * _wave(phase, 4, bar * 0.23),
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-/// The step to do first: a warm gold card with drifting light, floating
-/// sparkles and a live sound-wave badge.
-class _FeaturedStepCard extends StatelessWidget {
-  const _FeaturedStepCard({
-    required this.number,
-    required this.step,
-    required this.name,
-    required this.phase,
-    this.detail,
-  });
-
-  final int number;
-  final RitualStep step;
-  final String name;
-  final String? detail;
-  final double phase;
-
-  @override
-  Widget build(BuildContext context) {
-    final extra = detail;
-    const ink = AppColors.darkIndigoBlue;
-    final bob = math.sin(2 * math.pi * phase * 2);
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.goldGlow.withValues(
-              alpha: 0.12 + 0.16 * _wave(phase, 2),
-            ),
-            blurRadius: 26,
-            spreadRadius: 1,
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(28),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              transform: GradientRotation(0.5 * math.sin(2 * math.pi * phase)),
-              colors: const [
-                AppColors.champagneGold40,
-                AppColors.champagneGold,
-                AppColors.matteChampagne60,
-              ],
-            ),
-          ),
-          child: Stack(
-            children: [
-              Positioned(
-                right: -6 + 4 * bob,
-                bottom: -20 + 6 * bob,
-                child: Transform.rotate(
-                  angle: 0.07 * bob,
-                  child: RitualStepIcon(
-                    step: step,
-                    size: 130,
-                    color: ink.withValues(alpha: 0.14),
-                  ),
-                ),
-              ),
-              for (var k = 0; k < 5; k++)
-                Positioned.fill(
-                  child: IgnorePointer(
-                    child: Builder(
-                      builder: (context) {
-                        final p = (phase * 2 + k * 0.2) % 1;
-                        return Align(
-                          alignment: Alignment(-0.7 + k * 0.38, 0.95 - 1.9 * p),
-                          child: Container(
-                            width: 3 + (k % 2) * 2.0,
-                            height: 3 + (k % 2) * 2.0,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: AppColors.white.withValues(
-                                alpha: 0.75 * math.sin(math.pi * p),
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.white.withValues(alpha: 0.5),
-                                  blurRadius: 6,
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              _Sheen(position: _sheenAt(phase, 0), alpha: 0.32),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.s20,
-                  AppSpacing.s20,
-                  64,
-                  AppSpacing.s24,
-                ),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.s12,
-                          vertical: AppSpacing.s4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: ink.withValues(alpha: 0.14),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          '0$number',
-                          style: AppTypography.subheadline.copyWith(
-                            color: ink,
-                            fontSize: AppFontSizes.s11,
-                            letterSpacing: 1.4,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.s14),
-                      Text(
-                        name,
-                        style: AppTypography.title.copyWith(
-                          color: ink,
-                          fontSize: AppFontSizes.s25,
-                          height: 1.05,
-                        ),
-                      ),
-                      if (extra != null) ...[
-                        const SizedBox(height: AppSpacing.s10),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.schedule, size: 16, color: ink),
-                            const SizedBox(width: AppSpacing.s6),
-                            Text(
-                              extra,
-                              style: AppTypography.body.copyWith(
-                                color: ink,
-                                fontSize: AppFontSizes.s13,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-              Positioned(
-                top: AppSpacing.s16,
-                right: AppSpacing.s16,
-                child: Container(
-                  width: 44,
-                  height: 44,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: ink.withValues(alpha: 0.14),
-                  ),
-                  child: _EqualizerBars(phase: phase, color: ink),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _StepCard extends StatelessWidget {
   const _StepCard({
     required this.index,
-    required this.number,
     required this.step,
     required this.name,
     required this.phase,
     this.detail,
+    this.duration,
   });
 
   final int index;
-  final int number;
   final RitualStep step;
   final String name;
   final String? detail;
+  final String? duration;
   final double phase;
 
   @override
   Widget build(BuildContext context) {
     final extra = detail;
+    final length = duration;
     final glow = _wave(phase, 2, index * 0.25);
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
-      child: Stack(
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.s12,
+        vertical: AppSpacing.s8,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.darkIndigoBlue.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: AppColors.champagneGold.withValues(alpha: 0.22 + 0.12 * glow),
+          width: 0.6,
+        ),
+      ),
+      child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.s16,
-              vertical: AppSpacing.s16,
-            ),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-                colors: [
-                  AppColors.champagneGold.withValues(alpha: 0.12),
-                  AppColors.darkIndigoBlue.withValues(alpha: 0.65),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: AppColors.champagneGold.withValues(
-                  alpha: 0.28 + 0.14 * glow,
-                ),
-                width: 0.9,
-              ),
-            ),
-            child: Row(
+          RitualStepIcon(
+            step: step,
+            size: 16,
+            color: AppColors.champagneGold.withValues(alpha: 0.9),
+          ),
+          const SizedBox(width: AppSpacing.s10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 46,
-                  height: 46,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.champagneGold.withValues(alpha: 0.12),
-                    border: Border.all(
-                      color: AppColors.champagneGold.withValues(alpha: 0.75),
-                      width: 0.9,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.goldGlow.withValues(
-                          alpha: 0.08 + 0.22 * glow,
-                        ),
-                        blurRadius: 14,
-                      ),
-                    ],
-                  ),
-                  child: Transform.scale(
-                    scale: 0.94 + 0.12 * glow,
-                    child: RitualStepIcon(step: step, size: 24),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.s16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        name,
-                        style: AppTypography.headline.copyWith(
-                          color: AppColors.white,
-                          fontSize: AppFontSizes.s16,
-                          letterSpacing: 0.2,
-                        ),
-                      ),
-                      if (extra != null) ...[
-                        const SizedBox(height: AppSpacing.s4),
-                        Text(
-                          extra,
-                          style: AppTypography.body.copyWith(
-                            color: AppColors.fog.withValues(alpha: 0.85),
-                            fontSize: AppFontSizes.s12,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
                 Text(
-                  '0$number',
-                  style: AppTypography.title.copyWith(
-                    color: AppColors.champagneGold.withValues(alpha: 0.85),
-                    fontSize: AppFontSizes.s20,
-                    height: 1,
+                  name,
+                  style: AppTypography.headline.copyWith(
+                    color: AppColors.white,
+                    fontSize: AppFontSizes.s13,
+                    letterSpacing: 0.2,
+                    height: 1.15,
                   ),
                 ),
+                if (extra != null) ...[
+                  const SizedBox(height: AppSpacing.s2),
+                  Text(
+                    extra,
+                    style: AppTypography.body.copyWith(
+                      color: AppColors.fog.withValues(alpha: 0.75),
+                      fontSize: AppFontSizes.s11,
+                      height: 1.2,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
-          _Sheen(position: _sheenAt(phase, index * 0.18), alpha: 0.1),
+          if (length != null) ...[
+            const SizedBox(width: AppSpacing.s8),
+            Text(
+              length,
+              style: AppTypography.subheadline.copyWith(
+                color: AppColors.champagneGold.withValues(alpha: 0.9),
+                fontSize: AppFontSizes.s11,
+                letterSpacing: 0.6,
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -926,8 +668,8 @@ class _CrystalName extends StatelessWidget {
           ),
           style: AppTypography.title.copyWith(
             color: AppColors.champagneGold,
-            fontSize: AppFontSizes.s28,
-            letterSpacing: 2.4,
+            fontSize: AppFontSizes.s22,
+            letterSpacing: 1.8,
             height: 1.1,
           ),
         ),

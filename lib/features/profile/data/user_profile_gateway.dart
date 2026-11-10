@@ -15,6 +15,7 @@ class RemoteUserProfile {
     required this.morningRitualReminder,
     required this.eveningReflectionReminder,
     required this.biometricsEnabled,
+    required this.isRevealedCrystal,
   });
 
   final String id;
@@ -24,6 +25,10 @@ class RemoteUserProfile {
   final bool morningRitualReminder;
   final bool eveningReflectionReminder;
   final bool biometricsEnabled;
+
+  /// True only after this account finished the questionnaire and saw the
+  /// crystal reveal. It belongs to the account, not to the phone.
+  final bool isRevealedCrystal;
 
   static RemoteUserProfile? fromJson(Object? json) {
     if (json is! Map) return null;
@@ -41,6 +46,7 @@ class RemoteUserProfile {
       morningRitualReminder: json['morningSacredRitualEnabled'] == true,
       eveningReflectionReminder: json['eveningReflectionAndBreath'] == true,
       biometricsEnabled: json['biometricsEnabled'] == true,
+      isRevealedCrystal: json['isRevealedCrystal'] == true,
     );
   }
 }
@@ -60,6 +66,9 @@ abstract class UserProfileGateway {
   Future<void> saveReminders({required bool morning, required bool evening});
 
   Future<void> saveBiometrics(bool enabled);
+
+  /// Marks the questionnaire and crystal reveal as done for this account.
+  Future<void> markCrystalRevealed();
 }
 
 final userProfileGatewayProvider = Provider<UserProfileGateway>(
@@ -107,7 +116,7 @@ class AmplifyUserProfileGateway implements UserProfileGateway {
 
   static const String _profileFields =
       'id email fullName actualCrystalCode morningSacredRitualEnabled '
-      'eveningReflectionAndBreath biometricsEnabled';
+      'eveningReflectionAndBreath biometricsEnabled isRevealedCrystal';
 
   static const String _getUser =
       r'query GetUser($id: ID!) { getUser(id: $id) { '
@@ -143,6 +152,9 @@ class AmplifyUserProfileGateway implements UserProfileGateway {
   @override
   Future<void> saveBiometrics(bool enabled) =>
       _update({'biometricsEnabled': enabled});
+
+  @override
+  Future<void> markCrystalRevealed() => _update({'isRevealedCrystal': true});
 
   Future<void> _update(Map<String, Object?> changes) async {
     final userId = await _api.currentUserId();

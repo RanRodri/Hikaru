@@ -29,6 +29,8 @@ class JourneyRecommendationRepository {
 
   Future<void> save(JourneyRecommendation recommendation) =>
       _preferences.setString(storageKey, jsonEncode(recommendation.toJson()));
+
+  Future<void> clear() => _preferences.remove(storageKey);
 }
 
 @Riverpod(keepAlive: true)

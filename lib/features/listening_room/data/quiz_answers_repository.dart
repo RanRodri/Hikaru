@@ -42,6 +42,12 @@ class QuizAnswersRepository {
   Future<void> saveStep(int step) => _preferences.setInt(stepKey, step);
 
   Future<void> clearStep() => _preferences.remove(stepKey);
+
+  /// Drops the draft so the next account on this phone starts the quiz again.
+  Future<void> clear() async {
+    await _preferences.remove(storageKey);
+    await _preferences.remove(stepKey);
+  }
 }
 
 @Riverpod(keepAlive: true)

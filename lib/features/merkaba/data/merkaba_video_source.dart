@@ -7,9 +7,10 @@ import 'package:amplify_storage_s3/amplify_storage_s3.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../../../core/media/download_to_file.dart';
+
 /// Pre-rendered five minute Merkaba video, without sound.
 const String merkabaVideoFileName = 'merkaba_full_5min.mp4';
-
 
 /// Storage path of the video in the Hikaru bucket.
 const String merkabaVideoStoragePath = 'Merkaba/$merkabaVideoFileName';
@@ -128,35 +129,6 @@ class CachedMerkabaVideoSource implements MerkabaVideoSource {
     } on FileSystemException {
       return false;
     }
-  }
-}
-
-/// Streams [url] into [target] without holding the video in memory. Returns
-/// the bytes written, or 0 when the server refused or the transfer was short.
-Future<int> downloadToFile(Uri url, File target) async {
-  final client = HttpClient();
-  try {
-    final request = await client.getUrl(url);
-    final response = await request.close();
-    if (response.statusCode != HttpStatus.ok) {
-      await response.drain<void>();
-      return 0;
-    }
-    final sink = target.openWrite();
-    var written = 0;
-    try {
-      await for (final chunk in response) {
-        sink.add(chunk);
-        written += chunk.length;
-      }
-    } finally {
-      await sink.close();
-    }
-    final expected = response.contentLength;
-    if (expected >= 0 && written != expected) return 0;
-    return written;
-  } finally {
-    client.close();
   }
 }
 

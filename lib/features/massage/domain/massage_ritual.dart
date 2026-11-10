@@ -164,6 +164,14 @@ const MassageRitual tutorialRitual = MassageRitual(
   ],
 );
 
+/// Face first, then body, then the tutorial. Home and Merkaba download them
+/// in this order so the next massage is on the phone before it opens.
+final List<String> massageVideoWarmOrder = [
+  faceRitual.videoStoragePath,
+  bodyRitual.videoStoragePath,
+  tutorialRitual.videoStoragePath,
+];
+
 MassageRitual ritualFor(MassageSurface surface) => switch (surface) {
   MassageSurface.face => faceRitual,
   MassageSurface.body => bodyRitual,

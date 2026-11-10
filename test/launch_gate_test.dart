@@ -57,6 +57,15 @@ void main() {
       ),
       AppRoutes.home,
     );
+    expect(
+      routeAfterSplash(
+        introSeen: true,
+        sessionOpen: true,
+        crystalAssigned: false,
+        crystalRevealed: true,
+      ),
+      AppRoutes.home,
+    );
   });
 
   test('sign-in keeps the session open for the next launch', () async {

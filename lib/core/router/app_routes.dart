@@ -44,6 +44,19 @@ abstract final class AppRoutes {
   static String cycle(String path) => '$path?$cycleParam=1';
 
   static bool isCycle(Map<String, String> query) => query[cycleParam] == '1';
+
+  /// Screens that belong to a signed-in member. An ended session cannot stay
+  /// on any of them.
+  static bool requiresSession(String path) {
+    return path == home ||
+        path.startsWith('$home/') ||
+        path == listeningRoom ||
+        path.startsWith('$listeningRoom/') ||
+        path == mirrorGarden ||
+        path == resonanceChamber ||
+        path.startsWith('$resonanceChamber/');
+  }
+
   static const String ritualFace = '$home/ritual-face';
   static const String ritualBody = '$home/ritual-body';
   static const String libraryTopicParam = 'topic';

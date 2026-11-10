@@ -17,6 +17,8 @@ class SelectedCrystalRepository {
 
   Future<void> save(Crystal crystal) =>
       _preferences.setString(_key, crystal.name);
+
+  Future<void> clear() => _preferences.remove(_key);
 }
 
 @Riverpod(keepAlive: true)

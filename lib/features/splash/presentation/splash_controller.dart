@@ -14,6 +14,7 @@ import '../../../core/backend/cognito_session.dart';
 import '../../auth/data/session_inactivity.dart';
 import '../../listening_room/application/journey_recommendation_controller.dart';
 import '../../listening_room/domain/journey_recommendation.dart';
+import '../../profile/data/user_profile_gateway.dart';
 import '../../resonance_chamber/presentation/crystal_scene_photo.dart';
 import '../data/launch_gate.dart';
 import 'splash_logo.dart';
@@ -52,6 +53,12 @@ Future<String> splashDestination(Ref ref) async {
   }
   var sessionOpen = await ref.read(authGatewayProvider).hasSession();
   if (!ref.mounted) return AppRoutes.sanctuary;
+  if (sessionOpen) {
+    // Copy the old on-device reveal onto this account before a sign-out
+    // can delete it.
+    await _crystalRevealedForAccount(ref.read(userProfileGatewayProvider));
+    if (!ref.mounted) return AppRoutes.sanctuary;
+  }
   final inactivity = ref.read(sessionInactivityProvider);
   if (sessionOpen && await inactivity.hasExpired()) {
     // Not opened for 48 hours: ask for the password or the sensor again.
@@ -82,7 +89,9 @@ Future<String> splashDestination(Ref ref) async {
   if (!ref.mounted) return AppRoutes.sanctuary;
   final route = routeForMember(
     crystalAssigned: recommendation != null,
-    crystalRevealed: await gate.crystalRevealed(),
+    crystalRevealed: await _crystalRevealedForAccount(
+      ref.read(userProfileGatewayProvider),
+    ),
   );
   if (ref.mounted) {
     await _prepareImagesFor(
@@ -94,8 +103,9 @@ Future<String> splashDestination(Ref ref) async {
   return route;
 }
 
-/// Home only after the Listening Room has assigned a crystal and the member
-/// has opened that reveal. Otherwise the questions, or the reveal, continue.
+/// Home only after the Listening Room has assigned a crystal and this
+/// account has seen that reveal. Otherwise the questions, or the reveal,
+/// continue. The decision is `User.isRevealedCrystal`, not a phone flag.
 Future<String> routeForOpenSession(WidgetRef ref) async {
   // Every sign-in ends here: it starts the 48 hour inactivity clock.
   await ref.read(sessionInactivityProvider).touch();
@@ -106,10 +116,11 @@ Future<String> routeForOpenSession(WidgetRef ref) async {
   final recommendation = await ref.read(
     journeyRecommendationControllerProvider.future,
   );
-  final revealed = await LaunchGate(SharedPreferencesAsync()).crystalRevealed();
   final route = routeForMember(
     crystalAssigned: recommendation != null,
-    crystalRevealed: revealed,
+    crystalRevealed: await _crystalRevealedForAccount(
+      ref.read(userProfileGatewayProvider),
+    ),
   );
   await _prepareImagesFor(
     ref.read(remoteImageCacheProvider),
@@ -137,4 +148,22 @@ Future<void> _prepareImagesFor(
   }
   if (route == AppRoutes.home) return prepareHomeBackground(cache);
   return Future<void>.value();
+}
+
+Future<bool> _crystalRevealedForAccount(UserProfileGateway gateway) async {
+  final profile = await gateway.fetchCurrent();
+  final preferences = SharedPreferencesAsync();
+  if (profile?.isRevealedCrystal == true) {
+    await preferences.remove(LaunchGate.legacyCrystalRevealedKey);
+    return true;
+  }
+  // Phones that finished the reveal before the account flag existed still
+  // have the old key. Copy it once, then delete it. A different account
+  // never sees it: sign-in already cleared the previous member's copy.
+  final legacy =
+      await preferences.getBool(LaunchGate.legacyCrystalRevealedKey) ?? false;
+  if (!legacy) return false;
+  await gateway.markCrystalRevealed();
+  await preferences.remove(LaunchGate.legacyCrystalRevealedKey);
+  return true;
 }

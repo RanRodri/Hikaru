@@ -14,7 +14,6 @@ import 'core/media/remote_image.dart';
 import 'core/router/app_router.dart';
 import 'core/router/app_routes.dart';
 import 'features/auth/application/sign_out.dart';
-import 'features/auth/data/auth_gateway.dart';
 import 'features/auth/data/session_inactivity.dart';
 import 'l10n/app_localizations.dart';
 
@@ -88,22 +87,38 @@ class _HikaruAppState extends ConsumerState<HikaruApp>
     }
   }
 
-  /// Back in the foreground: close a session left idle for 48 hours,
-  /// otherwise restart the clock. A cold start is handled by the splash.
+  /// Back in the foreground.
+  ///
+  /// An open session continues, and a cold start is decided by the splash.
+  /// A session Cognito already rejected, or one left idle for 48 hours,
+  /// cannot remain on Home or any other member screen.
   Future<void> _handleResumed() async {
     try {
       final inactivity = ref.read(sessionInactivityProvider);
-      if (!await inactivity.hasExpired()) {
-        await inactivity.touch();
-        return;
-      }
-      if (!await ref.read(authGatewayProvider).hasSession()) {
-        await inactivity.clear();
-        return;
-      }
-      await ref.read(memberSignOutProvider)();
+      final session = await readCognitoSession();
       if (!mounted) return;
-      ref.read(appRouterProvider).go(AppRoutes.login);
+      final path = ref
+          .read(appRouterProvider)
+          .routerDelegate
+          .currentConfiguration
+          .uri
+          .path;
+
+      if (session == CognitoSessionState.expired) {
+        await _endSession(AppRoutes.loginSessionExpired);
+        return;
+      }
+      if (session != CognitoSessionState.active) {
+        await inactivity.clear();
+        if (!mounted || !AppRoutes.requiresSession(path)) return;
+        await _endSession(AppRoutes.login);
+        return;
+      }
+      if (await inactivity.hasExpired()) {
+        await _endSession(AppRoutes.login);
+        return;
+      }
+      await inactivity.touch();
     } catch (error, stackTrace) {
       log(
         'Session inactivity check',
@@ -112,6 +127,12 @@ class _HikaruAppState extends ConsumerState<HikaruApp>
         stackTrace: stackTrace,
       );
     }
+  }
+
+  Future<void> _endSession(String route) async {
+    await ref.read(memberSignOutProvider)();
+    if (!mounted) return;
+    ref.read(appRouterProvider).go(route);
   }
 
   @override

@@ -91,6 +91,7 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
   static const Duration _endTolerance = Duration(milliseconds: 300);
 
   late final Ticker _ticker;
+  late final MassageVideoSource _videos;
   VideoPlayerController? _video;
   bool _videoFailed = false;
   bool _wantsPlay = false;
@@ -140,17 +141,24 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
     super.initState();
     _ticker = createTicker(_handleTick);
     _sheet.addListener(_handleSheet);
+    _videos = ref.read(massageVideoSourceProvider);
     unawaited(_loadVideo());
   }
 
   Future<void> _loadVideo() async {
     final path = ritualFor(widget.surface).videoStoragePath;
-    final url = await ref.read(massageVideoSourceProvider).resolve(path);
+    final location = await _videos.resolve(path);
     if (!mounted) return;
-    final controller = VideoPlayerController.networkUrl(
-      url,
-      videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
-    );
+    final controller = switch (location) {
+      MassageCachedVideo(:final file) => VideoPlayerController.file(
+        file,
+        videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+      ),
+      MassageStreamedVideo(:final url) => VideoPlayerController.networkUrl(
+        url,
+        videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+      ),
+    };
     try {
       await controller.initialize();
     } catch (_) {
@@ -257,6 +265,7 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
 
   @override
   void dispose() {
+    _videos.releasePlayback(ritualFor(widget.surface).videoStoragePath);
     _sheet.removeListener(_handleSheet);
     _sheet.dispose();
     _ticker.dispose();
