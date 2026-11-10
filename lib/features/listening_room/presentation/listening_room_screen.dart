@@ -60,9 +60,9 @@ class ListeningRoomScreen extends StatelessWidget {
           ),
           Padding(
             padding: EdgeInsets.fromLTRB(
-              AppSpacing.s40,
+              AppSpacing.s28,
               topSpace,
-              AppSpacing.s40,
+              AppSpacing.s28,
               bottomSpace,
             ),
             child: Column(
@@ -83,6 +83,7 @@ class ListeningRoomScreen extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: AppTypography.subheadline.copyWith(
                     color: AppColors.white,
+                    fontSize: AppFontSizes.s12,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.s16),
@@ -94,9 +95,9 @@ class ListeningRoomScreen extends StatelessWidget {
                   style: AppTypography.body.copyWith(
                     color: AppColors.white,
                     fontWeight: FontWeight.w400,
-                    fontSize: AppFontSizes.s11,
-                    height: 1.7,
-                    letterSpacing: 0.55,
+                    fontSize: AppFontSizes.s14,
+                    height: 1.6,
+                    letterSpacing: 0.3,
                     shadows: _bodyGlow,
                   ),
                 ),

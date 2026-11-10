@@ -2,17 +2,31 @@ import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/backend/cognito_session.dart';
+
 enum AuthSignUpOutcome { signedIn, confirmationRequired }
 
 class PendingConfirmation {
-  const PendingConfirmation({required this.username, required this.password});
+  const PendingConfirmation({
+    required this.username,
+    required this.password,
+    this.codeJustSent = true,
+  });
 
   final String username;
   final String password;
+
+  /// True right after sign-up, when a code was just emailed. False when the
+  /// member arrives from login with an old account: nothing was sent now, so
+  /// resending must be available straight away.
+  final bool codeJustSent;
 }
 
 class AuthRequestException implements Exception {
   const AuthRequestException(this.message);
+
+  /// Cognito refused because too many codes were requested in a short time.
+  static const String tooManyAttempts = 'too-many-attempts';
 
   final String message;
 }
@@ -35,6 +49,9 @@ abstract class AuthGateway {
     required String confirmationCode,
   });
 
+  /// Sends the sign-up confirmation code again.
+  Future<void> resendSignUpCode({required String username});
+
   /// Emails a reset code. [username] may be the email alias.
   Future<void> requestPasswordReset({required String username});
 
@@ -54,15 +71,8 @@ final authGatewayProvider = Provider<AuthGateway>(
 
 class AmplifyAuthGateway implements AuthGateway {
   @override
-  Future<bool> hasSession() async {
-    try {
-      if (!Amplify.isConfigured) return false;
-      final session = await Amplify.Auth.fetchAuthSession();
-      return session.isSignedIn;
-    } on AuthException {
-      return false;
-    }
-  }
+  Future<bool> hasSession() async =>
+      await readCognitoSession() == CognitoSessionState.active;
 
   @override
   Future<void> signIn({
@@ -137,6 +147,17 @@ class AmplifyAuthGateway implements AuthGateway {
       if (!result.isSignUpComplete) {
         throw AuthRequestException(result.nextStep.signUpStep.name);
       }
+    } on AuthException catch (error) {
+      throw AuthRequestException(error.message);
+    }
+  }
+
+  @override
+  Future<void> resendSignUpCode({required String username}) async {
+    try {
+      await Amplify.Auth.resendSignUpCode(username: username);
+    } on LimitExceededException {
+      throw const AuthRequestException(AuthRequestException.tooManyAttempts);
     } on AuthException catch (error) {
       throw AuthRequestException(error.message);
     }

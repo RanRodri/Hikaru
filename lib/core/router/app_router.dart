@@ -24,12 +24,14 @@ import '../../features/massage/domain/massage_ritual.dart';
 import '../../features/massage/presentation/massage_screen.dart';
 import '../../features/merkaba/presentation/merkaba_screen.dart';
 import '../../features/profile/presentation/profile_account_screen.dart';
+import '../../features/profile/presentation/profile_privacy_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/resonance_chamber/presentation/crystal_resonance_screen.dart';
 import '../../features/resonance_chamber/presentation/resonance_chamber_screen.dart';
 import '../../features/ritual/presentation/ritual_screen.dart';
 import '../../features/sanctuary/presentation/sanctuary_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
+import '../../features/store/presentation/store_web_view_screen.dart';
 import 'app_routes.dart';
 
 part 'app_router.g.dart';
@@ -56,8 +58,14 @@ GoRouter appRouter(Ref ref) {
         builder: (context, state) => const RitualScreen(),
       ),
       GoRoute(
+        path: AppRoutes.store,
+        builder: (context, state) => const StoreWebViewScreen(),
+      ),
+      GoRoute(
         path: AppRoutes.login,
-        builder: (context, state) => const LoginScreen(),
+        builder: (context, state) => LoginScreen(
+          sessionExpired: AppRoutes.isSessionExpired(state.uri.queryParameters),
+        ),
       ),
       GoRoute(
         path: AppRoutes.register,
@@ -108,6 +116,18 @@ GoRouter appRouter(Ref ref) {
             state.pathParameters[AppRoutes.crystalResonanceParam],
           )!,
         ),
+        routes: [
+          // Same guide as the Library tab, but a child of the crystal route
+          // so it can be pushed and popped without losing the crystal screen.
+          GoRoute(
+            path: 'library',
+            builder: (context, state) => LibraryTopicPage(
+              topicId: Crystal.fromName(
+                state.pathParameters[AppRoutes.crystalResonanceParam],
+              )!.name,
+            ),
+          ),
+        ],
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) => navigationShell,
@@ -208,6 +228,10 @@ GoRouter appRouter(Ref ref) {
                   GoRoute(
                     path: 'account',
                     builder: (context, state) => const ProfileAccountScreen(),
+                  ),
+                  GoRoute(
+                    path: 'privacy',
+                    builder: (context, state) => const ProfilePrivacyScreen(),
                   ),
                 ],
               ),

@@ -91,6 +91,19 @@ class AppLocalizationsEs extends AppLocalizations {
       'TODO RITUAL COMIENZA CON INTENCIÓN.\nMERECES ESTE MOMENTO.';
 
   @override
+  String get storeTitle => 'TIENDA HIKARU';
+
+  @override
+  String get storeClose => 'Cerrar tienda';
+
+  @override
+  String get storeLoadError =>
+      'No pudimos abrir la tienda. Revisa tu conexión e inténtalo de nuevo.';
+
+  @override
+  String get storeRetry => 'REINTENTAR';
+
+  @override
   String get authEmailLabel => 'Correo electrónico';
 
   @override
@@ -159,6 +172,21 @@ class AppLocalizationsEs extends AppLocalizations {
   String get confirmSignUpErrorCode => 'Ingresa el código';
 
   @override
+  String get confirmSignUpResend => 'REENVIAR CÓDIGO';
+
+  @override
+  String confirmSignUpResendIn(String time) {
+    return 'Reenviar código en $time';
+  }
+
+  @override
+  String get confirmSignUpResent => 'Te enviamos un código nuevo.';
+
+  @override
+  String get confirmSignUpTooMany =>
+      'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.';
+
+  @override
   String get authShowPassword => 'Mostrar contraseña';
 
   @override
@@ -171,22 +199,20 @@ class AppLocalizationsEs extends AppLocalizations {
   String get loginSubtitle => 'TU CAMINO HACIA UNA PIEL RADIANTE';
 
   @override
-  String get loginRememberMe => 'Recuérdame';
-
-  @override
   String get loginForgotPassword => '¿Olvidaste tu contraseña?';
 
   @override
   String get loginSignIn => 'INICIAR SESIÓN';
 
   @override
+  String get loginSessionExpired =>
+      'Tu sesión terminó. Vuelve a iniciar sesión para continuar; tu progreso en este teléfono se conserva.';
+
+  @override
   String get loginOr => 'o';
 
   @override
-  String get loginNoAccount => '¿No tienes un santuario? ';
-
-  @override
-  String get loginCreateOne => 'Crea uno';
+  String get loginCreateAccount => 'CREAR CUENTA';
 
   @override
   String get registerTitle => 'Crea tu\nsantuario';
@@ -280,6 +306,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get resetSignIn => 'Inicia sesión';
+
+  @override
+  String get resetNoAccount => '¿No tienes una cuenta? ';
+
+  @override
+  String get resetCreateAccount => 'Crear cuenta';
 
   @override
   String get commonBack => 'ATRÁS';
@@ -549,7 +581,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get mirrorGardenHint =>
-      'Toma una foto para crear un registro personal de tu viaje Hikaru de 30 días y observar la evolución de tu piel con el tiempo.\nCada momento comienza con un instante de conciencia.\nTu foto es para tu reflexión personal.';
+      'Toma una foto para crear un registro personal de tu viaje Hikaru de 30 días y observar la evolución de tu piel con el tiempo.\nTu foto es para tu reflexión personal.';
 
   @override
   String get mirrorTakePhoto => 'TOMAR UNA FOTO';
@@ -614,6 +646,34 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get resonanceProtocolTemple => 'Templo';
+
+  @override
+  String get resonanceProtocolHeadline =>
+      'Este es tu protocolo\npara los próximos 30 días';
+
+  @override
+  String get resonanceCrystalTouchHint => 'Toca el cristal para sentir su luz';
+
+  @override
+  String get resonanceDailyRitual => 'Tu ritual diario';
+
+  @override
+  String get resonanceStepMerkaba => 'Merkaba';
+
+  @override
+  String get resonanceStepMerkabaDetail => '5 min';
+
+  @override
+  String get resonanceStepFacial => 'Ritual facial';
+
+  @override
+  String get resonanceStepBody => 'Ritual corporal';
+
+  @override
+  String get resonanceStepCrystal => 'Cristal y cymatics';
+
+  @override
+  String get resonanceStepCrystalDetail => 'Crystal Roller';
 
   @override
   String get resonanceEnterSanctuary => 'ENTRAR A MI SANTUARIO HIKARU';
@@ -975,6 +1035,213 @@ class AppLocalizationsEs extends AppLocalizations {
   String get homeGardenSubtitle => 'Tu viaje comienza en tu interior';
 
   @override
+  String get ritualStepMerkaba => 'Merkaba';
+
+  @override
+  String get ritualStepFacial => 'Ritual facial';
+
+  @override
+  String get ritualStepBody => 'Ritual corporal';
+
+  @override
+  String get ritualStepCrystal => 'Cristal y cymatics';
+
+  @override
+  String homeProgressCongrats(int day) {
+    return '¡Felicitaciones, llegaste al día $day!';
+  }
+
+  @override
+  String homeProgressDay(int day, int total) {
+    return 'Día $day de $total';
+  }
+
+  @override
+  String get homeProgressPending => 'Hoy aún te espera:';
+
+  @override
+  String homeProgressPendingStepSemantics(String step) {
+    return 'Pendiente hoy: $step';
+  }
+
+  @override
+  String get celebrationStepTitle => '¡Bien hecho!';
+
+  @override
+  String celebrationStepBody(String step) {
+    return 'Completaste hoy: $step.';
+  }
+
+  @override
+  String celebrationNextStep(String step) {
+    return 'Sigue: $step';
+  }
+
+  @override
+  String get celebrationDayTitle => '¡Completaste tu ritual de hoy!';
+
+  @override
+  String celebrationDayBody(int day, int total) {
+    return 'Felicitaciones, completaste el día $day de $total. Tu luz crece un poco más cada día.';
+  }
+
+  @override
+  String get celebrationContinue => 'CONTINUAR';
+
+  @override
+  String get celebrationLibraryEyebrow => 'DE LA BIBLIOTECA';
+
+  @override
+  String get celebrationLibraryMerkaba => 'Descubre el significado del Merkaba';
+
+  @override
+  String get celebrationLibraryFacial =>
+      'Descubre la ciencia detrás de tu ritual facial';
+
+  @override
+  String get celebrationLibraryBody =>
+      'Descubre cómo funciona tu ritual corporal';
+
+  @override
+  String get celebrationLibraryCrystal =>
+      'Explora el significado de tu cristal';
+
+  @override
+  String get homeProgressDone => 'El ritual de hoy está completo.';
+
+  @override
+  String homeProgressStreak(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count días seguidos',
+      one: '1 día seguido',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get homeProgressSeeHistory => 'VER HISTORIAL';
+
+  @override
+  String get homeThanks1 => 'Gracias por regalarte este momento hoy.';
+
+  @override
+  String get homeThanks2 => 'Hoy tu luz creció un poco más. Descansa bien.';
+
+  @override
+  String get homeThanks3 =>
+      'Cada ritual es un acto de amor propio. Bien hecho.';
+
+  @override
+  String get homeThanks4 =>
+      'Tu piel y tu energía te lo agradecen. Nos vemos mañana.';
+
+  @override
+  String get homeThanks5 => 'La constancia es tu brillo. Sigue brillando.';
+
+  @override
+  String get homeThanksWeekOne =>
+      'Una semana de rituales. Tu nuevo hábito está echando raíces.';
+
+  @override
+  String get homeThanksWeekTwo =>
+      'Dos semanas de cuidado. Tu brillo ya se nota.';
+
+  @override
+  String get homeThanksWeekThree =>
+      'Tres semanas. Este ritual ya es parte de ti.';
+
+  @override
+  String get homeThanksCycleComplete =>
+      'Completaste tu viaje de 30 días. Gracias por confiar en el proceso.';
+
+  @override
+  String homeProgressTodayCount(int count) {
+    return '$count/4 HOY';
+  }
+
+  @override
+  String get homeProgressShortMerkaba => 'Merkaba';
+
+  @override
+  String get homeProgressShortFace => 'Facial';
+
+  @override
+  String get homeProgressShortBody => 'Cuerpo';
+
+  @override
+  String get homeProgressShortCrystal => 'Cristal';
+
+  @override
+  String homeProgressCompletedStepSemantics(String step) {
+    return 'Completado hoy: $step';
+  }
+
+  @override
+  String get homeProgressYesterdayComplete => 'Ayer completaste todo el ritual';
+
+  @override
+  String homeProgressYesterdayMissing(String steps) {
+    return 'Ayer faltó: $steps';
+  }
+
+  @override
+  String get historyTitle => 'TU HISTORIAL DE RITUALES';
+
+  @override
+  String get historySubtitle => 'Toca un día para ver qué completaste.';
+
+  @override
+  String get historyLegendComplete => 'Completo';
+
+  @override
+  String get historyLegendPartial => 'Parcial';
+
+  @override
+  String get historyLegendNone => 'Sin hacer';
+
+  @override
+  String historyDayTitle(int day) {
+    return 'Día $day';
+  }
+
+  @override
+  String get historyUpcoming => 'Este día aún no ha llegado.';
+
+  @override
+  String get historyStepDone => 'Hecho';
+
+  @override
+  String get historyStepPending => 'Pendiente';
+
+  @override
+  String historyCompletedDays(int count, int total) {
+    return '$count de $total días completos';
+  }
+
+  @override
+  String get historyNoCycle =>
+      'Tu historial aparece cuando haces tu primer ritual.';
+
+  @override
+  String get cycleEndTitle => 'Completaste tu\nviaje de 30 días';
+
+  @override
+  String cycleEndSummary(int count, int total) {
+    return '$count de $total días con tu ritual completo. ¿Cómo quieres continuar?';
+  }
+
+  @override
+  String get cycleEndRepeatTest => 'REPETIR EL TEST';
+
+  @override
+  String get cycleEndChooseCrystal => 'ELEGIR UN NUEVO CRISTAL';
+
+  @override
+  String get cycleEndLater => 'Decidir después';
+
+  @override
   String get homeYourCrystal => 'TU CRISTAL';
 
   @override
@@ -1185,6 +1452,28 @@ class AppLocalizationsEs extends AppLocalizations {
       'Respiración consciente antes de dormir';
 
   @override
+  String get notificationMorningTitle => 'Tu ritual de la mañana te espera';
+
+  @override
+  String get notificationMorningBody =>
+      'Merkaba, ritual facial y corporal, y tu cristal. Unos minutos solo para ti.';
+
+  @override
+  String get notificationEveningTitle => 'Reflexión de la noche';
+
+  @override
+  String get notificationEveningBody =>
+      'Respira despacio y cierra tu día con calma.';
+
+  @override
+  String profileReminderTimeSemantics(String title, String time) {
+    return 'Hora de $title, $time. Toca dos veces para cambiarla';
+  }
+
+  @override
+  String get profileDefaultAvatarSemantics => 'Foto de perfil sin configurar';
+
+  @override
   String profileReminderSemantics(String title) {
     return 'Recordatorio: $title';
   }
@@ -1201,6 +1490,40 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get profilePrivacy => 'Privacidad';
+
+  @override
+  String get privacyScreenTitle => 'PRIVACIDAD';
+
+  @override
+  String get privacyScreenSubtitle => 'Qué conserva Hikaru y por qué.';
+
+  @override
+  String get privacyPhotoTitle => 'Tu foto facial';
+
+  @override
+  String get privacyPhotoBody =>
+      'Se usa para personalizar tu ritual facial y tu foto de perfil. Puedes cambiarla cuando quieras desde tus datos.';
+
+  @override
+  String get privacyProfileTitle => 'Tu nombre y perfil';
+
+  @override
+  String get privacyProfileBody =>
+      'Solo se muestran dentro de tu santuario para saludarte.';
+
+  @override
+  String get privacyJourneyTitle => 'Tu viaje';
+
+  @override
+  String get privacyJourneyBody =>
+      'Tu cristal, protocolo y progreso diario, para que tu ciclo de 30 días esté aquí cuando vuelvas.';
+
+  @override
+  String get privacyRemindersTitle => 'Tus recordatorios';
+
+  @override
+  String get privacyRemindersBody =>
+      'Los horarios se usan solo para avisarte de tus rituales.';
 
   @override
   String get profileCycleTitle => 'CICLO DE 30 DÍAS';
@@ -1536,6 +1859,19 @@ class AppLocalizationsEs extends AppLocalizations {
   String get merkabaScene5Purpose => 'Integración y gratitud';
 
   @override
+  String get massageTutorialTemple => 'EL TUTORIAL DEL CRISTAL';
+
+  @override
+  String get massageTutorialSubtitle => 'RITUAL HIKARU LIFT · TUTORIAL';
+
+  @override
+  String get massageZoneTutorial => 'Tutorial';
+
+  @override
+  String get massageInstructionTutorial =>
+      'Mira cómo deslizar el cristal antes de iniciar tu frecuencia.';
+
+  @override
   String get massageFaceTemple => 'EL TEMPLO DEL ROSTRO';
 
   @override
@@ -1619,7 +1955,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get massageZoneForehead => 'Frente';
 
   @override
-  String get massageZoneGlutes => 'Glúteos';
+  String get massageZoneBody => 'Cuerpo';
 
   @override
   String get massageZoneLegs => 'Piernas';
@@ -1651,8 +1987,8 @@ class AppLocalizationsEs extends AppLocalizations {
       'Desliza Hikaru desde las cejas hacia arriba hasta la línea del cabello y luego hacia las sienes.';
 
   @override
-  String get massageInstructionGlutes =>
-      'Barre con Hikaru hacia arriba desde la base de los glúteos hacia las caderas.';
+  String get massageInstructionBody =>
+      'Barre con Hikaru hacia arriba por los brazos y las caderas, un lado a la vez.';
 
   @override
   String get massageInstructionLegs =>
@@ -1771,6 +2107,17 @@ class AppLocalizationsEs extends AppLocalizations {
   String get tutorialClose => 'Cerrar';
 
   @override
+  String get cymaticRewind => 'Atrás 10 segundos';
+
+  @override
+  String get cymaticProgress => 'Progreso de la frecuencia';
+
+  @override
+  String cymaticProgressValue(String elapsed, String total) {
+    return '$elapsed de $total';
+  }
+
+  @override
   String get cymaticStop => 'Detener';
 
   @override
@@ -1781,6 +2128,26 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get resonanceCompleteRitual => 'COMPLETAR MI RITUAL';
+
+  @override
+  String get resonanceExploreMeaning =>
+      'Explora el significado de los cristales';
+
+  @override
+  String get templesChangeTitle => '¿Cambiar tu cristal?';
+
+  @override
+  String templesChangeBody(String from, String to) {
+    return 'Tu ritual pasará de $from a $to.';
+  }
+
+  @override
+  String get templesChangeConfirm => 'CAMBIAR CRISTAL';
+
+  @override
+  String templesChangeCancel(String current) {
+    return 'Mantener $current';
+  }
 
   @override
   String get resonanceExploreAnotherTemple => 'EXPLORAR OTRO TEMPLO';

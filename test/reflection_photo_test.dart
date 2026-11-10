@@ -147,6 +147,9 @@ class _CycleGateway implements RitualCycleGateway {
   final created = <String>[];
 
   @override
+  Future<List<RitualDay>?> fetchDays(RitualCycle cycle) async => null;
+
+  @override
   Future<void> createCycle(RitualCycle cycle) async => created.add(cycle.id);
 
   @override

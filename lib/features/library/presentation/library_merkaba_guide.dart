@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/design_system/widgets/hikaru_back_button.dart';
 import '../../../core/design_system/tokens/app_colors.dart';
 import '../../../core/design_system/tokens/app_font_sizes.dart';
 import '../../../core/design_system/tokens/app_radii.dart';
@@ -11,7 +12,6 @@ import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/design_system/widgets/hikaru_navigation_bar.dart';
 import '../../../core/design_system/widgets/hikaru_scroll_page.dart';
 import '../../../core/router/app_routes.dart';
-import '../../../l10n/app_localizations.dart';
 import 'library_screen.dart';
 
 const String _guideArt = 'assets/images/merkaba_guide';
@@ -25,7 +25,6 @@ class LibraryMerkabaGuide extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final copy = _MerkabaGuideCopy.of(context);
-    final l10n = AppLocalizations.of(context);
 
     return HikaruScrollPage(
       active: HikaruDestination.library,
@@ -34,7 +33,7 @@ class LibraryMerkabaGuide extends StatelessWidget {
       children: [
         Align(
           alignment: Alignment.centerLeft,
-          child: _BackPill(label: l10n.commonBack, onPressed: onBack),
+          child: HikaruBackButton(onPressed: onBack),
         ),
         const SizedBox(height: AppSpacing.s8),
         Text(copy.eyebrow, textAlign: TextAlign.center, style: _kickerStyle),
@@ -90,7 +89,11 @@ class LibraryMerkabaGuide extends StatelessWidget {
         _Panel(
           child: Column(
             children: [
-              Text(copy.elementsTitle, textAlign: TextAlign.center, style: _section),
+              Text(
+                copy.elementsTitle,
+                textAlign: TextAlign.center,
+                style: _section,
+              ),
               const SizedBox(height: AppSpacing.s10),
               _ElementStrip(elements: copy.elements),
             ],
@@ -150,7 +153,11 @@ class LibraryMerkabaGuide extends StatelessWidget {
                 flex: 3,
                 child: Column(
                   children: [
-                    Text(copy.mudrasTitle, textAlign: TextAlign.center, style: _section),
+                    Text(
+                      copy.mudrasTitle,
+                      textAlign: TextAlign.center,
+                      style: _section,
+                    ),
                     const SizedBox(height: AppSpacing.s8),
                     _MudraRow(mudras: copy.mudras),
                   ],
@@ -232,41 +239,6 @@ class _Panel extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.s16),
         child: child,
-      ),
-    );
-  }
-}
-
-class _BackPill extends StatelessWidget {
-  const _BackPill({required this.label, required this.onPressed});
-
-  final String label;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      label: label,
-      excludeSemantics: true,
-      child: Material(
-        color: const Color(0xCC0A0B17),
-        shape: StadiumBorder(
-          side: BorderSide(
-            color: AppColors.champagneGold.withValues(alpha: 0.55),
-          ),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onPressed,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.s16,
-              vertical: AppSpacing.s8,
-            ),
-            child: Text(label, style: _section),
-          ),
-        ),
       ),
     );
   }
@@ -364,12 +336,18 @@ class _ElementCard extends StatelessWidget {
         Text(
           element.name,
           textAlign: TextAlign.center,
-          style: _section.copyWith(fontSize: AppFontSizes.s9, letterSpacing: 0.6),
+          style: _section.copyWith(
+            fontSize: AppFontSizes.s9,
+            letterSpacing: 0.6,
+          ),
         ),
         Text(
           element.role,
           textAlign: TextAlign.center,
-          style: _kickerStyle.copyWith(fontSize: AppFontSizes.s8, letterSpacing: 0.4),
+          style: _kickerStyle.copyWith(
+            fontSize: AppFontSizes.s8,
+            letterSpacing: 0.4,
+          ),
         ),
         const SizedBox(height: AppSpacing.s4),
         Text(element.body, textAlign: TextAlign.center, style: _compact),
@@ -398,7 +376,10 @@ class _FieldCompass extends StatelessWidget {
         Text(
           spirit,
           textAlign: TextAlign.center,
-          style: _section.copyWith(fontSize: AppFontSizes.s8, letterSpacing: 0.6),
+          style: _section.copyWith(
+            fontSize: AppFontSizes.s8,
+            letterSpacing: 0.6,
+          ),
         ),
         const SizedBox(height: AppSpacing.s4),
         Row(
@@ -407,7 +388,10 @@ class _FieldCompass extends StatelessWidget {
               child: Text(
                 mind,
                 textAlign: TextAlign.center,
-                style: _section.copyWith(fontSize: AppFontSizes.s8, letterSpacing: 0.4),
+                style: _section.copyWith(
+                  fontSize: AppFontSizes.s8,
+                  letterSpacing: 0.4,
+                ),
               ),
             ),
             const SizedBox(width: AppSpacing.s8),
@@ -424,7 +408,10 @@ class _FieldCompass extends StatelessWidget {
               child: Text(
                 energy,
                 textAlign: TextAlign.center,
-                style: _section.copyWith(fontSize: AppFontSizes.s8, letterSpacing: 0.4),
+                style: _section.copyWith(
+                  fontSize: AppFontSizes.s8,
+                  letterSpacing: 0.4,
+                ),
               ),
             ),
           ],
@@ -433,7 +420,10 @@ class _FieldCompass extends StatelessWidget {
         Text(
           body,
           textAlign: TextAlign.center,
-          style: _section.copyWith(fontSize: AppFontSizes.s8, letterSpacing: 0.6),
+          style: _section.copyWith(
+            fontSize: AppFontSizes.s8,
+            letterSpacing: 0.6,
+          ),
         ),
       ],
     );
@@ -460,7 +450,10 @@ class _PracticeStep extends StatelessWidget {
           ),
           child: Text(
             '$number',
-            style: _section.copyWith(fontSize: AppFontSizes.s8, letterSpacing: 0),
+            style: _section.copyWith(
+              fontSize: AppFontSizes.s8,
+              letterSpacing: 0,
+            ),
           ),
         ),
         const SizedBox(width: AppSpacing.s6),
@@ -492,7 +485,9 @@ class _MudraRow extends StatelessWidget {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: AppColors.champagneGold.withValues(alpha: 0.85),
+                          color: AppColors.champagneGold.withValues(
+                            alpha: 0.85,
+                          ),
                         ),
                       ),
                       child: Padding(
@@ -522,7 +517,10 @@ class _MudraRow extends StatelessWidget {
                     mudra.meaning,
                     textAlign: TextAlign.center,
                     maxLines: 2,
-                    style: _body.copyWith(fontSize: AppFontSizes.s9, height: 1.2),
+                    style: _body.copyWith(
+                      fontSize: AppFontSizes.s9,
+                      height: 1.2,
+                    ),
                   ),
                 ],
               ),
@@ -549,13 +547,19 @@ class _BreathRing extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          const CustomPaint(
-            size: Size(86, 86),
-            painter: _BreathRingPainter(),
+          const CustomPaint(size: Size(86, 86), painter: _BreathRingPainter()),
+          Align(
+            alignment: const Alignment(0, -1),
+            child: _BreathMark(phase: inhale),
           ),
-          Align(alignment: const Alignment(0, -1), child: _BreathMark(phase: inhale)),
-          Align(alignment: const Alignment(1.05, 0.05), child: _BreathMark(phase: hold)),
-          Align(alignment: const Alignment(0, 1), child: _BreathMark(phase: exhale)),
+          Align(
+            alignment: const Alignment(1.05, 0.05),
+            child: _BreathMark(phase: hold),
+          ),
+          Align(
+            alignment: const Alignment(0, 1),
+            child: _BreathMark(phase: exhale),
+          ),
         ],
       ),
     );
@@ -576,7 +580,10 @@ class _BreathMark extends StatelessWidget {
         Text(
           phase.count,
           textAlign: TextAlign.center,
-          style: _section.copyWith(fontSize: AppFontSizes.s16, letterSpacing: 0),
+          style: _section.copyWith(
+            fontSize: AppFontSizes.s16,
+            letterSpacing: 0,
+          ),
         ),
       ],
     );
@@ -600,7 +607,10 @@ class _BreathRingPainter extends CustomPainter {
     for (final turn in [0.0, 0.33, 0.66]) {
       final angle = -1.5708 + turn * 6.2832;
       canvas.drawCircle(
-        Offset(center.dx + radius * _cos(angle), center.dy + radius * _sin(angle)),
+        Offset(
+          center.dx + radius * _cos(angle),
+          center.dy + radius * _sin(angle),
+        ),
         3,
         dot,
       );
@@ -788,14 +798,37 @@ const _MerkabaGuideCopy _en = _MerkabaGuideCopy(
     _BenefitCopy(Icons.hub_outlined, 'Brings coherence to body and mind'),
     _BenefitCopy(Icons.bolt_outlined, 'Increases energy and vitality'),
     _BenefitCopy(Icons.favorite_border, 'Supports emotional balance'),
-    _BenefitCopy(Icons.auto_awesome_outlined, 'Expands intuition and inner guidance'),
+    _BenefitCopy(
+      Icons.auto_awesome_outlined,
+      'Expands intuition and inner guidance',
+    ),
   ],
   elementsTitle: 'THE FOUR ELEMENTS',
   elements: [
-    _ElementCopy('$_guideArt/fire.jpg', 'FIRE', 'TRANSFORMATION', 'Activates will, clarity and direction.'),
-    _ElementCopy('$_guideArt/water.jpg', 'WATER', 'EMOTION', 'Brings flow, healing and receptivity.'),
-    _ElementCopy('$_guideArt/air.jpg', 'AIR', 'MENTAL CLARITY', 'Enhances focus, communication and insight.'),
-    _ElementCopy('$_guideArt/earth.jpg', 'EARTH', 'GROUNDING', 'Provides stability, nourishment and embodiment.'),
+    _ElementCopy(
+      '$_guideArt/fire.jpg',
+      'FIRE',
+      'TRANSFORMATION',
+      'Activates will, clarity and direction.',
+    ),
+    _ElementCopy(
+      '$_guideArt/water.jpg',
+      'WATER',
+      'EMOTION',
+      'Brings flow, healing and receptivity.',
+    ),
+    _ElementCopy(
+      '$_guideArt/air.jpg',
+      'AIR',
+      'MENTAL CLARITY',
+      'Enhances focus, communication and insight.',
+    ),
+    _ElementCopy(
+      '$_guideArt/earth.jpg',
+      'EARTH',
+      'GROUNDING',
+      'Provides stability, nourishment and embodiment.',
+    ),
   ],
   howTitle: 'HOW IT WORKS',
   howBody:
@@ -845,14 +878,37 @@ const _MerkabaGuideCopy _es = _MerkabaGuideCopy(
     _BenefitCopy(Icons.hub_outlined, 'Trae coherencia al cuerpo y a la mente'),
     _BenefitCopy(Icons.bolt_outlined, 'Aumenta la energía y la vitalidad'),
     _BenefitCopy(Icons.favorite_border, 'Acompaña el equilibrio emocional'),
-    _BenefitCopy(Icons.auto_awesome_outlined, 'Amplía la intuición y la guía interior'),
+    _BenefitCopy(
+      Icons.auto_awesome_outlined,
+      'Amplía la intuición y la guía interior',
+    ),
   ],
   elementsTitle: 'LOS CUATRO ELEMENTOS',
   elements: [
-    _ElementCopy('$_guideArt/fire.jpg', 'FUEGO', 'TRANSFORMACIÓN', 'Activa la voluntad, la claridad y la dirección.'),
-    _ElementCopy('$_guideArt/water.jpg', 'AGUA', 'EMOCIÓN', 'Trae flujo, sanación y receptividad.'),
-    _ElementCopy('$_guideArt/air.jpg', 'AIRE', 'CLARIDAD MENTAL', 'Mejora el enfoque, la comunicación y la percepción.'),
-    _ElementCopy('$_guideArt/earth.jpg', 'TIERRA', 'ENRAIZAMIENTO', 'Da estabilidad, nutrición y presencia en el cuerpo.'),
+    _ElementCopy(
+      '$_guideArt/fire.jpg',
+      'FUEGO',
+      'TRANSFORMACIÓN',
+      'Activa la voluntad, la claridad y la dirección.',
+    ),
+    _ElementCopy(
+      '$_guideArt/water.jpg',
+      'AGUA',
+      'EMOCIÓN',
+      'Trae flujo, sanación y receptividad.',
+    ),
+    _ElementCopy(
+      '$_guideArt/air.jpg',
+      'AIRE',
+      'CLARIDAD MENTAL',
+      'Mejora el enfoque, la comunicación y la percepción.',
+    ),
+    _ElementCopy(
+      '$_guideArt/earth.jpg',
+      'TIERRA',
+      'ENRAIZAMIENTO',
+      'Da estabilidad, nutrición y presencia en el cuerpo.',
+    ),
   ],
   howTitle: 'CÓMO FUNCIONA',
   howBody:

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hikaru/core/design_system/widgets/hikaru_back_button.dart';
 import 'package:hikaru/core/design_system/theme/app_theme.dart';
 import 'package:hikaru/core/design_system/widgets/hikaru_navigation_bar.dart';
 import 'package:hikaru/core/router/app_router.dart';
@@ -58,7 +59,7 @@ void main() {
       final cycleUri = router.routeInformationProvider.value.uri;
       expect(cycleUri.path, AppRoutes.merkaba);
       expect(AppRoutes.isCycle(cycleUri.queryParameters), isTrue);
-      await tester.tap(find.text('BACK'));
+      await tester.tap(find.byType(HikaruBackButton));
       await tester.pumpAndSettle();
       expect(find.text('THE HARMONY GARDEN'), findsOneWidget);
       expect(router.routeInformationProvider.value.uri.path, AppRoutes.home);
@@ -66,7 +67,7 @@ void main() {
       await tester.tap(find.bySemanticsLabel('Merkaba'));
       await tester.pumpAndSettle();
       expect(find.text('Human Blueprint'), findsOneWidget);
-      await tester.tap(find.text('BACK'));
+      await tester.tap(find.byType(HikaruBackButton));
       await tester.pumpAndSettle();
       expect(find.text('THE HARMONY GARDEN'), findsOneWidget);
       expect(router.canPop(), isFalse);
@@ -74,7 +75,7 @@ void main() {
       await tester.tap(find.bySemanticsLabel('Hikaru Ritual Face'));
       await tester.pumpAndSettle();
       expect(find.text('THE FACE TEMPLE'), findsOneWidget);
-      await tester.tap(find.text('BACK'));
+      await tester.tap(find.byType(HikaruBackButton));
       await tester.pumpAndSettle();
       expect(find.text('THE HARMONY GARDEN'), findsOneWidget);
 
@@ -98,7 +99,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Temple of Harmony'), findsOneWidget);
 
-      await tester.tap(find.text('BACK'));
+      await tester.tap(find.byType(HikaruBackButton));
       await tester.pumpAndSettle();
       expect(find.text('LIBRARY'), findsOneWidget);
       expect(find.text('Temple of Harmony'), findsNothing);

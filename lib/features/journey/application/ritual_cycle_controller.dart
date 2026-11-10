@@ -31,10 +31,103 @@ final journeyProgressProvider = Provider<JourneyProgress>((ref) {
       const JourneyProgress(currentDay: 1, cycleLength: ritualCycleLength);
 });
 
-/// The member's 30-day cycle and today's three rituals.
+final manualStepCompletionUnlockedProvider = FutureProvider<bool>((ref) async {
+  final repository = ref.watch(ritualCycleRepositoryProvider);
+  if (await repository.manualCompletionUnlocked()) return true;
+  final remoteCount = await ref.read(completedRitualDaysReaderProvider)();
+  if (remoteCount == null) return false;
+  return repository.syncCompletedDaysCount(remoteCount);
+});
+
+/// Today's steps in the open cycle, or nothing done before one starts.
+final todayRitualProvider = Provider<DailyRitualFlags>((ref) {
+  final now = ref.watch(ritualClockProvider)();
+  final progress = ref.watch(ritualCycleControllerProvider).value;
+  if (progress?.journeyOn(now) == null) return DailyRitualFlags.none;
+  return progress!.flagsOn(now);
+});
+
+/// The current cycle and what was done each day, as the history calendar
+/// shows it.
+class CycleHistory {
+  const CycleHistory({
+    required this.cycle,
+    required this.days,
+    this.isAuthoritative = false,
+  });
+
+  static const CycleHistory empty = CycleHistory(cycle: null, days: {});
+
+  final RitualCycle? cycle;
+
+  /// True only when the backend returned a complete snapshot. Without it,
+  /// a missing row cannot honestly be called a missed ritual.
+  final bool isAuthoritative;
+
+  /// Recorded days by day number. A day missing here had nothing done.
+  final Map<int, DailyRitualFlags> days;
+
+  DailyRitualFlags on(int dayNumber) =>
+      days[dayNumber] ?? DailyRitualFlags.none;
+
+  int get completedDays => days.values.where((flags) => flags.completed).length;
+}
+
+/// History of the current cycle: the backend days merged with today's copy
+/// on this phone, so a ritual just done shows even before it is synced.
+/// Offline, only today is known.
+final cycleHistoryProvider = FutureProvider<CycleHistory>((ref) async {
+  final now = ref.watch(ritualClockProvider)();
+  final progress = await ref.watch(ritualCycleControllerProvider.future);
+  final cycle = progress.cycle;
+  if (cycle == null) return CycleHistory.empty;
+
+  final days = <int, DailyRitualFlags>{};
+  var isAuthoritative = false;
+  try {
+    final remote = await ref.read(ritualCycleGatewayProvider).fetchDays(cycle);
+    if (remote != null) isAuthoritative = true;
+    for (final day in remote ?? const <RitualDay>[]) {
+      days[day.dayNumber] = day.flags;
+    }
+  } catch (error, stackTrace) {
+    log(
+      'Cycle history could not be read',
+      name: 'hikaru.cycle',
+      error: error,
+      stackTrace: stackTrace,
+    );
+  }
+  final localDate = progress.date;
+  if (localDate != null && !dateOnly(localDate).isAfter(cycle.endDate)) {
+    final number = cycle.dayNumber(localDate);
+    final known = days[number] ?? DailyRitualFlags.none;
+    days[number] = known.union(progress.today);
+  }
+  // Days after today have nothing to show yet.
+  days.removeWhere((number, _) => number > cycle.dayNumber(now));
+  return CycleHistory(
+    cycle: cycle,
+    days: days,
+    isAuthoritative: isAuthoritative,
+  );
+});
+
+/// The cycle whose 30 days are over and is waiting for the member to choose
+/// what comes next, or `null`.
+final cycleAwaitingClosureProvider = Provider<RitualCycle?>((ref) {
+  final now = ref.watch(ritualClockProvider)();
+  final progress = ref.watch(ritualCycleControllerProvider).value;
+  final cycle = progress?.cycle;
+  if (cycle == null) return null;
+  final todayDone = progress!.flagsOn(now).completed;
+  return cycle.awaitingClosureOn(now, todayCompleted: todayDone) ? cycle : null;
+});
+
+/// The member's 30-day cycle and today's four ritual steps.
 ///
 /// The first finished ritual opens a cycle with the member's crystal. Each
-/// finished ritual marks today's `DailyRitual`; the three together complete
+/// finished ritual marks today's `DailyRitual`; the four together complete
 /// the day and extend the streak. Everything is cached locally and mirrored
 /// to the backend when a session exists.
 class RitualCycleController extends AsyncNotifier<CycleProgress> {
@@ -137,10 +230,53 @@ class RitualCycleController extends AsyncNotifier<CycleProgress> {
 
   Future<void> markMerkaba() => _mark((flags) => flags.copyWith(merkaba: true));
 
-  Future<void> markMassage() => _mark((flags) => flags.copyWith(massage: true));
+  Future<void> markFacial() => _mark((flags) => flags.copyWith(facial: true));
+
+  Future<void> markBody() => _mark((flags) => flags.copyWith(body: true));
 
   Future<void> markFrequency() =>
       _mark((flags) => flags.copyWith(frequency: true));
+
+  /// Moves the open cycle to [crystal], keeping its days, streak and dates.
+  /// Does nothing without an open cycle: the next one starts with it anyway.
+  Future<void> changeCrystal(Crystal crystal) async {
+    final progress = await future;
+    final cycle = progress.cycle;
+    final now = ref.read(ritualClockProvider)();
+    if (cycle == null || !cycle.isOpenOn(now) || cycle.crystal == crystal) {
+      return;
+    }
+    final next = CycleProgress(
+      cycle: cycle.copyWith(crystal: crystal),
+      date: progress.date,
+      today: progress.today,
+    );
+    state = AsyncData(next);
+    await ref.read(ritualCycleRepositoryProvider).save(next);
+    await _push(next, now, mayCreate: false);
+  }
+
+  /// Ends the cycle because the member chose how to continue (repeat the
+  /// test or pick a new crystal). The next ritual opens a fresh cycle.
+  Future<void> closeCycle({required int completedDays}) async {
+    final progress = await future;
+    final cycle = progress.cycle;
+    if (cycle == null || !cycle.isActive) return;
+    final now = ref.read(ritualClockProvider)();
+    final closed = cycle.copyWith(
+      isActive: false,
+      completedAt: now,
+      completedDays: completedDays,
+    );
+    final next = CycleProgress(
+      cycle: closed,
+      date: progress.date,
+      today: progress.today,
+    );
+    state = AsyncData(next);
+    await ref.read(ritualCycleRepositoryProvider).save(next);
+    await _push(next, now, mayCreate: false);
+  }
 
   CycleProgress? _stagedCycle;
 
@@ -211,6 +347,19 @@ class RitualCycleController extends AsyncNotifier<CycleProgress> {
     var opened = false;
 
     if (cycle == null || !cycle.isOpenOn(now)) {
+      // An expired cycle still marked active would stay "active" in the
+      // backend forever. Close it before the new one opens.
+      final expired = cycle;
+      if (expired != null && expired.isActive) {
+        final closed = expired.copyWith(isActive: false);
+        try {
+          await ref
+              .read(ritualCycleGatewayProvider)
+              .updateCycle(closed, currentDay: ritualCycleLength);
+        } catch (error, stackTrace) {
+          _log('Expired cycle was not closed', error, stackTrace);
+        }
+      }
       cycle = RitualCycle(
         id: UUID.getUUID(),
         startDate: dateOnly(now),
@@ -241,6 +390,12 @@ class RitualCycleController extends AsyncNotifier<CycleProgress> {
     state = AsyncData(next);
     await ref.read(ritualCycleRepositoryProvider).save(next);
     await _push(next, now, mayCreate: opened);
+    if (after.completed && !before.completed) {
+      await ref
+          .read(ritualCycleRepositoryProvider)
+          .recordCompletedDay(cycle.id, now);
+      ref.invalidate(manualStepCompletionUnlockedProvider);
+    }
   }
 
   Future<Crystal> _crystalForNewCycle() async {
@@ -276,13 +431,7 @@ CycleProgress mergeCycleProgress({
     return keepMine ? local : remote;
   }
 
-  final a = local.flagsOn(now);
-  final b = remote.flagsOn(now);
-  final flags = DailyRitualFlags(
-    merkaba: a.merkaba || b.merkaba,
-    massage: a.massage || b.massage,
-    frequency: a.frequency || b.frequency,
-  );
+  final flags = local.flagsOn(now).union(remote.flagsOn(now));
 
   DateTime? latest(DateTime? x, DateTime? y) {
     if (x == null) return y;

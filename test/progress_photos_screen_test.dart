@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hikaru/core/design_system/widgets/hikaru_back_button.dart';
 import 'package:hikaru/features/journey/application/reflection_photo_controller.dart';
 import 'package:hikaru/features/journey/application/ritual_cycle_controller.dart';
 import 'package:hikaru/features/journey/domain/journey_progress.dart';
@@ -48,7 +49,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('DAY 2'), findsWidgets);
-    await tester.tap(find.text('BACK').last);
+    await tester.tap(find.byType(HikaruBackButton).last);
     await tester.pumpAndSettle();
 
     expect(find.bySemanticsLabel('Progress photo, DAY 2'), findsOneWidget);

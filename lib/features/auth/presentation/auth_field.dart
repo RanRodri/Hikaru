@@ -284,6 +284,82 @@ class AuthPillButton extends StatelessWidget {
   }
 }
 
+/// Secondary action: gold outline on the photo, same height as
+/// [AuthPillButton] so the two read as a pair.
+class AuthOutlineButton extends StatelessWidget {
+  const AuthOutlineButton({
+    super.key,
+    required this.label,
+    required this.onPressed,
+  });
+
+  final String label;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 48,
+      child: OutlinedButton(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          backgroundColor: AppColors.darkIndigoBlue.withValues(alpha: 0.45),
+          foregroundColor: AppColors.champagneGold,
+          disabledForegroundColor: AppColors.champagneGold.withValues(
+            alpha: 0.5,
+          ),
+          side: const BorderSide(color: AppColors.champagneGold, width: 1.2),
+          shape: const StadiumBorder(),
+        ),
+        child: Text(
+          label,
+          style: AppTypography.subheadline.copyWith(
+            color: AppColors.champagneGold,
+            fontSize: AppFontSizes.s11,
+            letterSpacing: 1.1,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A thin rule on both sides of a short label ("or").
+class AuthLabeledDivider extends StatelessWidget {
+  const AuthLabeledDivider({super.key, required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final rule = Expanded(
+      child: Container(
+        height: 0.75,
+        color: AppColors.champagneGold.withValues(alpha: 0.45),
+      ),
+    );
+    return Row(
+      children: [
+        rule,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s12),
+          child: Text(
+            label,
+            style: AppTypography.body.copyWith(
+              color: AppColors.fog.withValues(alpha: 0.85),
+              fontSize: AppFontSizes.s13,
+              letterSpacing: 0.4,
+              shadows: authTextShadow,
+            ),
+          ),
+        ),
+        rule,
+      ],
+    );
+  }
+}
+
 typedef _IconStyle = ({double size, FontWeight weight, double letterSpacing});
 
 _IconStyle _iconStyle(String icon) {

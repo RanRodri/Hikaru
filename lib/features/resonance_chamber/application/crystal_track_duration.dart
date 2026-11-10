@@ -5,11 +5,10 @@ import '../presentation/cymatic_audio_loader.dart';
 
 /// Real length of a crystal's track, read from its precomputed envelope.
 /// Null while loading or when the envelope asset is unavailable.
-final crystalTrackDurationProvider =
-    FutureProvider.family<Duration?, Crystal>(
-      (ref, crystal) async =>
-          (await loadCymaticEnvelope(crystal.audioAsset))?.duration,
-    );
+final crystalTrackDurationProvider = FutureProvider.family<Duration?, Crystal>(
+  (ref, crystal) async =>
+      (await loadCymaticEnvelope(crystal.audioAsset))?.duration,
+);
 
 /// `4:32` style label for a track length.
 String formatTrackDuration(Duration duration) {

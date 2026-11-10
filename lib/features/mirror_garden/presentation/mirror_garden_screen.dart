@@ -11,7 +11,6 @@ import '../../../core/design_system/tokens/app_font_sizes.dart';
 import '../../../core/design_system/tokens/app_radii.dart';
 import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
-import '../../../core/design_system/widgets/hikaru_pill_button.dart';
 import '../../../core/media/remote_image.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../l10n/app_localizations.dart';
@@ -36,9 +35,9 @@ class MirrorGardenScreen extends ConsumerStatefulWidget {
   static const String _backgroundAsset = 'assets/images/mirror_garden.png';
   static const double _headerTop = 72;
 
-  /// With the skip action under it, CONTINUE sits as high as the main
-  /// button on the Listening Garden and Ritual Ready screens.
-  static const double _bottomGap = AppSpacing.s30;
+  /// The button pair sits as high as the main button on the Listening Room
+  /// and Ritual Ready screens.
+  static const double _bottomGap = 50;
   static const double _minInsetGap = AppSpacing.s16;
   static const double _horizontalPadding = AppSpacing.s32;
 
@@ -199,15 +198,32 @@ class _MirrorGardenScreenState extends ConsumerState<MirrorGardenScreen> {
                     ),
                   ),
                 ),
-                HikaruPillButton(
-                  label: l10n.commonContinue,
-                  busy: _saving,
-                  onPressed: _handleContinue,
-                ),
-                const SizedBox(height: AppSpacing.s8),
-                _TextAction(
-                  label: l10n.mirrorGardenSkip,
-                  onPressed: _handleSkip,
+                // Two clear choices on one line. Once a photo is chosen the
+                // left one becomes CONTINUE; tapping the preview retakes it.
+                Row(
+                  children: [
+                    Expanded(
+                      child: _ActionPill(
+                        label: _preview == null
+                            ? l10n.mirrorTakePhoto
+                            : l10n.commonContinue,
+                        filled: true,
+                        busy: _saving,
+                        onPressed: _preview == null
+                            ? _takePhoto
+                            : _handleContinue,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.s12),
+                    Expanded(
+                      child: _ActionPill(
+                        label: l10n.mirrorGardenSkip,
+                        filled: false,
+                        busy: false,
+                        onPressed: _saving ? null : _handleSkip,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -332,6 +348,92 @@ class _CircularPreview extends StatelessWidget {
               gaplessPlayback: true,
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// One half of the bottom pair: gold filled (main) or gold outline. The label
+/// scales down instead of wrapping, since Spanish is longer than English.
+class _ActionPill extends StatelessWidget {
+  const _ActionPill({
+    required this.label,
+    required this.filled,
+    required this.busy,
+    required this.onPressed,
+  });
+
+  static const double _height = AppSpacing.s52;
+
+  final String label;
+  final bool filled;
+  final bool busy;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final foreground = filled
+        ? AppColors.darkIndigoBlue
+        : AppColors.champagneGold;
+    final text = FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Text(
+        label,
+        maxLines: 1,
+        style: AppTypography.pillLabel.copyWith(color: foreground),
+      ),
+    );
+    const padding = EdgeInsets.symmetric(horizontal: AppSpacing.s8);
+
+    if (!filled) {
+      return SizedBox(
+        height: _height,
+        child: OutlinedButton(
+          onPressed: onPressed,
+          style: OutlinedButton.styleFrom(
+            padding: padding,
+            backgroundColor: AppColors.darkIndigoBlue.withValues(alpha: 0.45),
+            side: const BorderSide(color: AppColors.champagneGold, width: 1.2),
+            shape: const StadiumBorder(),
+          ),
+          child: text,
+        ),
+      );
+    }
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(_height / 2),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.champagneGold.withValues(alpha: 0.35),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: SizedBox(
+        height: _height,
+        child: FilledButton(
+          onPressed: busy ? null : onPressed,
+          style: FilledButton.styleFrom(
+            padding: padding,
+            backgroundColor: AppColors.champagneGold,
+            disabledBackgroundColor: AppColors.champagneGold,
+            shape: const StadiumBorder(),
+            elevation: 0,
+          ),
+          child: busy
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.darkIndigoBlue,
+                  ),
+                )
+              : text,
         ),
       ),
     );

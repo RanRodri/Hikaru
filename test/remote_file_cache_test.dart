@@ -97,6 +97,11 @@ class _MemoryFiles implements RemoteFileStore {
   final Map<String, List<int>> files = {};
 
   @override
+  Future<void> delete(String fileName) async {
+    files.remove(fileName);
+  }
+
+  @override
   Future<List<int>?> read(String fileName) async => files[fileName];
 
   @override

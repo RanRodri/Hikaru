@@ -10,10 +10,12 @@ import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/router/app_routes.dart';
 import '../../splash/presentation/splash_controller.dart';
 import '../../../l10n/app_localizations.dart';
+import '../application/new_member_profile.dart';
 import '../data/auth_gateway.dart';
 import 'auth_background.dart';
 import 'auth_field.dart';
 import 'auth_page.dart';
+import 'biometric_offer.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -168,6 +170,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           );
       if (!mounted) return;
       if (outcome == AuthSignUpOutcome.signedIn) {
+        await useUsernameAsDisplayName(ref, username);
+        if (!mounted) return;
+        await offerBiometric(username, password);
+        if (!mounted) return;
         final route = await routeForOpenSession(ref);
         if (!mounted) return;
         context.go(route);

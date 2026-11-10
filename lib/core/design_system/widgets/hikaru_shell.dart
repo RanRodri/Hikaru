@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../media/remote_image.dart';
+import '../../../features/journey/presentation/ritual_cycle_routes.dart';
 import '../../router/app_routes.dart';
 import '../tokens/app_colors.dart';
 import 'hikaru_header.dart';
@@ -17,6 +18,8 @@ class HikaruShell extends StatelessWidget {
     required this.builder,
     this.backgroundAsset = gardenBackground,
     this.dimBackground = false,
+    this.backgroundScale = 1,
+    this.backgroundOffsetY = 0,
   });
 
   static const double designWidth = 390;
@@ -43,12 +46,18 @@ class HikaruShell extends StatelessWidget {
   final String backgroundAsset;
   final bool dimBackground;
 
+  /// Optional photographic crop adjustments, in design pixels. Home uses
+  /// these to lift the woman without changing other shell screens.
+  final double backgroundScale;
+  final double backgroundOffsetY;
+
   void _handleDestinationSelected(
     BuildContext context,
     HikaruDestination destination,
   ) {
     if (destination == HikaruDestination.sanctuary) {
-      context.go(AppRoutes.cycle(AppRoutes.merkaba));
+      // Straight to the first step still waiting today.
+      context.go(cycleEntryRoute(context));
       return;
     }
 
@@ -83,10 +92,18 @@ class HikaruShell extends StatelessWidget {
           return Stack(
             fit: StackFit.expand,
             children: [
-              RemoteImage(
-                fileName: backgroundAsset,
-                fit: BoxFit.cover,
-                excludeFromSemantics: true,
+              Positioned.fill(
+                child: Transform.translate(
+                  offset: Offset(0, backgroundOffsetY * scale),
+                  child: Transform.scale(
+                    scale: backgroundScale,
+                    child: RemoteImage(
+                      fileName: backgroundAsset,
+                      fit: BoxFit.cover,
+                      excludeFromSemantics: true,
+                    ),
+                  ),
+                ),
               ),
               if (dimBackground) const _BackgroundDim(),
               builder(context, scale),
@@ -133,9 +150,9 @@ class _BackgroundDim extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              AppColors.darkIndigoBlue.withValues(alpha: 0.35),
-              AppColors.darkIndigoBlue.withValues(alpha: 0.6),
-              AppColors.darkIndigoBlue.withValues(alpha: 0.7),
+              AppColors.indigoBlue.withValues(alpha: 0.3),
+              AppColors.indigoBlue.withValues(alpha: 0.5),
+              AppColors.indigoBlue.withValues(alpha: 0.62),
             ],
             stops: const [0, 0.35, 1],
           ),

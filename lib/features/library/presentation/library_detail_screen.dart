@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/design_system/widgets/hikaru_back_button.dart';
 import '../../../core/design_system/tokens/app_colors.dart';
 import '../../../core/design_system/tokens/app_font_sizes.dart';
 import '../../../core/design_system/tokens/app_radii.dart';
@@ -93,7 +94,14 @@ class _LibraryDetailScreenState extends ConsumerState<LibraryDetailScreen> {
   }
 
   void _handleNextPressed(LibraryCollection next) {
-    context.pushReplacement(AppRoutes.libraryTopicFor(next.id));
+    final route = AppRoutes.libraryTopicFor(next.id);
+    // Opened from a crystal screen there is no Library tab underneath, so
+    // move into the tab instead of replacing a route that is not in it.
+    if (StatefulNavigationShell.maybeOf(context) == null) {
+      context.go(route);
+      return;
+    }
+    context.pushReplacement(route);
   }
 
   @override
@@ -131,7 +139,7 @@ class _LibraryDetailScreenState extends ConsumerState<LibraryDetailScreen> {
       children: [
         Align(
           alignment: Alignment.centerLeft,
-          child: _BackButton(onPressed: _handleBackPressed),
+          child: HikaruBackButton(onPressed: _handleBackPressed),
         ),
         const SizedBox(height: AppSpacing.s8),
         if (collection != null) ...[
@@ -176,7 +184,8 @@ class _LibraryDetailScreenState extends ConsumerState<LibraryDetailScreen> {
               key: ValueKey('${article.id}-$featuredIndex'),
               number: featuredIndex + 1,
               block: chapters[featuredIndex],
-              subtitle: collection?.localizedInlineDetail(l10n) ?? article.title,
+              subtitle:
+                  collection?.localizedInlineDetail(l10n) ?? article.title,
               imageAsset: collection?.imageAsset,
             ),
           ),
@@ -196,44 +205,6 @@ class _LibraryDetailScreenState extends ConsumerState<LibraryDetailScreen> {
           ),
         ],
       ],
-    );
-  }
-}
-
-class _BackButton extends StatelessWidget {
-  const _BackButton({required this.onPressed});
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Semantics(
-      button: true,
-      label: l10n.libraryBackSemantics,
-      excludeSemantics: true,
-      child: Material(
-        color: AppColors.darkIndigoBlue.withValues(alpha: 0.45),
-        shape: StadiumBorder(
-          side: BorderSide(
-            color: AppColors.champagneGold.withValues(alpha: 0.6),
-          ),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onPressed,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.s16,
-              vertical: AppSpacing.s8,
-            ),
-            child: Text(
-              l10n.commonBack,
-              style: _eyebrowStyle.copyWith(fontSize: AppFontSizes.s11),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
@@ -704,7 +675,9 @@ class _NextCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return Semantics(
       button: true,
-      label: l10n.libraryNextSemantics(collection.localizedSemanticsLabel(l10n)),
+      label: l10n.libraryNextSemantics(
+        collection.localizedSemanticsLabel(l10n),
+      ),
       excludeSemantics: true,
       child: _GlassCard(
         child: Material(

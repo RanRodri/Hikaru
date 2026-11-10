@@ -10,11 +10,13 @@ extension MassageTexts on AppLocalizations {
   String massageTemple(MassageRitual ritual) => switch (ritual.surface) {
     MassageSurface.face => massageFaceTemple,
     MassageSurface.body => massageBodyTemple,
+    MassageSurface.tutorial => massageTutorialTemple,
   };
 
   String massageSubtitle(MassageRitual ritual) => switch (ritual.surface) {
     MassageSurface.face => massageFaceSubtitle,
     MassageSurface.body => massageBodySubtitle,
+    MassageSurface.tutorial => massageTutorialSubtitle,
   };
 
   String massageZoneName(MassageZone zone) => switch (zone.name) {
@@ -23,7 +25,8 @@ extension MassageTexts on AppLocalizations {
     'Cheeks' => massageZoneCheeks,
     'Nasolabial' => massageZoneNasolabial,
     'Forehead' => massageZoneForehead,
-    'Glutes' => massageZoneGlutes,
+    'Body' => massageZoneBody,
+    'Tutorial' => massageZoneTutorial,
     'Legs' => massageZoneLegs,
     'Abdomen' => massageZoneAbdomen,
     'Chest' => massageZoneChest,
@@ -36,7 +39,8 @@ extension MassageTexts on AppLocalizations {
     'Cheeks' => massageInstructionCheeks,
     'Nasolabial' => massageInstructionNasolabial,
     'Forehead' => massageInstructionForehead,
-    'Glutes' => massageInstructionGlutes,
+    'Body' => massageInstructionBody,
+    'Tutorial' => massageInstructionTutorial,
     'Legs' => massageInstructionLegs,
     'Abdomen' => massageInstructionAbdomen,
     'Chest' => massageInstructionChest,

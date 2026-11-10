@@ -1,4 +1,4 @@
-import '../../crystals/domain/crystal.dart';
+﻿import '../../crystals/domain/crystal.dart';
 import 'library_article.dart';
 
 class LibraryCollection {
@@ -11,6 +11,7 @@ class LibraryCollection {
     required this.photoHeight,
     this.diameter = 104,
     this.isHighlighted = false,
+    this.lightBoost = 1,
   });
 
   final String id;
@@ -21,6 +22,10 @@ class LibraryCollection {
   final double diameter;
   final double photoHeight;
   final bool isHighlighted;
+
+  /// How much the circle photo is brightened and saturated: 1 is the usual
+  /// lift, higher for photos that read dull at circle size.
+  final double lightBoost;
 
   String get inlineDetail => detail.replaceAll('\n', ' ');
 
@@ -45,7 +50,7 @@ const LibraryCollection ritualsCollection = LibraryCollection(
   name: 'HIKARU RITUALS',
   detail: 'Face & Body',
   category: 'RITUAL GUIDE',
-  imageAsset: 'assets/images/library_rituals.png',
+  imageAsset: 'assets/images/home/library_rituals_tool.jpg',
   diameter: 106,
   photoHeight: 56,
 );
@@ -126,6 +131,7 @@ const Map<Crystal, LibraryCollection> crystalCollections = {
     category: _crystalGuide,
     imageAsset: 'assets/images/library_red_jasper.png',
     photoHeight: 54,
+    lightBoost: 2,
   ),
   Crystal.obsidian: LibraryCollection(
     id: 'obsidian',
@@ -134,6 +140,7 @@ const Map<Crystal, LibraryCollection> crystalCollections = {
     category: _crystalGuide,
     imageAsset: 'assets/images/library_obsidian.png',
     photoHeight: 54,
+    lightBoost: 2,
   ),
 };
 

@@ -92,6 +92,9 @@ class _ResetAuthGateway implements AuthGateway {
   @override
   Future<void> signOut() async {}
 
+  @override
+  Future<void> resendSignUpCode({required String username}) async {}
+
   String? requested;
   String? confirmedUsername;
   String? confirmedCode;

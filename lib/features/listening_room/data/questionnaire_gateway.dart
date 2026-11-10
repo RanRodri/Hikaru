@@ -26,8 +26,8 @@ class AmplifyQuestionnaireGateway implements QuestionnaireGateway {
 
   static const String _list =
       r'query ListResponses($userId: ID!, $nextToken: String) { '
-      r'listQuestionnaireResponses('
-      r'filter: {userId: {eq: $userId}}, limit: 500, nextToken: $nextToken'
+      r'questionnaireResponsesByUser(userId: $userId, '
+      r'limit: 500, nextToken: $nextToken'
       ') { items { id questionOptionId } nextToken } }';
 
   static const String _create =
@@ -68,7 +68,7 @@ class AmplifyQuestionnaireGateway implements QuestionnaireGateway {
   Future<List<Map<String, dynamic>>> _rows(String userId) => listAllPages(
     _api,
     _list,
-    'listQuestionnaireResponses',
+    'questionnaireResponsesByUser',
     {'userId': userId},
   );
 }

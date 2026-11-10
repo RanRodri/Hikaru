@@ -59,8 +59,8 @@ class AmplifyReflectionPhotoGateway implements ReflectionPhotoGateway {
 
   static const String _listPhotos =
       r'query ListPhotos($cycleId: ID!, $nextToken: String) { '
-      r'listReflectionPhotos('
-      r'filter: {cycleId: {eq: $cycleId}}, limit: 100, nextToken: $nextToken'
+      r'reflectionPhotosByCycle(cycleId: $cycleId, '
+      r'limit: 100, nextToken: $nextToken'
       r') { items { id dayNumber s3EncryptedKey } nextToken } }';
 
   static const String _createPhoto =
@@ -74,9 +74,12 @@ class AmplifyReflectionPhotoGateway implements ReflectionPhotoGateway {
   @override
   Future<List<RemoteReflection>> fetchCycle(String cycleId) async {
     if (await _api.currentUserId() == null) return const [];
-    final rows = await listAllPages(_api, _listPhotos, 'listReflectionPhotos', {
-      'cycleId': cycleId,
-    });
+    final rows = await listAllPages(
+      _api,
+      _listPhotos,
+      'reflectionPhotosByCycle',
+      {'cycleId': cycleId},
+    );
     return rows.map(_fromRow).nonNulls.toList();
   }
 

@@ -58,15 +58,20 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await _pumpReveal(tester);
 
-    expect(find.text('YOUR HIKARU JOURNEY'), findsOneWidget);
-    expect(find.text('HAS BEEN REVEALED'), findsOneWidget);
+    expect(
+      find.text('This Is Your Protocol\nFor The Next 30 Days'),
+      findsOneWidget,
+    );
+    expect(find.text('Your Hikaru Journey Has Been Revealed'), findsOneWidget);
+    expect(find.text('Your Daily Ritual'), findsOneWidget);
+    expect(find.text('Merkaba'), findsOneWidget);
+    expect(find.text('Facial ritual'), findsOneWidget);
+    expect(find.text('Body ritual'), findsOneWidget);
+    expect(find.text('Crystal & cymatics'), findsOneWidget);
     expect(find.bySemanticsLabel('Assigned crystal OBSIDIAN'), findsOneWidget);
-    expect(find.text('The Mirror of the Unseen'), findsOneWidget);
-    expect(find.text('YOUR RECOMMENDED PROTOCOL'), findsOneWidget);
-    expect(find.text('Hydration Protocol'), findsOneWidget);
-    expect(find.text('5 minutes'), findsOneWidget);
+    expect(find.text('The Mirror of the Unseen'), findsNothing);
     expect(find.text('ENTER MY HIKARU SANCTUARY'), findsOneWidget);
     expect(find.text('639 Hz'), findsNothing);
     expect(find.text('THE ALIGNMENT TRIAD'), findsNothing);
@@ -98,10 +103,10 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await _pumpReveal(tester);
 
     expect(find.bySemanticsLabel('Assigned crystal JADE'), findsOneWidget);
-    expect(find.text('The Garden of Harmony'), findsOneWidget);
+    expect(find.text('The Garden of Harmony'), findsNothing);
     expect(_sceneImage('jade.png'), findsOneWidget);
   });
 }
@@ -109,3 +114,10 @@ void main() {
 Finder _sceneImage(String fileName) => find.byWidgetPredicate(
   (widget) => widget is RemoteImage && widget.fileName == fileName,
 );
+
+/// The reveal never settles: its cymatics move on purpose. Advance time instead.
+Future<void> _pumpReveal(WidgetTester tester) async {
+  for (var frame = 0; frame < 20; frame++) {
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+}

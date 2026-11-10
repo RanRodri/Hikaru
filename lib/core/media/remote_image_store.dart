@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 
@@ -6,6 +5,7 @@ import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../backend/cognito_session.dart';
 import 'remote_file_cache.dart';
 
 /// Saves signed images under the app support directory.
@@ -40,6 +40,14 @@ class DirectoryRemoteFileStore implements RemoteFileStore {
   }
 
   @override
+  Future<void> delete(String fileName) async {
+    final file = await _file(fileName);
+    if (await file.exists()) await file.delete();
+    final part = File('${file.path}.part');
+    if (await part.exists()) await part.delete();
+  }
+
+  @override
   Future<String?> pathOf(String fileName) async {
     try {
       return (await _file(fileName)).path;
@@ -64,14 +72,23 @@ class DirectoryRemoteFileStore implements RemoteFileStore {
   }
 }
 
-final remoteImageCacheProvider = Provider<RemoteFileCache>(
-  (ref) => RemoteFileCache(
+final remoteImageCacheProvider = Provider<RemoteFileCache>((ref) {
+  final cache = RemoteFileCache(
     storagePrefix: 'crystal-images',
+    cacheVersion: 'v2',
     canFetch: _signedIn,
     download: _amplifyDownload,
     store: DirectoryRemoteFileStore(),
-  ),
-);
+  );
+  ref.onDispose(cache.dispose);
+  return cache;
+});
+
+/// Rebuilds RemoteImage when an external prefetch succeeds after that widget
+/// had already received a null result.
+final remoteImageReadyEventProvider = StreamProvider<String>((ref) {
+  return ref.watch(remoteImageCacheProvider).readyEvents;
+});
 
 final remoteImagePathProvider = FutureProvider.family<String?, String>((
   ref,
@@ -86,15 +103,8 @@ final remoteImagePathProvider = FutureProvider.family<String?, String>((
   return cache.resolve(fileName);
 });
 
-Future<bool> _signedIn() async {
-  if (!Amplify.isConfigured) return false;
-  try {
-    final session = await Amplify.Auth.fetchAuthSession();
-    return session.isSignedIn;
-  } on AmplifyException {
-    return false;
-  }
-}
+Future<bool> _signedIn() async =>
+    await readCognitoSession() == CognitoSessionState.active;
 
 /// Reads the object with the signed-in role. A presigned URL plus a raw
 /// HTTP GET fails for these KMS objects and the screen stays blank.
@@ -113,34 +123,6 @@ Future<List<int>?> _amplifyDownload(String storagePath) async {
       stackTrace: stackTrace,
     );
     return null;
-  }
-}
-
-/// Puts the Listening Room and quiz photos on the device before those
-/// screens open, so the first frame is not a blank background.
-Future<void> prepareListeningRoomImages(RemoteFileCache cache) async {
-  final heroes = [
-    cache.resolve('listening_room.png'),
-    cache.resolve('listening_room_quiz.png'),
-  ];
-  cache.resolve('ritual_ready.png');
-  cache.resolve('mirror_garden.png');
-  try {
-    await Future.wait(heroes).timeout(const Duration(seconds: 6));
-  } on TimeoutException {
-    // Open the screen anyway. The photo appears if the download catches up.
-  }
-}
-
-/// Puts the Home garden photo on the device before that screen opens.
-Future<void> prepareHomeBackground(RemoteFileCache cache) async {
-  final home = cache.resolve('harmony_garden_background.png');
-  cache.resolve('garden_sunset_reflections.png');
-  cache.resolve('library.png');
-  try {
-    await home.timeout(const Duration(seconds: 6));
-  } on TimeoutException {
-    // Open Home anyway. The photo appears if the download catches up.
   }
 }
 

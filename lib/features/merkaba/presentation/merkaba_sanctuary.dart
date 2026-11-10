@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
 import '../../../core/design_system/tokens/app_font_sizes.dart';
@@ -271,10 +272,7 @@ class _FadeSwitchState<T> extends State<_FadeSwitch<T>> {
   Widget build(BuildContext context) {
     return AnimatedSwitcher(
       duration: widget.duration,
-      child: KeyedSubtree(
-        key: ValueKey<int>(_generation),
-        child: widget.child,
-      ),
+      child: KeyedSubtree(key: ValueKey<int>(_generation), child: widget.child),
     );
   }
 }
@@ -305,6 +303,7 @@ class MerkabaBreathPanel extends StatelessWidget {
     required this.cycles,
     required this.remainingSeconds,
     required this.reduceMotion,
+    this.sceneIndex,
   });
 
   final ValueListenable<BreathPhase> phase;
@@ -312,6 +311,10 @@ class MerkabaBreathPanel extends StatelessWidget {
   final ValueListenable<int> cycles;
   final ValueListenable<int> remainingSeconds;
   final bool reduceMotion;
+
+  /// Current scene. When set, its mudra is drawn beside the breath guide so
+  /// the hand position is visible while breathing.
+  final ValueListenable<int>? sceneIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -342,50 +345,128 @@ class MerkabaBreathPanel extends StatelessWidget {
             AppSpacing.s20,
             AppSpacing.s16,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              MerkabaPhaseText(phase: phase, reduceMotion: reduceMotion),
-              const SizedBox(height: AppSpacing.s10),
-              SizedBox(
-                width: 120,
-                height: 2,
-                child: RepaintBoundary(
-                  child: CustomPaint(
-                    painter: _PhaseLinePainter(elapsed: elapsed),
+          child: _withMudra(
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                MerkabaPhaseText(phase: phase, reduceMotion: reduceMotion),
+                const SizedBox(height: AppSpacing.s10),
+                SizedBox(
+                  width: 120,
+                  height: 2,
+                  child: RepaintBoundary(
+                    child: CustomPaint(
+                      painter: _PhaseLinePainter(elapsed: elapsed),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: AppSpacing.s14),
-              IntrinsicHeight(
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _PanelStat(
-                        label: l10n.merkabaBreaths,
-                        value: MerkabaBreathCounter(cycles: cycles),
+                const SizedBox(height: AppSpacing.s14),
+                IntrinsicHeight(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _PanelStat(
+                          label: l10n.merkabaBreaths,
+                          value: MerkabaBreathCounter(cycles: cycles),
+                        ),
                       ),
-                    ),
-                    Container(
-                      width: 0.7,
-                      margin: const EdgeInsets.symmetric(
-                        vertical: AppSpacing.s2,
+                      Container(
+                        width: 0.7,
+                        margin: const EdgeInsets.symmetric(
+                          vertical: AppSpacing.s2,
+                        ),
+                        color: AppColors.champagneGold.withValues(alpha: 0.28),
                       ),
-                      color: AppColors.champagneGold.withValues(alpha: 0.28),
-                    ),
-                    Expanded(
-                      child: _PanelStat(
-                        label: l10n.merkabaRemaining,
-                        value: MerkabaRemainingTime(seconds: remainingSeconds),
+                      Expanded(
+                        child: _PanelStat(
+                          label: l10n.merkabaRemaining,
+                          value: MerkabaRemainingTime(
+                            seconds: remainingSeconds,
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
+    );
+  }
+
+  /// Puts the mudra on the left of [guide], split by a gold hairline.
+  Widget _withMudra(Widget guide) {
+    final scene = sceneIndex;
+    if (scene == null) return guide;
+    return IntrinsicHeight(
+      child: Row(
+        children: [
+          MerkabaMudraIcon(sceneIndex: scene, reduceMotion: reduceMotion),
+          Container(
+            width: 0.7,
+            margin: const EdgeInsets.symmetric(horizontal: AppSpacing.s14),
+            color: AppColors.champagneGold.withValues(alpha: 0.28),
+          ),
+          Expanded(child: guide),
+        ],
+      ),
+    );
+  }
+}
+
+/// The hand position of the current scene, as a gold line icon in a soft
+/// ring. Cross-fades when the scene changes, like the mudra title.
+class MerkabaMudraIcon extends StatelessWidget {
+  const MerkabaMudraIcon({
+    super.key,
+    required this.sceneIndex,
+    required this.reduceMotion,
+  });
+
+  final ValueListenable<int> sceneIndex;
+  final bool reduceMotion;
+
+  static const double size = 64;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return ValueListenableBuilder<int>(
+      valueListenable: sceneIndex,
+      builder: (context, index, _) {
+        final scene = merkabaScenes[index.clamp(0, merkabaScenes.length - 1)];
+        return _FadeSwitch<String>(
+          value: scene.mudra,
+          duration: reduceMotion ? Duration.zero : MerkabaMudraTitle.fade,
+          child: Semantics(
+            image: true,
+            label: '${scene.mudra}. ${l10n.merkabaScenePurpose(scene)}',
+            excludeSemantics: true,
+            child: Container(
+              width: size,
+              height: size,
+              padding: const EdgeInsets.all(AppSpacing.s10),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.champagneGold.withValues(alpha: 0.08),
+                border: Border.all(
+                  color: AppColors.champagneGold.withValues(alpha: 0.55),
+                  width: 0.8,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.champagneGold.withValues(alpha: 0.18),
+                    blurRadius: 14,
+                  ),
+                ],
+              ),
+              child: SvgPicture.asset(scene.mudraAsset),
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -668,10 +749,8 @@ class MerkabaSeekBar extends StatelessWidget {
   static double _stepped(double ms, bool forward) =>
       (ms + (forward ? 5000 : -5000)).clamp(0.0, _max);
 
-  static String _percentLabel(AppLocalizations l10n, double ms) =>
-      l10n.merkabaPercentValue(
-        (ms * 100 / merkabaDuration.inMilliseconds).round(),
-      );
+  static String _percentLabel(AppLocalizations l10n, double ms) => l10n
+      .merkabaPercentValue((ms * 100 / merkabaDuration.inMilliseconds).round());
 
   @override
   Widget build(BuildContext context) {
@@ -702,7 +781,9 @@ class MerkabaSeekBar extends StatelessWidget {
               decreasedValue: _percentLabel(l10n, _stepped(ms, false)),
               onStep: (forward) {
                 onSeekStart();
-                onSeekEnd(Duration(milliseconds: _stepped(ms, forward).round()));
+                onSeekEnd(
+                  Duration(milliseconds: _stepped(ms, forward).round()),
+                );
               },
             ),
           );
@@ -720,7 +801,6 @@ class MerkabaControls extends StatelessWidget {
     required this.playing,
     required this.elapsed,
     required this.onPlayPause,
-    required this.onLeave,
     required this.onSeekStart,
     required this.onSeek,
     required this.onSeekEnd,
@@ -731,7 +811,6 @@ class MerkabaControls extends StatelessWidget {
   final ValueListenable<bool> playing;
   final ValueListenable<Duration> elapsed;
   final VoidCallback onPlayPause;
-  final VoidCallback onLeave;
   final VoidCallback onSeekStart;
   final ValueChanged<Duration> onSeek;
   final ValueChanged<Duration> onSeekEnd;
@@ -767,8 +846,6 @@ class MerkabaControls extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              MerkabaTextControl(label: l10n.commonBack, onPressed: onLeave),
-              const SizedBox(width: AppSpacing.s24),
               ValueListenableBuilder<bool>(
                 valueListenable: playing,
                 builder: (context, isPlaying, _) => MerkabaTextControl(

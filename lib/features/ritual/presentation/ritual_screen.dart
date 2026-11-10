@@ -23,7 +23,7 @@ const List<Shadow> _softTextShadow = [
 class RitualScreen extends StatelessWidget {
   const RitualScreen({super.key});
 
-  static const String _backgroundAsset = 'assets/images/ritual_background.png';
+  static const String _backgroundAsset = 'assets/images/begin_hikaru.png';
 
   static const double _horizontalPadding = AppSpacing.s28;
   static const double _pathsHeight = 130;
@@ -146,7 +146,8 @@ class RitualScreen extends StatelessWidget {
                                         title: l10n.ritualPathNoHikaruTitle,
                                         actionLabel:
                                             l10n.ritualPathNoHikaruAction,
-                                        onPressed: () {},
+                                        onPressed: () =>
+                                            context.push(AppRoutes.store),
                                       ),
                                     ),
                                     const SizedBox(width: AppSpacing.s16),

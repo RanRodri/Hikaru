@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'biometric_login.dart';
 
@@ -67,6 +68,7 @@ class SecureBiometricSecretStore implements BiometricSecretStore {
 
   static const String _usernameKey = 'hikaru_biometric_username';
   static const String _passwordKey = 'hikaru_biometric_password';
+  static const String _installMarkerKey = 'hikaru_biometric_saved_here';
 
   final FlutterSecureStorage _storage;
 
@@ -86,6 +88,13 @@ class SecureBiometricSecretStore implements BiometricSecretStore {
   @override
   Future<BiometricCredentials?> read() async {
     try {
+      // The iOS Keychain survives uninstalling the app, preferences do not.
+      // Without this marker a fresh install would offer Face ID with the
+      // previous install's password.
+      if (await SharedPreferencesAsync().getBool(_installMarkerKey) != true) {
+        await clear();
+        return null;
+      }
       final username = await _storage.read(key: _usernameKey);
       final password = await _storage.read(key: _passwordKey);
       if (username == null ||
@@ -108,6 +117,7 @@ class SecureBiometricSecretStore implements BiometricSecretStore {
   Future<void> write(BiometricCredentials credentials) async {
     await _storage.write(key: _usernameKey, value: credentials.username);
     await _storage.write(key: _passwordKey, value: credentials.password);
+    await SharedPreferencesAsync().setBool(_installMarkerKey, true);
   }
 
   void _report(Object error, StackTrace stackTrace) {

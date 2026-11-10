@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:amplify_flutter/amplify_flutter.dart';
 
+import 'cognito_session.dart';
+
 /// Thin wrapper over the Amplify API plugin for hand-written GraphQL.
 ///
 /// Every call degrades to `null` when Amplify is not configured, no one is
@@ -16,8 +18,9 @@ class AmplifyGraphQL {
   Future<String?> currentUserId() async {
     if (!Amplify.isConfigured) return null;
     try {
-      final session = await Amplify.Auth.fetchAuthSession();
-      if (!session.isSignedIn) return null;
+      if (await readCognitoSession() != CognitoSessionState.active) {
+        return null;
+      }
       return (await Amplify.Auth.getCurrentUser()).userId;
     } on AmplifyException {
       return null;
