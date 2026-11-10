@@ -18,6 +18,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../crystals/domain/crystal.dart';
 import '../../crystals/presentation/crystal_texts.dart';
 import '../../mirror_garden/presentation/face_camera_screen.dart';
+import '../../profile/presentation/default_avatar.dart';
 import '../application/reflection_photo_controller.dart';
 import '../application/ritual_cycle_controller.dart';
 import '../domain/reflection_photo.dart';
@@ -511,7 +512,6 @@ class ProgressPhotosCard extends ConsumerWidget {
             children: [
               Expanded(
                 child: _ProgressPortrait(
-                  asset: 'assets/images/journey_before.png',
                   bytes: photos.before,
                   day: firstDay,
                   label: l10n.journeyPhotoBefore,
@@ -526,7 +526,6 @@ class ProgressPhotosCard extends ConsumerWidget {
               const SizedBox(width: AppSpacing.s12),
               Expanded(
                 child: _ProgressPortrait(
-                  asset: 'assets/images/journey_current.png',
                   bytes: currentBytes,
                   day: currentDay,
                   label: l10n.journeyPhotoCurrent,
@@ -564,7 +563,6 @@ Future<void> _captureProgressPhoto(BuildContext context, WidgetRef ref) async {
 
 class _ProgressPortrait extends StatelessWidget {
   const _ProgressPortrait({
-    required this.asset,
     required this.day,
     required this.label,
     required this.semanticLabel,
@@ -574,7 +572,6 @@ class _ProgressPortrait extends StatelessWidget {
 
   static const double _size = 62;
 
-  final String asset;
   final Uint8List? bytes;
   final String day;
   final String label;
@@ -596,14 +593,11 @@ class _ProgressPortrait extends StatelessWidget {
             child: Semantics(
               button: onTap != null,
               label: semanticLabel,
+              excludeSemantics: true,
               child: GestureDetector(
                 onTap: onTap,
                 child: bytes == null
-                    ? Image.asset(
-                        asset,
-                        fit: BoxFit.cover,
-                        excludeFromSemantics: true,
-                      )
+                    ? const DefaultAvatar()
                     : Image.memory(
                         bytes!,
                         fit: BoxFit.cover,

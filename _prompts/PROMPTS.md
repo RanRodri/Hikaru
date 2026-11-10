@@ -13,6 +13,8 @@ Ayúdame a implementar la siguiente logica , si el usuario ya tiene la seccion i
 
 Me registre como usuario nuevo el cual tiene la propiedad en falso y aun asi paso a home y no me mostro el cuestionario ni la revelacion del cistal , analiza bien que esta pasando
 
+Mira como esta el icono de usuario en settings cuando no hay foto , la idea es que en journey tambien se muestre algo asi cuando no hay imagenes y no se muestre la mujer por defecto
+
 build the app for xcode to distribution 
 
 Lo|ading 
