@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -10,6 +11,8 @@ import '../../../core/media/remote_image_store.dart';
 import '../../../core/router/app_routes.dart';
 import '../../auth/application/sign_out.dart';
 import '../../auth/data/auth_gateway.dart';
+import '../../massage/application/massage_video_preheat.dart';
+import '../../massage/domain/massage_ritual.dart';
 import '../../../core/backend/cognito_session.dart';
 import '../../auth/data/session_inactivity.dart';
 import '../../listening_room/application/journey_recommendation_controller.dart';
@@ -39,6 +42,9 @@ final splashSymbolReadyProvider = Provider<Completer<void>>((ref) {
 /// first launch. Later openings keep the splash, then login or home.
 @riverpod
 Future<String> splashDestination(Ref ref) async {
+  // The logo holds the screen for about ten seconds. Use that time to open
+  // the ritual players so a massage is ready when home appears.
+  unawaited(_warmRitualVideos(ref));
   await ref.watch(splashSymbolReadyProvider).future;
   if (!ref.mounted) return AppRoutes.sanctuary;
   await Future<void>.delayed(splashMinimumDuration);
@@ -53,12 +59,6 @@ Future<String> splashDestination(Ref ref) async {
   }
   var sessionOpen = await ref.read(authGatewayProvider).hasSession();
   if (!ref.mounted) return AppRoutes.sanctuary;
-  if (sessionOpen) {
-    // Copy the old on-device reveal onto this account before a sign-out
-    // can delete it.
-    await _crystalRevealedForAccount(ref.read(userProfileGatewayProvider));
-    if (!ref.mounted) return AppRoutes.sanctuary;
-  }
   final inactivity = ref.read(sessionInactivityProvider);
   if (sessionOpen && await inactivity.hasExpired()) {
     // Not opened for 48 hours: ask for the password or the sensor again.
@@ -107,6 +107,7 @@ Future<String> splashDestination(Ref ref) async {
 /// account has seen that reveal. Otherwise the questions, or the reveal,
 /// continue. The decision is `User.isRevealedCrystal`, not a phone flag.
 Future<String> routeForOpenSession(WidgetRef ref) async {
+  ref.read(massageVideoPreheatProvider).warm(massageVideoWarmOrder);
   // Every sign-in ends here: it starts the 48 hour inactivity clock.
   await ref.read(sessionInactivityProvider).touch();
   cognitoSessionExpired.value = false;
@@ -150,20 +151,27 @@ Future<void> _prepareImagesFor(
   return Future<void>.value();
 }
 
+Future<void> _warmRitualVideos(Ref ref) async {
+  try {
+    if (!await ref.read(authGatewayProvider).hasSession()) return;
+    if (!ref.mounted) return;
+    ref.read(massageVideoPreheatProvider).warm(massageVideoWarmOrder);
+  } catch (error, stackTrace) {
+    log(
+      'Ritual videos were not prepared',
+      name: 'hikaru.massage',
+      error: error,
+      stackTrace: stackTrace,
+    );
+  }
+}
+
+/// True only when this account's `User.isRevealedCrystal` is true.
+///
+/// A missing profile, a failed read, or an old flag saved on the phone all
+/// count as not revealed. The phone flag belonged to whoever used the device
+/// before, so it must not send a new account home.
 Future<bool> _crystalRevealedForAccount(UserProfileGateway gateway) async {
   final profile = await gateway.fetchCurrent();
-  final preferences = SharedPreferencesAsync();
-  if (profile?.isRevealedCrystal == true) {
-    await preferences.remove(LaunchGate.legacyCrystalRevealedKey);
-    return true;
-  }
-  // Phones that finished the reveal before the account flag existed still
-  // have the old key. Copy it once, then delete it. A different account
-  // never sees it: sign-in already cleared the previous member's copy.
-  final legacy =
-      await preferences.getBool(LaunchGate.legacyCrystalRevealedKey) ?? false;
-  if (!legacy) return false;
-  await gateway.markCrystalRevealed();
-  await preferences.remove(LaunchGate.legacyCrystalRevealedKey);
-  return true;
+  return profile?.isRevealedCrystal == true;
 }

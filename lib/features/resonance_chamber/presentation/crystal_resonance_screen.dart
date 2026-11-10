@@ -27,6 +27,7 @@ import '../../crystals/presentation/crystal_texts.dart';
 import '../../journey/application/ritual_cycle_controller.dart';
 import '../../journey/domain/ritual_cycle.dart' show RitualStep;
 import '../../journey/presentation/ritual_celebration_dialog.dart';
+import '../../massage/application/massage_video_preheat.dart';
 import '../../massage/domain/massage_ritual.dart';
 import '../../massage/presentation/massage_screen.dart';
 import '../../listening_room/application/journey_recommendation_controller.dart';
@@ -105,6 +106,7 @@ class _CrystalResonanceScreenState
   @override
   void initState() {
     super.initState();
+    ref.read(massageVideoPreheatProvider).warm(massageVideoWarmOrder);
     _playerStateSubscription = _player.onPlayerStateChanged.listen(
       _handlePlayerStateChanged,
     );

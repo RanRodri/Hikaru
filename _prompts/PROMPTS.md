@@ -11,4 +11,32 @@ Ayúdame a mejorar el tiempo de carga en los videos de los masajes , porque al e
 
 Ayúdame a implementar la siguiente logica , si el usuario ya tiene la seccion iniciada me debe mandar a home e igualmente no me deberia dejar estar en home con la sesion vencida , entonces revisar bien ese ajuste
 
+Me registre como usuario nuevo el cual tiene la propiedad en falso y aun asi paso a home y no me mostro el cuestionario ni la revelacion del cistal , analiza bien que esta pasando
+
 build the app for xcode to distribution 
+
+Lo|ading 
+
+a: ei
+e: i:
+i: ai
+o: ou
+u: ui
+
+cake
+late
+
+boat
+
+(d, id, t)
+
+worked (t)
+
+needed (id)
+
+backed (t)
+
+fire
+vampire
+
+

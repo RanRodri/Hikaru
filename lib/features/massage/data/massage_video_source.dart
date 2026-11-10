@@ -76,23 +76,48 @@ class MassageVideoSource {
   /// Marks [storagePath] as playing so a background download of that same
   /// file does not compete with the player.
   Future<MassageVideoLocation> resolve(String storagePath) async {
-    final file = await _existing(storagePath);
-    if (file != null) return MassageCachedVideo(file);
+    final peeked = await cachedOrSigned(storagePath);
+    if (peeked is MassageCachedVideo) return peeked;
     _streaming = storagePath;
+    if (peeked is MassageStreamedVideo) return peeked;
     return MassageStreamedVideo(await _address(storagePath));
   }
 
-  /// Downloads [paths] in order, skipping a video that is playing now.
+  /// The file already on disk, or a signed address, without starting playback.
+  ///
+  /// Returns null when the file is absent and no signed address can be made.
+  /// Unlike [resolve], this does not pause the download.
+  Future<MassageVideoLocation?> cachedOrSigned(String storagePath) async {
+    final file = await _existing(storagePath);
+    if (file != null) return MassageCachedVideo(file);
+    final url = await _sign(storagePath);
+    if (url == null) return null;
+    return MassageStreamedVideo(url);
+  }
+
+  /// The player is using [storagePath], so its download waits.
+  void claimPlayback(String storagePath) {
+    _streaming = storagePath;
+  }
+
+  /// True when [claimPlayback] is holding this video's download.
+  bool isClaimed(String storagePath) => _streaming == storagePath;
+
+  /// Downloads [paths] together, skipping a video that is playing now.
   ///
   /// Safe to call again: a file already on disk or already downloading is
   /// not fetched twice. Never throws.
-  Future<void> prepare(Iterable<String> paths) async {
+  Future<void> prepare(Iterable<String> paths) {
+    final saves = <Future<void>>[];
     for (final path in paths) {
       if (path == _streaming) continue;
-      await (_saves[path] ??= _save(path).whenComplete(() {
-        _saves.remove(path);
-      }));
+      saves.add(
+        _saves[path] ??= _save(path).whenComplete(() {
+          _saves.remove(path);
+        }),
+      );
     }
+    return Future.wait(saves);
   }
 
   /// [prepare] without making the caller wait.

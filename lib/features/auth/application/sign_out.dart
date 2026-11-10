@@ -5,6 +5,7 @@ import '../../../core/notifications/ritual_notifications.dart';
 import '../../crystals/application/selected_crystal_controller.dart';
 import '../../crystals/data/selected_crystal_repository.dart';
 import '../../journey/application/ritual_cycle_controller.dart';
+import '../../massage/application/massage_video_preheat.dart';
 import '../../journey/data/ritual_cycle_repository.dart';
 import '../../listening_room/application/journey_recommendation_controller.dart';
 import '../../listening_room/data/journey_recommendation_repository.dart';
@@ -52,8 +53,8 @@ final localMemberDataClearProvider = Provider<Future<void> Function()>(
 
 /// Runs on every sign-in and on launch with a session.
 ///
-/// - A different account than the one whose data the phone holds: that data
-///   is cleared first, so it is never sent to the wrong account.
+/// - A different account, or a phone with no recorded owner: the questionnaire,
+///   the recommendation and the old reveal flag are cleared first.
 /// - The same account (e.g. back after its session expired): the data stays,
 ///   and the screens reload so anything done meanwhile is sent now.
 final claimLocalDataProvider = Provider<Future<void> Function()>(
@@ -62,7 +63,9 @@ final claimLocalDataProvider = Provider<Future<void> Function()>(
     if (userId == null) return;
     final owner = ref.read(localDataOwnerProvider);
     final previous = await owner.read();
-    if (previous != null && previous != userId) {
+    // A different account, or a phone whose owner was never recorded, must
+    // not keep the previous questionnaire and reveal.
+    if (previous != userId) {
       await ref.read(localMemberDataClearProvider)();
     }
     await owner.save(userId);
@@ -80,6 +83,7 @@ final claimLocalDataProvider = Provider<Future<void> Function()>(
 /// have a provider `Ref`, with the same steps.
 final memberSignOutProvider = Provider<Future<void> Function()>(
   (ref) => () async {
+    ref.read(massageVideoPreheatProvider).discard();
     await ref.read(authGatewayProvider).signOut();
     await ref.read(sessionInactivityProvider).clear();
     await ref.read(localMemberDataClearProvider)();

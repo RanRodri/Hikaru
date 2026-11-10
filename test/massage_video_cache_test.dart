@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hikaru/features/massage/application/massage_video_preheat.dart';
 import 'package:hikaru/features/massage/data/massage_video_source.dart';
 
 void main() {
@@ -101,5 +103,62 @@ void main() {
     videos.releasePlayback('Merkaba/ritual_face.mp4');
     await videos.prepare(['Merkaba/ritual_face.mp4']);
     expect(File('${directory.path}/ritual_face.mp4').existsSync(), isTrue);
+  });
+
+  test('ritual videos download at the same time', () async {
+    final bothStarted = Completer<void>();
+    final release = Completer<void>();
+    var running = 0;
+    final videos = source(
+      download: (url, file, shouldStop) async {
+        running += 1;
+        if (running == 2 && !bothStarted.isCompleted) bothStarted.complete();
+        await release.future;
+        if (shouldStop()) return 0;
+        await file.writeAsBytes([1]);
+        return 1;
+      },
+    );
+
+    final pending = videos.prepare([
+      'Merkaba/ritual_face.mp4',
+      'Merkaba/ritual_body.mp4',
+    ]);
+    await bothStarted.future.timeout(const Duration(seconds: 2));
+    release.complete();
+    await pending;
+
+    expect(File('${directory.path}/ritual_face.mp4').existsSync(), isTrue);
+    expect(File('${directory.path}/ritual_body.mp4').existsSync(), isTrue);
+  });
+
+  test('the player opens before the file is saved', () async {
+    final opened = <MassageVideoLocation>[];
+    final saved = Completer<void>();
+    final videos = source(
+      download: (url, file, shouldStop) async {
+        expect(opened, isNotEmpty);
+        await file.writeAsBytes([4]);
+        if (!saved.isCompleted) saved.complete();
+        return 4;
+      },
+    );
+    final preheat = MassageVideoPreheat(
+      videos,
+      open: (location) async {
+        opened.add(location);
+        return null;
+      },
+    );
+
+    preheat.warm(['Merkaba/ritual_face.mp4']);
+    await saved.future.timeout(const Duration(seconds: 2));
+    expect(opened.single, isA<MassageStreamedVideo>());
+    final file = File('${directory.path}/ritual_face.mp4');
+    final deadline = DateTime.now().add(const Duration(seconds: 2));
+    while (!file.existsSync() && DateTime.now().isBefore(deadline)) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+    expect(file.existsSync(), isTrue);
   });
 }

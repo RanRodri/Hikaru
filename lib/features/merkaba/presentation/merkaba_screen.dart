@@ -24,7 +24,7 @@ import '../../journey/domain/ritual_cycle.dart'
     show RitualStep, dateOnly, ritualCycleLength;
 import '../../journey/presentation/ritual_celebration_dialog.dart';
 import '../../journey/presentation/ritual_cycle_routes.dart';
-import '../../massage/data/massage_video_source.dart';
+import '../../massage/application/massage_video_preheat.dart';
 import '../../massage/domain/massage_ritual.dart';
 import '../data/merkaba_progress_repository.dart';
 import '../data/merkaba_video_source.dart';
@@ -135,7 +135,7 @@ class _MerkabaMeditationScreenState
 
     _ticker = createTicker(_handleTick);
     WidgetsBinding.instance.addObserver(this);
-    ref.read(massageVideoSourceProvider).warm(massageVideoWarmOrder);
+    ref.read(massageVideoPreheatProvider).warm(massageVideoWarmOrder);
     if (widget.replacementVisual == null) {
       final source = ref.read(merkabaVideoSourceProvider);
       _video = ref.read(merkabaVideoPlaybackFactoryProvider)(source)..load();

@@ -25,6 +25,7 @@ import '../../journey/presentation/ritual_celebration_dialog.dart';
 import '../../journey/presentation/ritual_cycle_routes.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../crystals/presentation/crystal_texts.dart';
+import '../application/massage_video_preheat.dart';
 import '../data/massage_video_source.dart';
 import '../domain/massage_ritual.dart';
 import 'massage_texts.dart';
@@ -92,6 +93,7 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
 
   late final Ticker _ticker;
   late final MassageVideoSource _videos;
+  late final MassageVideoPreheat _preheat;
   VideoPlayerController? _video;
   bool _videoFailed = false;
   bool _wantsPlay = false;
@@ -142,38 +144,52 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
     _ticker = createTicker(_handleTick);
     _sheet.addListener(_handleSheet);
     _videos = ref.read(massageVideoSourceProvider);
+    _preheat = ref.read(massageVideoPreheatProvider);
     unawaited(_loadVideo());
   }
 
   Future<void> _loadVideo() async {
     final path = ritualFor(widget.surface).videoStoragePath;
+    final primed = await _preheat.take(path);
+    if (!mounted) {
+      await primed?.dispose();
+      return;
+    }
+    final controller = primed ?? await _openVideo(path);
+    if (!mounted) {
+      await controller?.dispose();
+      return;
+    }
+    if (controller == null) return;
+    controller.addListener(_handleVideo);
+    setState(() => _video = controller);
+    if (_wantsPlay) await controller.play();
+  }
+
+  /// Opens the video on this screen when nothing was prepared ahead of time.
+  Future<VideoPlayerController?> _openVideo(String path) async {
     final location = await _videos.resolve(path);
-    if (!mounted) return;
+    if (!mounted) return null;
+    final options = VideoPlayerOptions(mixWithOthers: true);
     final controller = switch (location) {
       MassageCachedVideo(:final file) => VideoPlayerController.file(
         file,
-        videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+        videoPlayerOptions: options,
       ),
       MassageStreamedVideo(:final url) => VideoPlayerController.networkUrl(
         url,
-        videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+        videoPlayerOptions: options,
       ),
     };
     try {
       await controller.initialize();
+      await controller.setLooping(false);
     } catch (_) {
       await controller.dispose();
       if (mounted) setState(() => _videoFailed = true);
-      return;
+      return null;
     }
-    if (!mounted) {
-      await controller.dispose();
-      return;
-    }
-    await controller.setLooping(false);
-    controller.addListener(_handleVideo);
-    setState(() => _video = controller);
-    if (_wantsPlay) await controller.play();
+    return controller;
   }
 
   /// Follows the player: position, play state and the end of the video.
@@ -265,7 +281,7 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
 
   @override
   void dispose() {
-    _videos.releasePlayback(ritualFor(widget.surface).videoStoragePath);
+    _preheat.release(ritualFor(widget.surface).videoStoragePath);
     _sheet.removeListener(_handleSheet);
     _sheet.dispose();
     _ticker.dispose();

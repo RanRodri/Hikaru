@@ -20,7 +20,7 @@ import '../../crystals/application/selected_crystal_controller.dart';
 import '../../crystals/domain/crystal.dart';
 import '../../crystals/presentation/crystal_texts.dart';
 import '../../journey/application/ritual_cycle_controller.dart';
-import '../../massage/data/massage_video_source.dart';
+import '../../massage/application/massage_video_preheat.dart';
 import '../../massage/domain/massage_ritual.dart';
 import '../../journey/domain/ritual_cycle.dart';
 import '../../journey/presentation/cycle_closure_dialog.dart';
@@ -46,7 +46,7 @@ class _HarmonyGardenScreenState extends ConsumerState<HarmonyGardenScreen> {
     // Loading the reminders schedules them on the phone, so they work even
     // if the member never opens Profile.
     ref.read(ritualRemindersControllerProvider.future).ignore();
-    ref.read(massageVideoSourceProvider).warm(massageVideoWarmOrder);
+    ref.read(massageVideoPreheatProvider).warm(massageVideoWarmOrder);
   }
 
   @override

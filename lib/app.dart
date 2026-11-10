@@ -15,6 +15,8 @@ import 'core/router/app_router.dart';
 import 'core/router/app_routes.dart';
 import 'features/auth/application/sign_out.dart';
 import 'features/auth/data/session_inactivity.dart';
+import 'features/massage/application/massage_video_preheat.dart';
+import 'features/massage/domain/massage_ritual.dart';
 import 'l10n/app_localizations.dart';
 
 class HikaruApp extends ConsumerStatefulWidget {
@@ -119,6 +121,8 @@ class _HikaruAppState extends ConsumerState<HikaruApp>
         return;
       }
       await inactivity.touch();
+      if (!mounted) return;
+      ref.read(massageVideoPreheatProvider).warm(massageVideoWarmOrder);
     } catch (error, stackTrace) {
       log(
         'Session inactivity check',
