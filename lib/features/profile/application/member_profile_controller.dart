@@ -59,7 +59,7 @@ class MemberProfileController extends AsyncNotifier<MemberProfile> {
   static String? _real(String? name) {
     final trimmed = name?.trim();
     if (trimmed == null || trimmed.isEmpty) return null;
-    if (trimmed == MemberProfile.defaultName) return null;
+    if (MemberProfile.isPlaceholder(trimmed)) return null;
     return trimmed;
   }
 

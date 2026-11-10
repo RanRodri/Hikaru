@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -19,8 +19,13 @@ import '../../../l10n/app_localizations.dart';
 import '../../crystals/application/selected_crystal_controller.dart';
 import '../../crystals/domain/crystal.dart';
 import '../../crystals/presentation/crystal_texts.dart';
+import '../../journey/application/ritual_cycle_controller.dart';
+import '../../journey/domain/ritual_cycle.dart';
+import '../../journey/presentation/cycle_closure_dialog.dart';
 import '../../library/domain/library_collection.dart';
+import '../../profile/application/ritual_reminders_controller.dart';
 import '../data/home_crystal_glow.dart';
+import 'home_progress_card.dart';
 
 class HarmonyGardenScreen extends ConsumerStatefulWidget {
   const HarmonyGardenScreen({super.key});
@@ -32,6 +37,14 @@ class HarmonyGardenScreen extends ConsumerStatefulWidget {
 
 class _HarmonyGardenScreenState extends ConsumerState<HarmonyGardenScreen> {
   GoRouterDelegate? _delegate;
+
+  @override
+  void initState() {
+    super.initState();
+    // Loading the reminders schedules them on the phone, so they work even
+    // if the member never opens Profile.
+    ref.read(ritualRemindersControllerProvider.future).ignore();
+  }
 
   @override
   void didChangeDependencies() {
@@ -60,11 +73,26 @@ class _HarmonyGardenScreenState extends ConsumerState<HarmonyGardenScreen> {
     if (mounted) ref.invalidate(homeCrystalGlowPendingProvider);
   }
 
+  /// The cycle the closing offer was shown for, so "Decide later" does not
+  /// reopen it on every rebuild. It comes back the next time the app opens.
+  String? _closureOfferedFor;
+
+  void _maybeOfferClosure(RitualCycle? awaiting) {
+    if (awaiting == null || _closureOfferedFor == awaiting.id) return;
+    _closureOfferedFor = awaiting.id;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      unawaited(showCycleClosureDialog(context, ref));
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    _maybeOfferClosure(ref.watch(cycleAwaitingClosureProvider));
     final crystal = ref.watch(selectedCrystalProvider).value;
-    final glowPending = ref.watch(homeCrystalGlowPendingProvider).value ?? false;
+    final glowPending =
+        ref.watch(homeCrystalGlowPendingProvider).value ?? false;
     final baseAccesses = _buildAccesses(l10n);
     final accesses = [
       for (final access in baseAccesses)
@@ -73,6 +101,8 @@ class _HarmonyGardenScreenState extends ConsumerState<HarmonyGardenScreen> {
 
     return HikaruShell(
       active: HikaruDestination.home,
+      backgroundScale: _homeBackgroundScale,
+      backgroundOffsetY: _homeBackgroundOffsetY,
       builder: (context, scale) => _Garden(
         scale: scale,
         accesses: accesses,
@@ -153,7 +183,7 @@ List<_Access> _buildAccesses(AppLocalizations l10n) => [
   _Access(
     semanticsLabel: l10n.homeRitualFaceSemantics,
     angle: -25,
-    imageAsset: 'assets/images/harmony_face.png',
+    imageAsset: 'assets/images/home/home_face.jpg',
     title: l10n.homeRitualFace,
     route: AppRoutes.ritualFace,
     stepNumber: 2,
@@ -161,7 +191,7 @@ List<_Access> _buildAccesses(AppLocalizations l10n) => [
   _Access(
     semanticsLabel: l10n.homeRitualBodySemantics,
     angle: 25,
-    imageAsset: 'assets/images/harmony_body.png',
+    imageAsset: 'assets/images/home/home_body.jpg',
     title: l10n.homeRitualBody,
     route: AppRoutes.ritualBody,
     stepNumber: 3,
@@ -226,18 +256,26 @@ Offset _pointOnOrbit(Offset center, double radius, double degrees) {
 }
 
 /// Where the shell draws the garden background on a screen of [size].
-Rect _backgroundRect(Size size) {
+const double _homeBackgroundScale = 1.06;
+const double _homeBackgroundOffsetY = -18;
+
+Rect _backgroundRect(Size size, double scale) {
   final fit = math.max(
     size.width / _backgroundSize.width,
     size.height / _backgroundSize.height,
   );
   final width = _backgroundSize.width * fit;
   final height = _backgroundSize.height * fit;
-  return Rect.fromLTWH(
+  final base = Rect.fromLTWH(
     (size.width - width) / 2,
     (size.height - height) / 2,
     width,
     height,
+  );
+  return Rect.fromCenter(
+    center: base.center + Offset(0, _homeBackgroundOffsetY * scale),
+    width: base.width * _homeBackgroundScale,
+    height: base.height * _homeBackgroundScale,
   );
 }
 
@@ -262,7 +300,7 @@ class _Garden extends StatelessWidget {
     final media = MediaQuery.of(context);
     final width = HikaruShell.designWidth * scale;
     final radius = _orbitRadius * scale;
-    final background = _backgroundRect(media.size);
+    final background = _backgroundRect(media.size, scale);
     final contentTop = media.padding.top + HikaruHeader.height * scale;
     final merkabaRadius = homeCircleDiameter * scale / 2;
     final headTop = background.top + background.height * _headTopShare;
@@ -278,9 +316,18 @@ class _Garden extends StatelessWidget {
               access.diameter * scale / 2,
         )
         .reduce(math.max);
-    final titleTop = math.max(
+    final titleCandidate = math.max(
       background.top + background.height * _titleTopShare,
       lowestCircleBottom,
+    );
+    final navTop =
+        media.size.height - HikaruNavigationBar.height - media.padding.bottom;
+    final compact = media.size.height < 700;
+    final estimatedCardHeight = (compact ? 112 : 122) * scale;
+    final estimatedTitleHeight = (compact ? 54 : 66) * scale;
+    final titleTop = math.min(
+      titleCandidate,
+      navTop - estimatedCardHeight - estimatedTitleHeight - AppSpacing.s16,
     );
 
     return Stack(
@@ -313,10 +360,19 @@ class _Garden extends StatelessWidget {
             ),
           ),
         Positioned(
-          left: 20 * scale,
-          right: 20 * scale,
+          left: AppSpacing.s20 * scale,
+          right: AppSpacing.s20 * scale,
           top: titleTop,
-          child: const _GardenTitle(),
+          child: _GardenTitle(compact: compact),
+        ),
+        Positioned(
+          left: AppSpacing.s12 * scale,
+          right: AppSpacing.s12 * scale,
+          bottom:
+              HikaruNavigationBar.height +
+              media.padding.bottom +
+              AppSpacing.s10 * scale,
+          child: HomeProgressCard(scale: scale, compact: compact),
         ),
       ],
     );
@@ -374,9 +430,13 @@ class _OrbitPainter extends CustomPainter {
     const double halfWidth = 3.4;
     final point = _pointOnOrbit(center, radius, angle);
     final direction = heading * math.pi / 180;
-    final forward = Offset(math.cos(direction), math.sin(direction)) * length * scale;
+    final forward =
+        Offset(math.cos(direction), math.sin(direction)) * length * scale;
     final side =
-        Offset(math.cos(direction + math.pi / 2), math.sin(direction + math.pi / 2)) *
+        Offset(
+          math.cos(direction + math.pi / 2),
+          math.sin(direction + math.pi / 2),
+        ) *
         halfWidth *
         scale;
 
@@ -403,7 +463,8 @@ class _AccessCircle extends StatelessWidget {
     required this.onPressed,
   });
 
-  /// Share of the circle height covered by the photo before it fades to black.
+  /// Share of the circle height covered by the image before it fades into
+  /// the indigo base. Same for every circle, artwork and photographs alike.
   static const double _photoShare = 0.62;
 
   final _Access access;
@@ -437,7 +498,7 @@ class _AccessCircle extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: AppColors.black,
+            color: AppColors.indigoBlue,
             boxShadow: [
               BoxShadow(
                 color: AppColors.champagneGold.withValues(alpha: glowAlpha),
@@ -472,7 +533,7 @@ class _AccessCircle extends StatelessWidget {
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: [AppColors.transparent, AppColors.black],
+                        colors: [AppColors.transparent, AppColors.indigoBlue],
                         stops: [0.34, 0.6],
                       ),
                     ),
@@ -545,10 +606,7 @@ class _GlowPulseState extends State<_GlowPulse>
       if (!_started) {
         _started = true;
         unawaited(
-          _controller.repeat(
-            reverse: true,
-            count: _GlowPulse._breaths * 2,
-          ),
+          _controller.repeat(reverse: true, count: _GlowPulse._breaths * 2),
         );
       }
     } else {
@@ -622,9 +680,10 @@ class _AccessCaption extends StatelessWidget {
   }
 }
 
-
 class _GardenTitle extends StatelessWidget {
-  const _GardenTitle();
+  const _GardenTitle({required this.compact});
+
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -634,13 +693,15 @@ class _GardenTitle extends StatelessWidget {
         gradient: RadialGradient(
           radius: 0.9,
           colors: [
-            AppColors.black.withValues(alpha: 0.38),
-            AppColors.black.withValues(alpha: 0),
+            AppColors.indigoBlue.withValues(alpha: 0.5),
+            AppColors.indigoBlue.withValues(alpha: 0),
           ],
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 14),
+        padding: EdgeInsets.symmetric(
+          vertical: compact ? AppSpacing.s8 : AppSpacing.s14,
+        ),
         child: HikaruPageIntro(
           title: l10n.homeGardenTitle,
           subtitle: l10n.homeGardenSubtitle,

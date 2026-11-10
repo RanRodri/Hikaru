@@ -10,12 +10,14 @@ import '../../../core/design_system/tokens/app_font_sizes.dart';
 import '../../../core/design_system/tokens/app_journal.dart';
 import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
+import '../../../core/design_system/widgets/hikaru_back_button.dart';
 import '../../../core/design_system/widgets/hikaru_pill_button.dart';
 import '../../../core/media/remote_image.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../mirror_garden/presentation/face_camera_screen.dart';
 import '../application/member_profile_controller.dart';
 import '../data/member_profile_repository.dart';
+import 'default_avatar.dart';
 
 class ProfileAccountScreen extends ConsumerStatefulWidget {
   const ProfileAccountScreen({super.key});
@@ -124,22 +126,7 @@ class _ProfileAccountScreenState extends ConsumerState<ProfileAccountScreen> {
               children: [
                 Align(
                   alignment: Alignment.centerLeft,
-                  child: TextButton(
-                    onPressed: () => context.pop(),
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.champagneGold,
-                      padding: EdgeInsets.zero,
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    child: Text(
-                      l10n.profileAccountClose,
-                      style: AppTypography.subheadline.copyWith(
-                        color: AppColors.champagneGold,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                  ),
+                  child: HikaruBackButton(onPressed: () => context.pop()),
                 ),
                 const SizedBox(height: AppSpacing.s24),
                 Text(
@@ -258,9 +245,10 @@ class _AccountPhoto extends StatelessWidget {
         ),
         child: ClipOval(
           child: photo == null
-              ? Image.asset(
-                  'assets/images/profile_portrait.png',
-                  fit: BoxFit.cover,
+              ? DefaultAvatar(
+                  semanticLabel: AppLocalizations.of(
+                    context,
+                  ).profileDefaultAvatarSemantics,
                 )
               : Image.memory(photo, fit: BoxFit.cover, gaplessPlayback: true),
         ),

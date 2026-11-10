@@ -64,7 +64,8 @@ void main() {
       final controller = container.read(ritualCycleControllerProvider.notifier);
 
       await controller.markMerkaba();
-      await controller.markMassage();
+      await controller.markFacial();
+      await controller.markBody();
       await controller.markFrequency();
       var progress = await container.read(ritualCycleControllerProvider.future);
       expect(progress.flagsOn(clock.now()).completed, isTrue);
@@ -73,7 +74,8 @@ void main() {
       clock.advance(const Duration(days: 1));
       expect(progress.flagsOn(clock.now()), DailyRitualFlags.none);
       await controller.markMerkaba();
-      await controller.markMassage();
+      await controller.markFacial();
+      await controller.markBody();
       await controller.markFrequency();
       progress = await container.read(ritualCycleControllerProvider.future);
       expect(progress.cycle!.streak, 2);
@@ -82,7 +84,8 @@ void main() {
 
       clock.advance(const Duration(days: 2));
       await controller.markMerkaba();
-      await controller.markMassage();
+      await controller.markFacial();
+      await controller.markBody();
       await controller.markFrequency();
       progress = await container.read(ritualCycleControllerProvider.future);
       expect(progress.cycle!.streak, 1);
@@ -113,7 +116,8 @@ void main() {
       expect(container.read(journeyProgressProvider).currentDay, 1);
 
       clock.advance(const Duration(days: 3));
-      await controller.markMassage();
+      await controller.markFacial();
+      await controller.markBody();
       final second = (await container.read(
         ritualCycleControllerProvider.future,
       )).cycle!;
@@ -122,6 +126,27 @@ void main() {
       expect(gateway.created, [first.id, second.id]);
     },
   );
+
+  test('closing a finished cycle records the result for the backend', () async {
+    final clock = _Clock(DateTime(2026, 10, 22, 9));
+    final gateway = _RecordingGateway();
+    final container = makeContainer(clock, gateway);
+    final controller = container.read(ritualCycleControllerProvider.notifier);
+
+    await controller.markMerkaba();
+    clock.advance(const Duration(days: 31));
+    expect(container.read(cycleAwaitingClosureProvider), isNotNull);
+
+    await controller.closeCycle(completedDays: 1);
+    final closed = (await container.read(
+      ritualCycleControllerProvider.future,
+    )).cycle!;
+    expect(closed.isActive, isFalse);
+    expect(closed.completedDays, 1);
+    expect(closed.completedAt, clock.now());
+    expect(gateway.updated.last.completedDays, 1);
+    expect(container.read(cycleAwaitingClosureProvider), isNull);
+  });
 
   test('progress survives a restart through the local cache', () async {
     final clock = _Clock(DateTime(2026, 10, 22, 9));
@@ -172,6 +197,10 @@ class _SavedDay {
 class _RecordingGateway implements RitualCycleGateway {
   final List<String> created = [];
   final List<_SavedDay> savedDays = [];
+  final List<RitualCycle> updated = [];
+
+  @override
+  Future<List<RitualDay>?> fetchDays(RitualCycle cycle) async => null;
 
   @override
   Future<CycleProgress?> fetchActive(DateTime today) async => null;
@@ -183,7 +212,7 @@ class _RecordingGateway implements RitualCycleGateway {
   Future<void> updateCycle(
     RitualCycle cycle, {
     required int currentDay,
-  }) async {}
+  }) async => updated.add(cycle);
 
   @override
   Future<void> saveDay(

@@ -7,7 +7,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 class MemberProfile {
   const MemberProfile({required this.name, this.photo});
 
-  static const String defaultName = 'María González';
+  /// Neutral stand-in until the member has a name.
+  static const String defaultName = 'Hikaru Member';
+
+  /// Placeholder of earlier versions, still saved on some phones. It is not
+  /// anyone's real name, so it is read as "no name yet".
+  static const String _legacyDefaultName = 'María González';
+
+  /// A placeholder, not a name the member gave.
+  static bool isPlaceholder(String name) =>
+      name == defaultName || name == _legacyDefaultName;
 
   final String name;
   final Uint8List? photo;
@@ -22,10 +31,13 @@ class MemberProfileRepository {
   final SharedPreferencesAsync _preferences;
 
   Future<MemberProfile> read() async {
-    final storedName = await _preferences.getString(_nameKey);
-    final name = storedName == null || storedName.trim().isEmpty
+    final storedName = (await _preferences.getString(_nameKey))?.trim();
+    final name =
+        storedName == null ||
+            storedName.isEmpty ||
+            MemberProfile.isPlaceholder(storedName)
         ? MemberProfile.defaultName
-        : storedName.trim();
+        : storedName;
     final file = await _photoFile();
     final photo = await file.exists() ? await file.readAsBytes() : null;
     return MemberProfile(name: name, photo: photo);

@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
+import '../../../core/design_system/widgets/hikaru_back_button.dart';
 import '../../../core/design_system/tokens/app_colors.dart';
 import '../../../core/design_system/tokens/app_font_sizes.dart';
 import '../../../core/design_system/tokens/app_spacing.dart';
@@ -20,7 +21,9 @@ import '../../journey/data/ritual_cycle_gateway.dart'
     show merkabaPracticedDaysReaderProvider;
 import '../../journey/data/ritual_cycle_repository.dart';
 import '../../journey/domain/ritual_cycle.dart'
-    show dateOnly, ritualCycleLength;
+    show RitualStep, dateOnly, ritualCycleLength;
+import '../../journey/presentation/ritual_celebration_dialog.dart';
+import '../../journey/presentation/ritual_cycle_routes.dart';
 import '../data/merkaba_progress_repository.dart';
 import '../data/merkaba_video_source.dart';
 import '../domain/merkaba_session.dart';
@@ -98,6 +101,10 @@ class _MerkabaMeditationScreenState
   bool _recorded = false;
   bool _finished = false;
   bool _scrubbing = false;
+
+  /// Furthest point the member has really reached. The bar can go back to
+  /// repeat a part, never past this, so every exercise is done in full.
+  Duration _furthest = Duration.zero;
   final ValueNotifier<_Summary> _summary = ValueNotifier(const _Summary());
   DateTime? _sittingStart;
   Duration _sittingOffset = Duration.zero;
@@ -115,6 +122,7 @@ class _MerkabaMeditationScreenState
               ? Duration.zero
               : widget.initialElapsed);
     final frame = merkabaFrameAt(initial);
+    _furthest = initial;
     _elapsed = ValueNotifier(initial);
     _phase = ValueNotifier(frame.phase);
     _cycles = ValueNotifier(frame.completedCycles);
@@ -177,6 +185,9 @@ class _MerkabaMeditationScreenState
     final elapsed = await _progress.readResume();
     if (!mounted || elapsed == null || _started || _recorded) return;
     if (elapsed <= Duration.zero || elapsed >= merkabaDuration) return;
+    // Reopening a half-done session: back to the start is allowed, past
+    // where it was left is not.
+    if (elapsed > _furthest) _furthest = elapsed;
     _publish(elapsed, cue: false);
   }
 
@@ -285,6 +296,7 @@ class _MerkabaMeditationScreenState
       _completeSession();
       return;
     }
+    if (next > _furthest) _furthest = next;
     _publish(next, cue: true);
     if (next - _lastVideoSync >= _videoSyncEvery) {
       _lastVideoSync = next;
@@ -322,6 +334,7 @@ class _MerkabaMeditationScreenState
   Future<void> _recordCompletion() async {
     _summary.value = const _Summary(status: _SaveStatus.saving);
     await _saveSession(completed: true);
+    final todayBefore = ref.read(todayRitualProvider);
     var saved = true;
     try {
       await ref.read(ritualCycleControllerProvider.notifier).markMerkaba();
@@ -370,6 +383,15 @@ class _MerkabaMeditationScreenState
       status: saved ? _SaveStatus.saved : _SaveStatus.onDevice,
       cycleDay: ref.read(journeyProgressProvider).currentDay,
       practicedDays: practicedDays < 1 ? 1 : practicedDays,
+    );
+    // The closing screen already congratulates the sitting; the dialog only
+    // appears when Merkaba was the last step of the day.
+    await celebrateStep(
+      context,
+      ref,
+      step: RitualStep.merkaba,
+      before: todayBefore,
+      onlyWhenDayCompletes: true,
     );
   }
 
@@ -432,7 +454,10 @@ class _MerkabaMeditationScreenState
   }
 
   void _handleCycleContinue() {
-    context.go(AppRoutes.cycle(AppRoutes.ritualFace));
+    // Skips the steps already done today.
+    context.go(
+      nextCycleRoute(context, current: RitualStep.merkaba) ?? AppRoutes.home,
+    );
   }
 
   void _handleSeekStart() {
@@ -441,9 +466,13 @@ class _MerkabaMeditationScreenState
     _controlsVisible.value = true;
   }
 
-  void _handleSeek(Duration to) => _publish(to, cue: false);
+  /// Rewinding is free; moving ahead stops at the furthest point reached.
+  Duration _allowedSeek(Duration to) => to > _furthest ? _furthest : to;
 
-  void _handleSeekEnd(Duration to) {
+  void _handleSeek(Duration to) => _publish(_allowedSeek(to), cue: false);
+
+  void _handleSeekEnd(Duration requested) {
+    final to = _allowedSeek(requested);
     _publish(to, cue: false);
     _scrubbing = false;
     _lastVideoSync = to;
@@ -456,9 +485,15 @@ class _MerkabaMeditationScreenState
     }
   }
 
+  /// A touch during the session pauses it and shows the controls. While
+  /// paused, a touch only toggles the controls; PLAY resumes.
   void _handleSurfaceTap() {
-    _controlsVisible.value = true;
-    _scheduleHide();
+    if (_playing.value) {
+      _handlePlayPause();
+      _controlsVisible.value = true;
+      return;
+    }
+    _controlsVisible.value = !_controlsVisible.value;
   }
 
   void _scheduleHide() {
@@ -611,31 +646,57 @@ class _Session extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Stack(
+      fit: StackFit.expand,
       children: [
-        const SizedBox(height: AppSpacing.s24),
-        MerkabaMudraTitle(sceneIndex: sceneIndex, reduceMotion: reduceMotion),
-        const Spacer(),
-        MerkabaControls(
-          visible: controlsVisible,
-          playing: playing,
-          elapsed: elapsed,
-          onPlayPause: onPlayPause,
-          onLeave: onLeave,
-          onSeekStart: onSeekStart,
-          onSeek: onSeek,
-          onSeekEnd: onSeekEnd,
-          reduceMotion: reduceMotion,
+        Column(
+          children: [
+            const SizedBox(height: AppSpacing.s24),
+            MerkabaMudraTitle(
+              sceneIndex: sceneIndex,
+              reduceMotion: reduceMotion,
+            ),
+            const Spacer(),
+            MerkabaControls(
+              visible: controlsVisible,
+              playing: playing,
+              elapsed: elapsed,
+              onPlayPause: onPlayPause,
+              onSeekStart: onSeekStart,
+              onSeek: onSeek,
+              onSeekEnd: onSeekEnd,
+              reduceMotion: reduceMotion,
+            ),
+            const SizedBox(height: AppSpacing.s6),
+            MerkabaBreathPanel(
+              sceneIndex: sceneIndex,
+              phase: phase,
+              elapsed: elapsed,
+              cycles: cycles,
+              remainingSeconds: remainingSeconds,
+              reduceMotion: reduceMotion,
+            ),
+            const SizedBox(height: AppSpacing.s12),
+          ],
         ),
-        const SizedBox(height: AppSpacing.s6),
-        MerkabaBreathPanel(
-          phase: phase,
-          elapsed: elapsed,
-          cycles: cycles,
-          remainingSeconds: remainingSeconds,
-          reduceMotion: reduceMotion,
+        // Top left like every other screen. It fades with the other
+        // controls so it does not interrupt the meditation.
+        Positioned(
+          top: AppSpacing.s8,
+          left: AppSpacing.s16,
+          child: ValueListenableBuilder<bool>(
+            valueListenable: controlsVisible,
+            builder: (context, shown, child) => IgnorePointer(
+              ignoring: !shown,
+              child: AnimatedOpacity(
+                opacity: shown ? 1 : 0,
+                duration: reduceMotion ? Duration.zero : MerkabaControls.fade,
+                child: child,
+              ),
+            ),
+            child: HikaruBackButton(onPressed: onLeave),
+          ),
         ),
-        const SizedBox(height: AppSpacing.s12),
       ],
     );
   }
@@ -683,7 +744,7 @@ class _Finished extends StatelessWidget {
       children: [
         Align(
           alignment: Alignment.centerLeft,
-          child: MerkabaTextControl(label: l10n.commonBack, onPressed: onBack),
+          child: HikaruBackButton(onPressed: onBack),
         ),
         const Spacer(),
         Text(

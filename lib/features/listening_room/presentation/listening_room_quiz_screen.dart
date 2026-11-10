@@ -9,11 +9,15 @@ import '../../../core/design_system/tokens/app_font_sizes.dart';
 import '../../../core/design_system/tokens/app_radii.dart';
 import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
+import '../../../core/design_system/widgets/hikaru_back_button.dart';
 import '../../../core/design_system/widgets/hikaru_pill_button.dart';
 import '../../../core/media/remote_image.dart';
+import '../../../core/media/remote_image_prefetch.dart';
+import '../../../core/media/remote_image_store.dart';
 import '../../../core/router/app_routes.dart';
 import '../../crystals/application/selected_crystal_controller.dart';
 import '../../crystals/domain/crystal_assignment.dart';
+import '../../resonance_chamber/presentation/crystal_scene_photo.dart';
 import '../application/journey_recommendation_controller.dart';
 import '../data/quiz_answers_repository.dart';
 import '../domain/discovery_quiz.dart';
@@ -152,6 +156,11 @@ class _ListeningRoomQuizScreenState
             answers: _answers,
           );
       if (!mounted) return;
+      // The reveal opens two screens from now. Its crystal photo is only
+      // known at this point, so start downloading it right away.
+      warmRemoteImages(ref.read(remoteImageCacheProvider), [
+        crystalSceneFile(crystal),
+      ]);
       context.push(AppRoutes.ritualReady);
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -214,26 +223,6 @@ class _ListeningRoomQuizScreenState
               ),
               child: Column(
                 children: [
-                  _Progress(
-                    value: progress,
-                    label: l10n.quizProgressSemantics(
-                      question.number,
-                      discoveryQuiz.length,
-                    ),
-                  ),
-                  SizedBox(height: compact ? AppSpacing.s4 : AppSpacing.s8),
-                  Text(
-                    progressLabel,
-                    style: AppTypography.body.copyWith(
-                      color: AppColors.white,
-                      fontSize: AppFontSizes.s9,
-                      fontWeight: FontWeight.w300,
-                      letterSpacing: 0.9,
-                      height: 1.2,
-                      shadows: _textShadow,
-                    ),
-                  ),
-                  SizedBox(height: compact ? AppSpacing.s6 : AppSpacing.s10),
                   Container(
                     width: 40,
                     height: 1.5,
@@ -332,27 +321,29 @@ class _ListeningRoomQuizScreenState
                         ),
                       ),
                     ),
-                  TextButton(
-                    onPressed: _busy ? null : _handleBack,
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.champagneGold.withValues(
-                        alpha: 0.6,
-                      ),
-                      minimumSize: const Size(44, 36),
-                      padding: const EdgeInsets.symmetric(
-                        vertical: AppSpacing.s10,
-                      ),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    child: Text(
-                      l10n.commonBack,
-                      style: AppTypography.subheadline.copyWith(
-                        color: AppColors.champagneGold.withValues(alpha: 0.6),
-                        fontSize: AppFontSizes.s11,
-                        letterSpacing: 1.6,
-                      ),
+                  // Progress sits under the options box so the top of the
+                  // screen stays clear for the back arrow.
+                  SizedBox(height: compact ? AppSpacing.s10 : AppSpacing.s16),
+                  _Progress(
+                    value: progress,
+                    label: l10n.quizProgressSemantics(
+                      question.number,
+                      discoveryQuiz.length,
                     ),
                   ),
+                  SizedBox(height: compact ? AppSpacing.s4 : AppSpacing.s8),
+                  Text(
+                    progressLabel,
+                    style: AppTypography.body.copyWith(
+                      color: AppColors.white,
+                      fontSize: AppFontSizes.s11,
+                      fontWeight: FontWeight.w400,
+                      letterSpacing: 0.9,
+                      height: 1.2,
+                      shadows: _textShadow,
+                    ),
+                  ),
+                  SizedBox(height: compact ? AppSpacing.s10 : AppSpacing.s16),
                   HikaruPillButton(
                     label: l10n.commonNext,
                     busy: _busy,
@@ -360,6 +351,11 @@ class _ListeningRoomQuizScreenState
                   ),
                 ],
               ),
+            ),
+            Positioned(
+              top: insets.top + AppSpacing.s8,
+              left: AppSpacing.s16,
+              child: HikaruBackButton(onPressed: _busy ? null : _handleBack),
             ),
           ],
         ),

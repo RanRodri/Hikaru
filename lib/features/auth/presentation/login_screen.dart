@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
 import '../../../core/design_system/tokens/app_font_sizes.dart';
-import '../../../core/design_system/tokens/app_radii.dart';
 import '../../../core/design_system/tokens/app_spacing.dart';
 import '../../../core/design_system/tokens/app_typography.dart';
 import '../../../core/design_system/widgets/hikaru_face_id_button.dart';
-import '../../../core/design_system/widgets/hikaru_pill_button.dart';
 import '../../../core/router/app_routes.dart';
 import '../../splash/presentation/splash_controller.dart';
 import '../../../l10n/app_localizations.dart';
@@ -17,24 +14,16 @@ import '../application/biometric_login_controller.dart';
 import '../data/auth_gateway.dart';
 import '../data/biometric_login.dart';
 import 'auth_background.dart';
+import 'biometric_offer.dart';
 import 'auth_field.dart';
 import 'auth_page.dart';
 
-String _biometricLabel(AppLocalizations l10n, BiometricKind kind) {
-  switch (kind) {
-    case BiometricKind.face:
-      return l10n.biometricFaceId;
-    case BiometricKind.touch:
-      return l10n.biometricTouchId;
-    case BiometricKind.fingerprint:
-      return l10n.biometricFingerprint;
-    case BiometricKind.none:
-      return '';
-  }
-}
-
 class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({super.key, this.sessionExpired = false});
+
+  /// Arrived here because Cognito ended the session: tells the member why
+  /// and that nothing done meanwhile was lost.
+  final bool sessionExpired;
 
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
@@ -44,11 +33,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  bool _rememberMe = false;
   bool _busy = false;
   String? _emailError;
   String? _passwordError;
   String? _formError;
+
+  /// Shown until the first sign-in attempt.
+  late bool _expiredNotice = widget.sessionExpired;
 
   @override
   void dispose() {
@@ -67,37 +58,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     setState(() => _passwordError = null);
   }
 
-  Future<void> _offerBiometric(String username, String password) async {
-    final controller = ref.read(biometricLoginControllerProvider.notifier);
-    final kind = await controller.promptKind(username);
-    await controller.keepPassword(username: username, password: password);
-    if (!mounted || kind == null) return;
-    final l10n = AppLocalizations.of(context);
-    final method = _biometricLabel(l10n, kind);
-    final accepted = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      barrierColor: AppColors.scrim70,
-      builder: (context) => _BiometricOffer(kind: kind, method: method),
-    );
-    if (!mounted) return;
-    if (accepted == true) {
-      await controller.enable(
-        username: username,
-        password: password,
-        reason: l10n.biometricEnableReason(method),
-      );
-      return;
-    }
-    await controller.decline(username);
-  }
-
   Future<void> _handleBiometricSignIn() async {
     if (_busy) return;
     final l10n = AppLocalizations.of(context);
     setState(() {
       _busy = true;
       _formError = null;
+      _expiredNotice = false;
     });
     try {
       final signedIn = await ref
@@ -115,10 +82,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
-  void _handleRememberMe() {
-    setState(() => _rememberMe = !_rememberMe);
-  }
-
   Future<void> _handleSignIn() async {
     if (_busy) return;
     final l10n = AppLocalizations.of(context);
@@ -128,6 +91,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     setState(() {
       _formError = null;
+      _expiredNotice = false;
       _emailError = identity.isEmpty
           ? l10n.authErrorIdentityRequired
           : identityValid
@@ -143,7 +107,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           .read(authGatewayProvider)
           .signIn(username: identity, password: password);
       if (!mounted) return;
-      await _offerBiometric(identity, password);
+      await offerBiometric(identity, password);
       if (!mounted) return;
       final route = await routeForOpenSession(ref);
       if (!mounted) return;
@@ -153,7 +117,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (error.message == 'confirmation-required') {
         context.push(
           AppRoutes.confirmSignUp,
-          extra: PendingConfirmation(username: identity, password: password),
+          extra: PendingConfirmation(
+            username: identity,
+            password: password,
+            codeJustSent: false,
+          ),
         );
         return;
       }
@@ -166,6 +134,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final notice =
+        _formError ?? (_expiredNotice ? l10n.loginSessionExpired : null);
     final offer = ref.watch(biometricLoginControllerProvider).value;
     final sensorKind = offer != null && offer.showButton ? offer.kind : null;
     final topGap = MediaQuery.sizeOf(context).height * 0.16;
@@ -220,50 +190,44 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           onSubmitted: (_) => _handleSignIn(),
         ),
         const SizedBox(height: AppSpacing.s14),
-        Row(
-          children: [
-            _RememberMe(checked: _rememberMe, onPressed: _handleRememberMe),
-            const SizedBox(width: AppSpacing.s8),
-            // Longer in Spanish: shrink the link instead of overflowing next
-            // to "Remember me".
-            Expanded(
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: _busy
-                      ? null
-                      : () => context.push(AppRoutes.resetPassword),
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.champagneGold,
-                    minimumSize: const Size(44, 44),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.s4,
-                    ),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      l10n.loginForgotPassword,
-                      maxLines: 1,
-                      style: AppTypography.bodyAccent.copyWith(
-                        color: AppColors.champagneGold,
-                        fontSize: AppFontSizes.s13,
-                        letterSpacing: 0,
-                        shadows: authTextShadow,
-                      ),
-                    ),
-                  ),
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton(
+            onPressed: _busy
+                ? null
+                : () => context.push(AppRoutes.resetPassword),
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.champagneGold,
+              minimumSize: const Size(44, 44),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s4),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                l10n.loginForgotPassword,
+                maxLines: 1,
+                style: AppTypography.bodyAccent.copyWith(
+                  color: AppColors.champagneGold,
+                  fontSize: AppFontSizes.s13,
+                  letterSpacing: 0,
+                  shadows: authTextShadow,
                 ),
               ),
             ),
-          ],
+          ),
+        ),
+        AuthLabeledDivider(label: l10n.loginOr),
+        const SizedBox(height: AppSpacing.s16),
+        AuthOutlineButton(
+          label: l10n.loginCreateAccount,
+          onPressed: _busy ? null : () => context.push(AppRoutes.register),
         ),
       ],
       footer: [
-        if (_formError != null) ...[
+        if (notice != null) ...[
           Text(
-            _formError!,
+            notice,
             textAlign: TextAlign.center,
             style: AppTypography.body.copyWith(
               color: AppColors.fog,
@@ -294,185 +258,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
           const SizedBox(height: AppSpacing.s12),
           HikaruFaceIdButton(
-            label: _biometricLabel(l10n, sensorKind),
+            label: biometricLabel(l10n, sensorKind),
             fingerprint: sensorKind != BiometricKind.face,
             busy: _busy,
             onPressed: _handleBiometricSignIn,
           ),
         ],
-        const SizedBox(height: AppSpacing.s8),
-        AuthSwitchPrompt(
-          prompt: l10n.loginNoAccount,
-          action: l10n.loginCreateOne,
-          onPressed: _busy ? null : () => context.push(AppRoutes.register),
-        ),
       ],
-    );
-  }
-}
-
-class _RememberMe extends StatelessWidget {
-  const _RememberMe({required this.checked, required this.onPressed});
-
-  final bool checked;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final label = AppLocalizations.of(context).loginRememberMe;
-    return Semantics(
-      checked: checked,
-      label: label,
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(AppRadii.r8),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 44),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 160),
-                width: 20,
-                height: 20,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(AppRadii.r5),
-                  color: checked
-                      ? AppColors.champagneGold
-                      : AppColors.darkIndigoBlue.withValues(alpha: 0.5),
-                  border: Border.all(
-                    color: AppColors.champagneGold,
-                    width: 1.5,
-                  ),
-                ),
-                child: checked
-                    ? const Icon(
-                        Icons.check,
-                        size: 15,
-                        color: AppColors.darkIndigoBlue,
-                      )
-                    : null,
-              ),
-              const SizedBox(width: AppSpacing.s10),
-              Text(
-                label,
-                style: AppTypography.bodyAccent.copyWith(
-                  color: AppColors.white,
-                  fontSize: AppFontSizes.s13,
-                  letterSpacing: 0,
-                  shadows: authTextShadow,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _BiometricOffer extends StatelessWidget {
-  const _BiometricOffer({required this.kind, required this.method});
-
-  static const String _faceAsset = 'assets/images/face_id.svg';
-
-  final BiometricKind kind;
-  final String method;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final face = kind == BiometricKind.face;
-    return Dialog(
-      backgroundColor: AppColors.darkIndigoBlue,
-      surfaceTintColor: AppColors.darkIndigoBlue,
-      insetPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.s24),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadii.r28),
-        side: BorderSide(
-          color: AppColors.champagneGold.withValues(alpha: 0.45),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.s24,
-          AppSpacing.s32,
-          AppSpacing.s24,
-          AppSpacing.s12,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 72,
-              height: 72,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.champagneGold.withValues(alpha: 0.12),
-                border: Border.all(color: AppColors.champagneGold, width: 1),
-              ),
-              child: face
-                  ? SvgPicture.asset(
-                      _faceAsset,
-                      width: 32,
-                      height: 32,
-                      colorFilter: const ColorFilter.mode(
-                        AppColors.champagneGold,
-                        BlendMode.srcIn,
-                      ),
-                    )
-                  : const Icon(
-                      Icons.fingerprint,
-                      size: 36,
-                      color: AppColors.champagneGold,
-                    ),
-            ),
-            const SizedBox(height: AppSpacing.s20),
-            Text(
-              l10n.biometricOfferTitle(method),
-              textAlign: TextAlign.center,
-              style: AppTypography.subtitle.copyWith(
-                color: AppColors.white,
-                fontSize: AppFontSizes.s22,
-                fontWeight: FontWeight.w500,
-                height: 1.2,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.s10),
-            Text(
-              l10n.biometricOfferBody(method),
-              textAlign: TextAlign.center,
-              style: AppTypography.body.copyWith(
-                color: AppColors.fog,
-                fontSize: AppFontSizes.s14,
-                height: 1.45,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.s24),
-            HikaruPillButton(
-              label: l10n.biometricOfferAccept(method).toUpperCase(),
-              onPressed: () => Navigator.of(context).pop(true),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.champagneGold,
-                minimumSize: const Size(44, 44),
-              ),
-              child: Text(
-                l10n.biometricOfferDecline,
-                style: AppTypography.subheadline.copyWith(
-                  color: AppColors.champagneGold,
-                  fontSize: AppFontSizes.s11,
-                  letterSpacing: 1.6,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

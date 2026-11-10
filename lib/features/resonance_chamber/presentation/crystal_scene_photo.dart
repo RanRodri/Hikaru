@@ -58,6 +58,11 @@ const Map<Crystal, _CrystalScene> _crystalScenes = {
   ),
 };
 
+/// S3 file of the photo the reveal shows for [crystal], so it can be
+/// downloaded before that screen opens.
+String crystalSceneFile(Crystal? crystal) =>
+    (_crystalScenes[crystal] ?? _whiteQuartzScene).asset;
+
 /// Crystal photo centered on the crystal, feathered into the chamber color.
 /// Without a crystal it shows white quartz in the garden.
 class CrystalScenePhoto extends StatelessWidget {

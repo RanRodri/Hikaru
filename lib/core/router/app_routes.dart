@@ -3,7 +3,14 @@ abstract final class AppRoutes {
   static const String sanctuary = '/sanctuary';
   static const String discovery = '/discovery';
   static const String ritual = '/ritual';
+  static const String store = '/store';
   static const String login = '/login';
+
+  /// Login after Cognito ended the session, with a note explaining why.
+  static const String loginSessionExpired = '$login?expired=1';
+
+  static bool isSessionExpired(Map<String, String> query) =>
+      query['expired'] == '1';
   static const String register = '/register';
   static const String confirmSignUp = '/confirm-sign-up';
   static const String resetPassword = '/reset-password';
@@ -18,10 +25,16 @@ abstract final class AppRoutes {
 
   static String crystalResonanceFor(String crystal) =>
       '$resonanceChamber/$crystal';
+
+  /// The crystal's Library guide, opened on top of the crystal screen so
+  /// Back returns to it.
+  static String crystalLibraryFor(String crystal) =>
+      '${crystalResonanceFor(crystal)}/library';
   static const String home = '/home';
   static const String fourTemples = '/home/four-temples';
   static const String profile = '/home/profile';
   static const String profileAccount = '$profile/account';
+  static const String profilePrivacy = '$profile/privacy';
   static const String journey = '/home/journey';
   static const String library = '/home/library';
   static const String merkaba = '$home/merkaba';

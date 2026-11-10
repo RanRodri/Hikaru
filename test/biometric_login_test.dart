@@ -177,6 +177,9 @@ class _AuthGateway implements AuthGateway {
   @override
   Future<void> signOut() async {}
 
+  @override
+  Future<void> resendSignUpCode({required String username}) async {}
+
   String? username;
   String? password;
 

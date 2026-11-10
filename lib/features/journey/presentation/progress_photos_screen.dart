@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/design_system/widgets/hikaru_back_button.dart';
 import '../../../core/design_system/tokens/app_colors.dart';
 import '../../../core/design_system/tokens/app_font_sizes.dart';
 import '../../../core/design_system/tokens/app_radii.dart';
@@ -37,7 +38,9 @@ class ProgressPhotosScreen extends ConsumerWidget {
                 AppSpacing.s20,
                 0,
               ),
-              child: _BackButton(onPressed: () => Navigator.of(context).pop()),
+              child: HikaruBackButton(
+                onPressed: () => Navigator.of(context).pop(),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(
@@ -220,48 +223,6 @@ class _PhotoTile extends StatelessWidget {
   }
 }
 
-class _BackButton extends StatelessWidget {
-  const _BackButton({required this.onPressed});
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Semantics(
-      button: true,
-      label: l10n.commonBack,
-      excludeSemantics: true,
-      child: Material(
-        color: AppColors.darkIndigoBlue.withValues(alpha: 0.45),
-        shape: StadiumBorder(
-          side: BorderSide(
-            color: AppColors.champagneGold.withValues(alpha: 0.6),
-          ),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onPressed,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.s16,
-              vertical: AppSpacing.s8,
-            ),
-            child: Text(
-              l10n.commonBack,
-              style: AppTypography.footnote.copyWith(
-                color: AppColors.champagneGold,
-                fontSize: AppFontSizes.s11,
-                letterSpacing: 1.2,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 /// One progress photo, large enough to compare with the others.
 class ProgressPhotoViewer extends StatelessWidget {
   const ProgressPhotoViewer({
@@ -291,7 +252,9 @@ class ProgressPhotoViewer extends StatelessWidget {
                 AppSpacing.s20,
                 AppSpacing.s12,
               ),
-              child: _BackButton(onPressed: () => Navigator.of(context).pop()),
+              child: HikaruBackButton(
+                onPressed: () => Navigator.of(context).pop(),
+              ),
             ),
             Expanded(
               child: Padding(

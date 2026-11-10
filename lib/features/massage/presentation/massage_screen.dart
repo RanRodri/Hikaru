@@ -7,7 +7,9 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:video_player/video_player.dart';
 
+import '../../../core/design_system/widgets/hikaru_back_button.dart';
 import '../../../core/design_system/tokens/app_colors.dart';
 import '../../../core/design_system/tokens/app_font_sizes.dart';
 import '../../../core/design_system/tokens/app_radii.dart';
@@ -18,9 +20,12 @@ import '../../../core/router/app_routes.dart';
 import '../../crystals/application/selected_crystal_controller.dart';
 import '../../crystals/domain/crystal.dart';
 import '../../journey/application/ritual_cycle_controller.dart';
-import '../../listening_room/application/journey_recommendation_controller.dart';
+import '../../journey/domain/ritual_cycle.dart';
+import '../../journey/presentation/ritual_celebration_dialog.dart';
+import '../../journey/presentation/ritual_cycle_routes.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../crystals/presentation/crystal_texts.dart';
+import '../data/massage_video_source.dart';
 import '../domain/massage_ritual.dart';
 import 'massage_texts.dart';
 import 'ritual_video_slot.dart';
@@ -38,6 +43,9 @@ const double _sheetMax = 0.86;
 const double _crystalFadeShare = 0.6;
 const Duration _sheetSlide = Duration(milliseconds: 420);
 
+/// Fade of the title and back button when the video starts or stops.
+const Duration _heroFade = Duration(milliseconds: 300);
+
 /// Top padding, handle, and the gap under it. Collapsed, this is all that shows.
 const double _handleBarHeight = 28;
 
@@ -46,12 +54,28 @@ const List<Shadow> _textShadow = [
 ];
 
 class MassageScreen extends ConsumerStatefulWidget {
-  const MassageScreen({super.key, required this.surface, this.inCycle = false});
+  const MassageScreen({
+    super.key,
+    required this.surface,
+    this.inCycle = false,
+    this.onBack,
+    this.onCompleted,
+    this.onContinue,
+  });
 
   final MassageSurface surface;
 
+  /// Replaces the default back navigation, for screens that host this one.
+  final VoidCallback? onBack;
+
+  /// Runs once when the video ends. Replaces marking a cycle step.
+  final Future<void> Function()? onCompleted;
+
+  /// Shows CONTINUE when the video ends and runs this on press.
+
   /// When true, finishing this ritual continues to the next cycle step.
   final bool inCycle;
+  final VoidCallback? onContinue;
 
   @override
   ConsumerState<MassageScreen> createState() => _MassageScreenState();
@@ -59,61 +83,176 @@ class MassageScreen extends ConsumerStatefulWidget {
 
 class _MassageScreenState extends ConsumerState<MassageScreen>
     with SingleTickerProviderStateMixin {
+  /// The player reports its position about twice a second. Between reports
+  /// the clock is estimated, but never by more than this.
+  static const Duration _maxExtrapolation = Duration(milliseconds: 600);
+
+  /// Distance from the end at which the video counts as finished.
+  static const Duration _endTolerance = Duration(milliseconds: 300);
+
   late final Ticker _ticker;
-  Duration _zoneElapsed = Duration.zero;
-  Duration _lastTick = Duration.zero;
+  VideoPlayerController? _video;
+  bool _videoFailed = false;
+  bool _wantsPlay = false;
   bool _playing = false;
-  int _zoneIndex = 0;
+  bool _completionReported = false;
+  Duration _reported = Duration.zero;
+  final Stopwatch _sinceReport = Stopwatch();
+  Duration _position = Duration.zero;
+
+  /// Furthest point really played. Going back to repeat a zone is free;
+  /// jumping past this is not, so every exercise is done in full.
+  Duration _furthest = Duration.zero;
   final DraggableScrollableController _sheet = DraggableScrollableController();
   double _sheetExtent = _sheetOpen;
   double _panelHeight = 0;
   List<double>? _snapSizes;
   int _videoTaps = 0;
-  int _faceSessionMinutes = 5;
 
+  /// The ritual measured against the real length of the video once loaded.
   MassageRitual get _ritual {
     final base = ritualFor(widget.surface);
-    if (widget.surface != MassageSurface.face) return base;
-    return base.copyWith(sessionLength: Duration(minutes: _faceSessionMinutes));
+    final video = _video;
+    if (video == null || !video.value.isInitialized) return base;
+    final length = video.value.duration;
+    return length > Duration.zero ? base.withVideoDuration(length) : base;
   }
 
-  bool get _isLastZone => _zoneIndex >= _ritual.zones.length - 1;
+  int get _zoneIndex => _ritual.zoneIndexAt(_position);
 
-  Duration get _sessionElapsed =>
-      _ritual.zoneLength * _zoneIndex + _zoneElapsed;
+  Duration get _zoneElapsed {
+    final ritual = _ritual;
+    final index = ritual.zoneIndexAt(_position);
+    final elapsed = _position - ritual.zoneStart(index);
+    final length = ritual.zoneLength(index);
+    if (elapsed.isNegative) return Duration.zero;
+    return elapsed > length ? length : elapsed;
+  }
+
+  bool get _ritualFinished {
+    final video = _video;
+    if (video == null || !video.value.isInitialized) return false;
+    return _position >= video.value.duration - _endTolerance;
+  }
 
   @override
   void initState() {
     super.initState();
     _ticker = createTicker(_handleTick);
     _sheet.addListener(_handleSheet);
-    if (widget.surface == MassageSurface.face) {
-      _restoreFaceDuration();
+    unawaited(_loadVideo());
+  }
+
+  Future<void> _loadVideo() async {
+    final path = ritualFor(widget.surface).videoStoragePath;
+    final url = await ref.read(massageVideoSourceProvider).resolve(path);
+    if (!mounted) return;
+    final controller = VideoPlayerController.networkUrl(
+      url,
+      videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+    );
+    try {
+      await controller.initialize();
+    } catch (_) {
+      await controller.dispose();
+      if (mounted) setState(() => _videoFailed = true);
+      return;
+    }
+    if (!mounted) {
+      await controller.dispose();
+      return;
+    }
+    await controller.setLooping(false);
+    controller.addListener(_handleVideo);
+    setState(() => _video = controller);
+    if (_wantsPlay) await controller.play();
+  }
+
+  /// Follows the player: position, play state and the end of the video.
+  void _handleVideo() {
+    final video = _video;
+    if (video == null || !mounted) return;
+    final value = video.value;
+    if (value.hasError) {
+      setState(() => _videoFailed = true);
+      return;
+    }
+    if (value.position != _reported) {
+      _reported = value.position;
+      _sinceReport
+        ..reset()
+        ..start();
+    }
+    final playing = value.isPlaying;
+    if (playing && !_ticker.isActive) _ticker.start();
+    if (!playing && _ticker.isActive) _ticker.stop();
+    final wasPlaying = _playing;
+    setState(() {
+      _playing = playing;
+      _position = _estimate(value);
+      if (playing && _position > _furthest) _furthest = _position;
+    });
+    if (wasPlaying && !playing && !_ritualFinished) _revealPanel();
+    if (_ritualFinished) _handleCompleted();
+  }
+
+  Duration _estimate(VideoPlayerValue value) {
+    if (!value.isPlaying || value.isBuffering) return value.position;
+    final ahead = _sinceReport.elapsed > _maxExtrapolation
+        ? _maxExtrapolation
+        : _sinceReport.elapsed;
+    final estimate = value.position + ahead;
+    return estimate > value.duration ? value.duration : estimate;
+  }
+
+  void _handleCompleted() {
+    _ticker.stop();
+    final video = _video;
+    if (video != null && video.value.isPlaying) unawaited(video.pause());
+    if (_completionReported) return;
+    _completionReported = true;
+    setState(() => _playing = false);
+    _revealPanel();
+    final onCompleted = widget.onCompleted;
+    if (onCompleted != null) {
+      unawaited(onCompleted());
+      return;
+    }
+    final cycle = ref.read(ritualCycleControllerProvider.notifier);
+    switch (widget.surface) {
+      case MassageSurface.face:
+        unawaited(
+          markAndCelebrate(
+            context,
+            ref,
+            step: RitualStep.facial,
+            mark: cycle.markFacial,
+          ),
+        );
+      case MassageSurface.body:
+        unawaited(
+          markAndCelebrate(
+            context,
+            ref,
+            step: RitualStep.body,
+            mark: cycle.markBody,
+          ),
+        );
+      case MassageSurface.tutorial:
+        // Watching the tutorial is not a step of the daily ritual.
+        break;
     }
   }
 
-  Future<void> _restoreFaceDuration() async {
-    final recommendation = await ref.read(
-      journeyRecommendationControllerProvider.future,
-    );
-    if (!mounted) return;
-    setState(() {
-      _faceSessionMinutes = clampFaceSessionMinutes(
-        recommendation?.durationMinutes,
-      );
-    });
-  }
+  /// Face and body must be followed in full: rewinding is free, skipping
+  /// ahead is not. The tutorial is reference material, so it seeks freely.
+  bool get _locksForward => widget.surface != MassageSurface.tutorial;
 
-  void _handleFaceDurationSelected(int minutes) {
-    if (!faceSessionMinutesOptions.contains(minutes)) return;
-    if (_faceSessionMinutes == minutes) return;
-    setState(() {
-      _faceSessionMinutes = minutes;
-      _zoneIndex = 0;
-      _zoneElapsed = Duration.zero;
-      _playing = false;
-    });
-    _ticker.stop();
+  /// Last zone the member may jump to.
+  int get _reachedZone {
+    final ritual = _ritual;
+    if (!_locksForward) return ritual.zones.length - 1;
+    return ritual.zoneIndexAt(_furthest);
   }
 
   @override
@@ -121,6 +260,9 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
     _sheet.removeListener(_handleSheet);
     _sheet.dispose();
     _ticker.dispose();
+    _video
+      ?..removeListener(_handleVideo)
+      ..dispose();
     super.dispose();
   }
 
@@ -196,36 +338,21 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
     return ((_sheetExtent - collapsed) / span).clamp(0.0, 1.0);
   }
 
-  void _handleTick(Duration sinceStart) {
-    if (!_playing) return;
-    final delta = sinceStart - _lastTick;
-    _lastTick = sinceStart;
-    final zoneLength = _ritual.zoneLength;
-    final elapsed = _zoneElapsed + delta;
-
-    if (elapsed < zoneLength) {
-      setState(() => _zoneElapsed = elapsed);
-      return;
-    }
-    if (_isLastZone) {
-      _stop();
-      setState(() => _zoneElapsed = zoneLength);
-      _revealPanel();
-      unawaited(ref.read(ritualCycleControllerProvider.notifier).markMassage());
-      return;
-    }
+  void _handleTick(Duration _) {
+    final video = _video;
+    if (video == null || !video.value.isPlaying) return;
     setState(() {
-      _zoneIndex += 1;
-      _zoneElapsed = Duration.zero;
+      _position = _estimate(video.value);
+      if (_position > _furthest) _furthest = _position;
     });
   }
 
-  void _stop() {
-    _ticker.stop();
-    _playing = false;
-  }
-
   void _handleBackPressed() {
+    final onBack = widget.onBack;
+    if (onBack != null) {
+      onBack();
+      return;
+    }
     if (context.canPop()) {
       context.pop();
       return;
@@ -233,66 +360,75 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
     context.go(AppRoutes.home);
   }
 
-  bool get _ritualFinished => _isLastZone && _zoneElapsed >= _ritual.zoneLength;
-
   void _handleCycleContinue() {
-    if (widget.surface == MassageSurface.face) {
-      context.go(AppRoutes.cycle(AppRoutes.ritualBody));
+    final onContinue = widget.onContinue;
+    if (onContinue != null) {
+      onContinue();
       return;
     }
-    final crystal =
-        ref.read(selectedCrystalProvider).value ??
-        ref.read(journeyRecommendationControllerProvider).value?.crystal;
-    if (crystal == null) {
-      context.go(AppRoutes.fourTemples);
-      return;
-    }
-    context.go(AppRoutes.crystalResonanceFor(crystal.name));
+    // Next step still waiting today; the ones already done are skipped.
+    final current = widget.surface == MassageSurface.face
+        ? RitualStep.facial
+        : RitualStep.body;
+    context.go(nextCycleRoute(context, current: current) ?? AppRoutes.home);
   }
 
-  void _handlePlayPause() {
-    if (_playing) {
-      _handlePause();
+  Future<void> _handlePlayPause() async {
+    if (_playing || _wantsPlay && _video == null) {
+      _wantsPlay = false;
+      await _handlePause();
       return;
     }
-    final finished = _isLastZone && _zoneElapsed >= _ritual.zoneLength;
-    setState(() {
-      if (finished) {
-        _zoneIndex = 0;
-        _zoneElapsed = Duration.zero;
-      }
-      _playing = true;
-    });
-    _lastTick = Duration.zero;
-    _ticker.start();
+    _wantsPlay = true;
+    final video = _video;
+    if (video == null) return;
+    if (_ritualFinished) await _seek(Duration.zero);
+    _completionReported = false;
     _revealVideo();
+    await video.play();
   }
 
-  void _handlePause() {
-    if (!_playing) return;
-    setState(_stop);
-    _revealPanel();
+  Future<void> _handlePause() async {
+    final video = _video;
+    if (video == null || !video.value.isPlaying) return;
+    await video.pause();
   }
 
   void _handleVideoTap() {
     setState(() => _videoTaps += 1);
-    _handlePlayPause();
+    unawaited(_handlePlayPause());
   }
 
-  void _handleRestart() {
-    setState(() {
-      _stop();
-      _zoneIndex = 0;
-      _zoneElapsed = Duration.zero;
-    });
+  /// Moves the video and the clock together so the panel never lags behind.
+  Future<void> _seek(Duration target) async {
+    final video = _video;
+    if (video == null) return;
+    final length = video.value.duration;
+    // Never ahead of what was really played (except in the tutorial).
+    final reachable = _locksForward && target > _furthest ? _furthest : target;
+    final bounded = reachable > length ? length : reachable;
+    _reported = bounded;
+    _sinceReport
+      ..reset()
+      ..start();
+    setState(() => _position = bounded);
+    await video.seekTo(bounded);
+  }
+
+  Future<void> _handleRestart() async {
+    _wantsPlay = false;
+    _completionReported = false;
+    await _handlePause();
+    await _seek(Duration.zero);
   }
 
   void _handleZoneSelected(int index) {
-    if (index < 0 || index >= _ritual.zones.length) return;
-    setState(() {
-      _zoneIndex = index;
-      _zoneElapsed = Duration.zero;
-    });
+    final ritual = _ritual;
+    if (index < 0 || index >= ritual.zones.length) return;
+    // A zone not reached yet stays locked: rewinding only.
+    if (index > _reachedZone) return;
+    _completionReported = false;
+    unawaited(_seek(ritual.zoneStart(index)));
   }
 
   @override
@@ -322,7 +458,10 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
                   child: GestureDetector(
                     onTap: _handleVideoTap,
                     behavior: HitTestBehavior.opaque,
-                    child: RitualVideoSlot(videoUrl: ritual.videoUrl),
+                    child: RitualVideoSlot(
+                      controller: _video,
+                      failed: _videoFailed,
+                    ),
                   ),
                 ),
               ),
@@ -339,12 +478,25 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
                 ),
               ),
               Positioned.fill(
-                child: Padding(
-                  padding: EdgeInsets.only(top: insets.top),
-                  child: _RitualHero(
-                    scale: scale,
-                    ritual: ritual,
-                    onBackPressed: _handleBackPressed,
+                child: IgnorePointer(
+                  ignoring: _playing,
+                  child: ExcludeSemantics(
+                    excluding: _playing,
+                    child: AnimatedOpacity(
+                      opacity: _playing ? 0 : 1,
+                      duration: MediaQuery.disableAnimationsOf(context)
+                          ? Duration.zero
+                          : _heroFade,
+                      curve: Curves.easeOut,
+                      child: Padding(
+                        padding: EdgeInsets.only(top: insets.top),
+                        child: _RitualHero(
+                          scale: scale,
+                          ritual: ritual,
+                          onBackPressed: _handleBackPressed,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -386,20 +538,20 @@ class _MassageScreenState extends ConsumerState<MassageScreen>
                           crystal: crystal,
                           crystalOpacity: crystalOpacity,
                           zoneIndex: _zoneIndex,
+                          reachedIndex: _reachedZone,
                           zoneElapsed: _zoneElapsed,
-                          sessionElapsed: _sessionElapsed,
+                          sessionElapsed: _position,
                           playing: _playing,
-                          faceSessionMinutes:
-                              widget.surface == MassageSurface.face
-                              ? _faceSessionMinutes
-                              : null,
-                          onFaceDurationSelected: _handleFaceDurationSelected,
                           onZoneSelected: _handleZoneSelected,
+                          seekable: !_locksForward,
+                          onSeek: (target) => unawaited(_seek(target)),
                           onPrevious: () => _handleZoneSelected(_zoneIndex - 1),
-                          onPlayPause: _handlePlayPause,
+                          onPlayPause: () => unawaited(_handlePlayPause()),
                           onNext: () => _handleZoneSelected(_zoneIndex + 1),
-                          onRestart: _handleRestart,
-                          onCycleContinue: widget.inCycle && _ritualFinished
+                          onRestart: () => unawaited(_handleRestart()),
+                          onCycleContinue:
+                              (widget.inCycle || widget.onContinue != null) &&
+                                  _ritualFinished
                               ? _handleCycleContinue
                               : null,
                         ),
@@ -558,12 +710,7 @@ class _RitualHero extends StatelessWidget {
         _place(
           left: 6,
           top: 18,
-          child: _TextControl(
-            label: l10n.commonBack,
-            semanticsLabel: l10n.massageBackSemantics,
-            scale: scale,
-            onPressed: onBackPressed,
-          ),
+          child: HikaruBackButton(onPressed: onBackPressed),
         ),
         _place(right: 16, top: 22, child: _HeaderActions(scale: scale)),
         _place(
@@ -703,12 +850,13 @@ class _ControlPanel extends StatelessWidget {
     required this.crystal,
     required this.crystalOpacity,
     required this.zoneIndex,
+    required this.reachedIndex,
     required this.zoneElapsed,
     required this.sessionElapsed,
     required this.playing,
-    required this.faceSessionMinutes,
-    required this.onFaceDurationSelected,
     required this.onZoneSelected,
+    required this.seekable,
+    required this.onSeek,
     required this.onPrevious,
     required this.onPlayPause,
     required this.onNext,
@@ -722,12 +870,18 @@ class _ControlPanel extends StatelessWidget {
   final Crystal? crystal;
   final double crystalOpacity;
   final int zoneIndex;
+
+  /// Zones after this one were not played yet and stay locked.
+  final int reachedIndex;
   final Duration zoneElapsed;
   final Duration sessionElapsed;
   final bool playing;
-  final int? faceSessionMinutes;
-  final ValueChanged<int> onFaceDurationSelected;
   final ValueChanged<int> onZoneSelected;
+
+  /// Reference videos (the tutorial) get a draggable bar instead of the
+  /// zone markers, since they have a single zone and no order to follow.
+  final bool seekable;
+  final ValueChanged<Duration> onSeek;
   final VoidCallback onPrevious;
   final VoidCallback onPlayPause;
   final VoidCallback onNext;
@@ -738,7 +892,7 @@ class _ControlPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final zone = ritual.zones[zoneIndex];
-    final zoneLength = ritual.zoneLength;
+    final zoneLength = ritual.zoneLength(zoneIndex);
     final zoneProgress = zoneElapsed.inMilliseconds / zoneLength.inMilliseconds;
     final breathPosition =
         sessionElapsed.inMilliseconds % _breathCycle.inMilliseconds;
@@ -799,14 +953,7 @@ class _ControlPanel extends StatelessWidget {
             number: zoneIndex + 1,
             total: ritual.zones.length,
           ),
-          if (faceSessionMinutes != null) ...[
-            SizedBox(height: AppSpacing.s10 * scale),
-            _FaceDurationPicker(
-              scale: scale,
-              selectedMinutes: faceSessionMinutes!,
-              onSelected: onFaceDurationSelected,
-            ),
-          ],
+
           SizedBox(height: AppSpacing.s10 * scale),
           SizedBox(
             height: 95 * scale,
@@ -853,12 +1000,21 @@ class _ControlPanel extends StatelessWidget {
             ),
           ),
           SizedBox(height: AppSpacing.s14 * scale),
-          _ZoneTimeline(
-            scale: scale,
-            zones: ritual.zones,
-            activeIndex: zoneIndex,
-            onSelected: onZoneSelected,
-          ),
+          if (seekable)
+            _SeekBar(
+              scale: scale,
+              position: sessionElapsed,
+              total: ritual.videoDuration,
+              onSeek: onSeek,
+            )
+          else
+            _ZoneTimeline(
+              scale: scale,
+              zones: ritual.zones,
+              activeIndex: zoneIndex,
+              reachedIndex: reachedIndex,
+              onSelected: onZoneSelected,
+            ),
           SizedBox(height: AppSpacing.s10 * scale),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -885,7 +1041,11 @@ class _ControlPanel extends StatelessWidget {
                 size: 32,
                 icon: Icons.skip_next_rounded,
                 semanticsLabel: l10n.massageNextZone,
-                onPressed: zoneIndex >= ritual.zones.length - 1 ? null : onNext,
+                onPressed:
+                    zoneIndex >= ritual.zones.length - 1 ||
+                        zoneIndex + 1 > reachedIndex
+                    ? null
+                    : onNext,
               ),
             ],
           ),
@@ -906,106 +1066,6 @@ class _ControlPanel extends StatelessWidget {
             onPressed: onRestart,
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _FaceDurationPicker extends StatelessWidget {
-  const _FaceDurationPicker({
-    required this.scale,
-    required this.selectedMinutes,
-    required this.onSelected,
-  });
-
-  final double scale;
-  final int selectedMinutes;
-  final ValueChanged<int> onSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          AppLocalizations.of(context).massageSessionLength,
-          style: _spaced(
-            AppFontSizes.s8 * scale,
-          ).copyWith(color: AppColors.champagneGold80, shadows: _textShadow),
-        ),
-        SizedBox(height: AppSpacing.s8 * scale),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            for (final minutes in faceSessionMinutesOptions) ...[
-              if (minutes != faceSessionMinutesOptions.first)
-                SizedBox(width: AppSpacing.s8 * scale),
-              _DurationChip(
-                scale: scale,
-                minutes: minutes,
-                selected: minutes == selectedMinutes,
-                onPressed: () => onSelected(minutes),
-              ),
-            ],
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _DurationChip extends StatelessWidget {
-  const _DurationChip({
-    required this.scale,
-    required this.minutes,
-    required this.selected,
-    required this.onPressed,
-  });
-
-  final double scale;
-  final int minutes;
-  final bool selected;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      selected: selected,
-      label: AppLocalizations.of(context).recDuration(minutes),
-      excludeSemantics: true,
-      child: Material(
-        color: AppColors.transparent,
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(AppRadii.r20),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 160),
-            padding: EdgeInsets.symmetric(
-              horizontal: AppSpacing.s14 * scale,
-              vertical: AppSpacing.s8 * scale,
-            ),
-            decoration: BoxDecoration(
-              color: selected
-                  ? AppColors.champagneGold.withValues(alpha: 0.2)
-                  : AppColors.scrim50.withValues(alpha: 0.35),
-              borderRadius: BorderRadius.circular(AppRadii.r20),
-              border: Border.all(
-                color: selected
-                    ? AppColors.champagneGold
-                    : AppColors.champagneGold.withValues(alpha: 0.35),
-                width: selected ? 1.2 : 0.7,
-              ),
-            ),
-            child: Text(
-              AppLocalizations.of(context).massageMinutesChip(minutes),
-              style: AppTypography.subheadline.copyWith(
-                color: selected ? AppColors.champagneGold : AppColors.white,
-                fontSize: AppFontSizes.s10 * scale,
-                letterSpacing: 1.2 * scale,
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }
@@ -1329,17 +1389,105 @@ class _RingPainter extends CustomPainter {
       oldDelegate.progress != progress;
 }
 
+/// Draggable progress bar for the tutorial. While dragging it shows the
+/// chosen time; the video only moves when the finger is lifted.
+class _SeekBar extends StatefulWidget {
+  const _SeekBar({
+    required this.scale,
+    required this.position,
+    required this.total,
+    required this.onSeek,
+  });
+
+  final double scale;
+  final Duration position;
+  final Duration total;
+  final ValueChanged<Duration> onSeek;
+
+  @override
+  State<_SeekBar> createState() => _SeekBarState();
+}
+
+class _SeekBarState extends State<_SeekBar> {
+  double? _drag;
+
+  @override
+  Widget build(BuildContext context) {
+    final scale = widget.scale;
+    final total = widget.total.inMilliseconds.toDouble();
+    final max = total <= 0 ? 1.0 : total;
+    final live = widget.position.inMilliseconds.toDouble().clamp(0.0, max);
+    final value = _drag ?? live;
+    final labelStyle = AppTypography.footnote.copyWith(
+      color: AppColors.silver.withValues(alpha: 0.75),
+      fontSize: AppFontSizes.s9 * scale,
+      letterSpacing: 0.6 * scale,
+    );
+
+    return Column(
+      children: [
+        SliderTheme(
+          data: SliderTheme.of(context).copyWith(
+            trackHeight: 2.5 * scale,
+            activeTrackColor: AppColors.champagneGold80,
+            inactiveTrackColor: AppColors.champagneGold80.withValues(
+              alpha: 0.3,
+            ),
+            thumbColor: AppColors.champagneGold,
+            overlayColor: AppColors.champagneGold.withValues(alpha: 0.18),
+            trackShape: const RoundedRectSliderTrackShape(),
+            thumbShape: RoundSliderThumbShape(
+              enabledThumbRadius: 6.5 * scale,
+              elevation: 0,
+              pressedElevation: 0,
+            ),
+            overlayShape: RoundSliderOverlayShape(overlayRadius: 16 * scale),
+          ),
+          child: Slider(
+            value: value,
+            min: 0,
+            max: max,
+            onChangeStart: (v) => setState(() => _drag = v),
+            onChanged: (v) => setState(() => _drag = v),
+            onChangeEnd: (v) {
+              setState(() => _drag = null);
+              widget.onSeek(Duration(milliseconds: v.round()));
+            },
+            semanticFormatterCallback: (v) =>
+                formatMassageClock(Duration(milliseconds: v.round())),
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: AppSpacing.s8 * scale),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                formatMassageClock(Duration(milliseconds: value.round())),
+                style: labelStyle,
+              ),
+              Text(formatMassageClock(widget.total), style: labelStyle),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _ZoneTimeline extends StatelessWidget {
   const _ZoneTimeline({
     required this.scale,
     required this.zones,
     required this.activeIndex,
+    required this.reachedIndex,
     required this.onSelected,
   });
 
   final double scale;
   final List<MassageZone> zones;
   final int activeIndex;
+  final int reachedIndex;
   final ValueChanged<int> onSelected;
 
   @override
@@ -1367,6 +1515,7 @@ class _ZoneTimeline extends StatelessWidget {
                   name: l10n.massageZoneName(zone),
                   isActive: index == activeIndex,
                   isDone: index < activeIndex,
+                  isLocked: index > reachedIndex,
                   markerTop: markerTop,
                   onPressed: () => onSelected(index),
                 ),
@@ -1384,6 +1533,7 @@ class _ZoneStage extends StatelessWidget {
     required this.name,
     required this.isActive,
     required this.isDone,
+    required this.isLocked,
     required this.markerTop,
     required this.onPressed,
   });
@@ -1392,6 +1542,9 @@ class _ZoneStage extends StatelessWidget {
   final String name;
   final bool isActive;
   final bool isDone;
+
+  /// Not played yet: dimmed and not tappable, so the ritual is not skipped.
+  final bool isLocked;
   final double markerTop;
   final VoidCallback onPressed;
 
@@ -1402,54 +1555,58 @@ class _ZoneStage extends StatelessWidget {
 
     return Semantics(
       button: true,
+      enabled: !isLocked,
       selected: isActive,
       label: name,
       excludeSemantics: true,
       child: GestureDetector(
-        onTap: onPressed,
+        onTap: isLocked ? null : onPressed,
         behavior: HitTestBehavior.opaque,
-        child: Column(
-          children: [
-            SizedBox(height: markerTop),
-            Container(
-              width: marker,
-              height: marker,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: filled
-                    ? AppColors.champagneGold80
-                    : AppColors.darkIndigoBlue,
-                border: Border.all(
-                  color: AppColors.champagneGold80.withValues(
-                    alpha: filled ? 1 : 0.55,
+        child: Opacity(
+          opacity: isLocked ? 0.45 : 1,
+          child: Column(
+            children: [
+              SizedBox(height: markerTop),
+              Container(
+                width: marker,
+                height: marker,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: filled
+                      ? AppColors.champagneGold80
+                      : AppColors.darkIndigoBlue,
+                  border: Border.all(
+                    color: AppColors.champagneGold80.withValues(
+                      alpha: filled ? 1 : 0.55,
+                    ),
+                    width: 0.6,
                   ),
-                  width: 0.6,
-                ),
-                boxShadow: isActive
-                    ? [
-                        BoxShadow(
-                          color: AppColors.champagneGold.withValues(
-                            alpha: 0.55,
+                  boxShadow: isActive
+                      ? [
+                          BoxShadow(
+                            color: AppColors.champagneGold.withValues(
+                              alpha: 0.55,
+                            ),
+                            blurRadius: 8 * scale,
+                            spreadRadius: 1 * scale,
                           ),
-                          blurRadius: 8 * scale,
-                          spreadRadius: 1 * scale,
-                        ),
-                      ]
-                    : null,
+                        ]
+                      : null,
+                ),
               ),
-            ),
-            SizedBox(height: AppSpacing.s9 * scale),
-            Text(
-              name.toUpperCase(),
-              style: AppTypography.footnote.copyWith(
-                color: isActive
-                    ? AppColors.champagneGold80
-                    : AppColors.silver.withValues(alpha: 0.6),
-                fontSize: AppFontSizes.s7_5 * scale,
-                letterSpacing: 0.4 * scale,
+              SizedBox(height: AppSpacing.s9 * scale),
+              Text(
+                name.toUpperCase(),
+                style: AppTypography.footnote.copyWith(
+                  color: isActive
+                      ? AppColors.champagneGold80
+                      : AppColors.silver.withValues(alpha: 0.6),
+                  fontSize: AppFontSizes.s7_5 * scale,
+                  letterSpacing: 0.4 * scale,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -158,14 +158,22 @@ class _PhotoMirrorState extends State<PhotoMirror>
                 child: Container(
                   width: 44,
                   height: 44,
+                  // A marked golden glow so it reads as the thing to press.
+                  // Static on purpose: no endless animation.
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: _cameraFill,
-                    border: Border.all(color: _accentGold, width: 1.1),
+                    border: Border.all(color: AppColors.goldGlow, width: 1.6),
                     boxShadow: [
                       BoxShadow(
-                        color: _accentGold.withValues(alpha: 0.5),
-                        blurRadius: 6,
+                        color: _accentGold.withValues(alpha: 0.95),
+                        blurRadius: 12,
+                        spreadRadius: 2,
+                      ),
+                      BoxShadow(
+                        color: AppColors.goldGlow.withValues(alpha: 0.45),
+                        blurRadius: 26,
+                        spreadRadius: 6,
                       ),
                     ],
                   ),

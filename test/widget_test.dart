@@ -89,8 +89,8 @@ void main() {
     expect(find.text('Welcome Home'), findsOneWidget);
     expect(find.text('SIGN IN'), findsOneWidget);
 
-    await tester.ensureVisible(find.text('Create one'));
-    await tester.tap(find.text('Create one'));
+    await tester.ensureVisible(find.text('CREATE ACCOUNT'));
+    await tester.tap(find.text('CREATE ACCOUNT'));
     await tester.pumpAndSettle();
 
     expect(find.text('Create Your\nSanctuary'), findsOneWidget);
@@ -169,16 +169,15 @@ void main() {
 
     expect(find.text('THE MIRROR GARDEN'), findsOneWidget);
     expect(find.text('Capture your beginning.'), findsOneWidget);
-    expect(find.text('CONTINUE'), findsOneWidget);
+    expect(find.text('SKIP FOR NOW'), findsOneWidget);
 
-    await tester.ensureVisible(find.text('CONTINUE'));
-    await tester.tap(find.text('CONTINUE'));
-    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('SKIP FOR NOW'));
+    await tester.tap(find.text('SKIP FOR NOW'));
+    await _pumpReveal(tester);
 
-    expect(find.text('YOUR HIKARU JOURNEY'), findsOneWidget);
-    expect(find.text('HAS BEEN REVEALED'), findsOneWidget);
+    expect(find.text('Your Hikaru Journey Has Been Revealed'), findsOneWidget);
     expect(find.bySemanticsLabel('Assigned crystal JADE'), findsOneWidget);
-    expect(find.text('YOUR RECOMMENDED PROTOCOL'), findsOneWidget);
+    expect(find.text('Your Daily Ritual'), findsOneWidget);
     expect(find.text('ENTER MY HIKARU SANCTUARY'), findsOneWidget);
 
     await tester.ensureVisible(find.text('ENTER MY HIKARU SANCTUARY'));
@@ -203,6 +202,9 @@ class _WidgetBiometricGate implements BiometricGate {
 class _WidgetAuthGateway implements AuthGateway {
   @override
   Future<void> signOut() async {}
+
+  @override
+  Future<void> resendSignUpCode({required String username}) async {}
 
   @override
   Future<void> confirmSignUp({
@@ -237,4 +239,11 @@ class _WidgetAuthGateway implements AuthGateway {
     required String newPassword,
     required String confirmationCode,
   }) async {}
+}
+
+/// The reveal never settles: its cymatics move on purpose. Advance time instead.
+Future<void> _pumpReveal(WidgetTester tester) async {
+  for (var frame = 0; frame < 20; frame++) {
+    await tester.pump(const Duration(milliseconds: 100));
+  }
 }

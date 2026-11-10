@@ -122,7 +122,8 @@ class DiscoveryScreen extends StatelessWidget {
                           textAlign: TextAlign.center,
                           style: AppTypography.title.copyWith(
                             color: AppColors.white,
-                            fontWeight: FontWeight.w500,
+                            fontSize: AppFontSizes.s38,
+                            fontWeight: FontWeight.w600,
                             height: 1.2,
                             letterSpacing: 0.4,
                           ),
@@ -187,7 +188,7 @@ class _StepDivider extends StatelessWidget {
 class _DiscoveryStep extends StatelessWidget {
   const _DiscoveryStep({required this.data});
 
-  static const double _iconSize = 24;
+  static const double _iconSize = 28;
   static const double _iconColumn = 62;
   static const double _leadingInset = 36;
   static const double _trailingInset = 44;
@@ -230,6 +231,7 @@ class _DiscoveryStep extends StatelessWidget {
                   data.title,
                   style: AppTypography.bodyAccent.copyWith(
                     color: AppColors.champagneGold,
+                    fontSize: AppFontSizes.s10,
                     letterSpacing: 0.6,
                   ),
                 ),
@@ -238,7 +240,7 @@ class _DiscoveryStep extends StatelessWidget {
                   data.body,
                   style: AppTypography.body.copyWith(
                     color: AppColors.fog,
-                    fontSize: AppFontSizes.s10_5,
+                    fontSize: AppFontSizes.s12,
                     height: 1.55,
                     letterSpacing: 0.2,
                   ),

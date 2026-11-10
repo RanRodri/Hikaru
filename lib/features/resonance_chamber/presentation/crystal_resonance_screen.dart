@@ -3,12 +3,14 @@ import 'dart:math' as math;
 import 'dart:ui' show ImageFilter;
 
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/design_system/widgets/hikaru_back_button.dart';
 import '../../../core/audio/audio_report.dart';
 import '../../../core/design_system/tokens/app_colors.dart';
 import '../../../core/design_system/tokens/app_font_sizes.dart';
@@ -23,6 +25,10 @@ import '../../crystals/application/selected_crystal_controller.dart';
 import '../../crystals/domain/crystal.dart';
 import '../../crystals/presentation/crystal_texts.dart';
 import '../../journey/application/ritual_cycle_controller.dart';
+import '../../journey/domain/ritual_cycle.dart' show RitualStep;
+import '../../journey/presentation/ritual_celebration_dialog.dart';
+import '../../massage/domain/massage_ritual.dart';
+import '../../massage/presentation/massage_screen.dart';
 import '../../listening_room/application/journey_recommendation_controller.dart';
 import '../application/crystal_track_duration.dart';
 import '../data/crystal_audio_store.dart';
@@ -30,7 +36,6 @@ import '../data/crystal_tutorial_progress.dart';
 import '../data/cymatic_headphones_prompts.dart';
 import '../domain/cymatic_audio.dart';
 import 'crystal_cymatic_portrait.dart';
-import 'crystal_tutorial_player.dart';
 import 'cymatic_audio_loader.dart';
 import 'cymatic_plate.dart';
 import 'cymatic_projection.dart';
@@ -63,6 +68,10 @@ class _CrystalResonanceScreenState
 
   final AudioPlayer _player = AudioPlayer();
   final ValueNotifier<Duration> _position = ValueNotifier(Duration.zero);
+
+  /// Furthest point really played. The bar rewinds freely but never jumps
+  /// past this, so the frequency is listened to in full.
+  final ValueNotifier<Duration> _furthest = ValueNotifier(Duration.zero);
   final CymaticHeadphonesPrompts _prompts = CymaticHeadphonesPrompts(
     SharedPreferencesAsync(),
   );
@@ -101,9 +110,12 @@ class _CrystalResonanceScreenState
     );
     _positionSubscription = _player.onPositionChanged.listen((position) {
       _position.value = position;
+      if (_isPlaying && position > _furthest.value) {
+        _furthest.value = position;
+      }
     });
     _playerCompleteSubscription = _player.onPlayerComplete.listen((_) {
-      if (_projecting) unawaited(_finishResonance());
+      if (_projecting) unawaited(_finishResonance(trackEnded: true));
     });
     _loadEnvelope();
     unawaited(loadCymaticPlate(_crystal));
@@ -117,6 +129,7 @@ class _CrystalResonanceScreenState
     _positionSubscription.cancel();
     _playerCompleteSubscription.cancel();
     _position.dispose();
+    _furthest.dispose();
     _player.dispose();
     super.dispose();
   }
@@ -179,13 +192,14 @@ class _CrystalResonanceScreenState
     final token = ++_playbackToken;
     _followPlayerPause = false;
     _stopSimulatedClock(reset: true);
+    _position.value = Duration.zero;
+    _furthest.value = Duration.zero;
     setState(() {
       _phase = _ResonancePhase.projecting;
       _controlsVisible = false;
       _isPlaying = true;
       _isAudioUnavailable = false;
     });
-    unawaited(ref.read(ritualCycleControllerProvider.notifier).markFrequency());
     await _allowRotationImmersive();
     if (!mounted || token != _playbackToken) return;
     await _startFrequency(token);
@@ -208,9 +222,35 @@ class _CrystalResonanceScreenState
     await _stopPlayer('Cymatic stop');
   }
 
+  /// Share of the track that counts the crystal step as done when Stop is
+  /// pressed before the end.
+  static const double _frequencyDoneShare = 0.8;
+
+  /// Whether enough of the frequency played for today's crystal step. Read
+  /// before the clocks are reset.
+  bool _frequencyListenedEnough({required bool trackEnded}) {
+    if (trackEnded) return true;
+    final total = _envelope?.duration;
+    // Unknown length: Stop is the only way out, so it counts.
+    if (total == null || total == Duration.zero) return true;
+    // The furthest point counts: rewinding to repeat a part does not undo
+    // what was already listened to.
+    final played = _isAudioUnavailable
+        ? _simulatedClock.elapsed
+        : (_position.value > _furthest.value
+              ? _position.value
+              : _furthest.value);
+    return played.inMilliseconds >= total.inMilliseconds * _frequencyDoneShare;
+  }
+
   /// The track ended, or Stop was pressed: on to the closing screen.
-  Future<void> _finishResonance() async {
+  Future<void> _finishResonance({bool trackEnded = false}) async {
     if (!_projecting) return;
+    final listened = _frequencyListenedEnough(trackEnded: trackEnded);
+    final todayBefore = ref.read(todayRitualProvider);
+    final marking = listened
+        ? ref.read(ritualCycleControllerProvider.notifier).markFrequency()
+        : null;
     _playbackToken++;
     _followPlayerPause = false;
     _stopSimulatedClock(reset: true);
@@ -224,6 +264,23 @@ class _CrystalResonanceScreenState
     }
     await _restorePortraitChrome();
     await _stopPlayer('Cymatic finish');
+    if (marking == null) return;
+    try {
+      await marking;
+    } catch (_) {
+      // Kept on the device for the next sync; nothing to celebrate yet.
+      return;
+    }
+    if (!mounted) return;
+    // The closing screen already thanks the member; the dialog only appears
+    // when the crystal was the last step of the day.
+    await celebrateStep(
+      context,
+      ref,
+      step: RitualStep.crystal,
+      before: todayBefore,
+      onlyWhenDayCompletes: true,
+    );
   }
 
   Future<void> _stopPlayer(String action) async {
@@ -234,7 +291,14 @@ class _CrystalResonanceScreenState
     }
   }
 
+  /// A touch on the playing cymatic pauses it and shows the controls. While
+  /// paused, a touch only toggles the controls; PLAY resumes.
   void _handleSurfaceTap() {
+    if (_isPlaying) {
+      setState(() => _controlsVisible = true);
+      unawaited(_handleTogglePlayback());
+      return;
+    }
     setState(() => _controlsVisible = !_controlsVisible);
   }
 
@@ -309,13 +373,10 @@ class _CrystalResonanceScreenState
     final total = _envelope?.duration;
     if (total == null || total == Duration.zero) return;
     final remaining = total - _simulatedClock.elapsed;
-    _simulatedEnd = Timer(
-      remaining.isNegative ? Duration.zero : remaining,
-      () {
-        if (!mounted || token != _playbackToken) return;
-        unawaited(_finishResonance());
-      },
-    );
+    _simulatedEnd = Timer(remaining.isNegative ? Duration.zero : remaining, () {
+      if (!mounted || token != _playbackToken) return;
+      unawaited(_finishResonance(trackEnded: true));
+    });
   }
 
   void _stopSimulatedClock({bool reset = false}) {
@@ -328,7 +389,11 @@ class _CrystalResonanceScreenState
   Future<void> _handleTogglePlayback() async {
     if (_isAudioUnavailable) {
       final resuming = !_isPlaying;
-      setState(() => _isPlaying = resuming);
+      setState(() {
+        _isPlaying = resuming;
+        // Play hides the panel, like the rituals; pause keeps it up.
+        if (resuming) _controlsVisible = false;
+      });
       if (resuming) {
         _simulatedClock.start();
         _scheduleSimulatedEnd(_playbackToken);
@@ -350,13 +415,37 @@ class _CrystalResonanceScreenState
       return;
     }
     _followPlayerPause = false;
-    setState(() => _isPlaying = true);
+    setState(() {
+      _isPlaying = true;
+      // Play hides the panel, like the rituals; pause keeps it up.
+      _controlsVisible = false;
+    });
     try {
       await _player.resume();
     } catch (error, stackTrace) {
       reportAudioFailure('Cymatic resume', error, stackTrace);
       if (!mounted) return;
       _useSimulatedPlayback(_playbackToken);
+    }
+  }
+
+  /// Moves the frequency to [target]. Back is free; forward stops at the
+  /// furthest point already played, and never at the very end, so the
+  /// ritual still finishes by listening.
+  Future<void> _seekTo(Duration target) async {
+    if (_isAudioUnavailable) return;
+    final total = _envelope?.duration;
+    var bounded = target.isNegative ? Duration.zero : target;
+    if (bounded > _furthest.value) bounded = _furthest.value;
+    if (total != null) {
+      final lastSecond = total - const Duration(seconds: 1);
+      if (bounded > lastSecond) bounded = lastSecond;
+    }
+    _position.value = bounded;
+    try {
+      await _player.seek(bounded);
+    } catch (error, stackTrace) {
+      reportAudioFailure('Cymatic seek', error, stackTrace);
     }
   }
 
@@ -369,6 +458,10 @@ class _CrystalResonanceScreenState
     setState(() => _choosing = true);
     try {
       await ref.read(selectedCrystalProvider.notifier).select(_crystal);
+      // The 30-day cycle in progress continues with the new crystal.
+      await ref
+          .read(ritualCycleControllerProvider.notifier)
+          .changeCrystal(_crystal);
       if (!mounted) return;
       final l10n = AppLocalizations.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -391,11 +484,12 @@ class _CrystalResonanceScreenState
     context.go(AppRoutes.home);
   }
 
-  /// `go`, not `push`: the Library topic lives inside Home's shell branch.
-  /// Pushing it from this top-level route reserves that branch's Navigator
-  /// key a second time and crashes with `!keyReservation.contains(key)`.
+  /// Pushes the crystal's own Library route (a child of this screen's route),
+  /// so Back returns here. Pushing the Library tab's route from this
+  /// top-level route would reserve that branch's Navigator key a second time
+  /// and crash with `!keyReservation.contains(key)`.
   void _openLibrary() {
-    context.go(AppRoutes.libraryTopicFor(_crystal.name));
+    context.push(AppRoutes.crystalLibraryFor(_crystal.name));
   }
 
   void _handlePopBlocked() {
@@ -424,10 +518,11 @@ class _CrystalResonanceScreenState
         onLibrary: _openLibrary,
         onChoose: () => unawaited(_handleChooseCrystal()),
       ),
-      _ResonancePhase.tutorial => CrystalTutorialPlayer(
-        crystal: _crystal,
-        onContinueToResonance: () => unawaited(_beginResonance()),
-        onClose: _showOverview,
+      _ResonancePhase.tutorial => MassageScreen(
+        surface: MassageSurface.tutorial,
+        onBack: _showOverview,
+        onCompleted: () => _progress.markWatched(_crystal),
+        onContinue: () => unawaited(_beginResonance()),
       ),
       _ResonancePhase.projecting => _ProjectionStage(
         crystal: _crystal,
@@ -435,6 +530,10 @@ class _CrystalResonanceScreenState
         controlsVisible: _controlsVisible,
         envelope: _isAudioUnavailable ? null : _envelope,
         playbackPosition: _position,
+        furthestPosition: _furthest,
+        // Without real audio there is nothing to move through.
+        trackLength: _isAudioUnavailable ? null : _envelope?.duration,
+        onSeek: (target) => unawaited(_seekTo(target)),
         onSurfaceTap: _handleSurfaceTap,
         onTogglePlayback: _handleTogglePlayback,
         onStop: () => unawaited(_finishResonance()),
@@ -467,10 +566,8 @@ class _CrystalResonanceScreenState
           duration: reduceMotion ? Duration.zero : _phaseDuration,
           switchInCurve: Curves.easeOutCubic,
           switchOutCurve: Curves.easeIn,
-          layoutBuilder: (current, previous) => Stack(
-            fit: StackFit.expand,
-            children: [...previous, ?current],
-          ),
+          layoutBuilder: (current, previous) =>
+              Stack(fit: StackFit.expand, children: [...previous, ?current]),
           child: KeyedSubtree(
             key: ValueKey(_phase),
             child: _buildPhase(isSelected),
@@ -489,6 +586,9 @@ class _ProjectionStage extends StatelessWidget {
     required this.controlsVisible,
     required this.envelope,
     required this.playbackPosition,
+    required this.furthestPosition,
+    required this.trackLength,
+    required this.onSeek,
     required this.onSurfaceTap,
     required this.onTogglePlayback,
     required this.onStop,
@@ -501,6 +601,9 @@ class _ProjectionStage extends StatelessWidget {
   final bool controlsVisible;
   final CymaticEnvelope? envelope;
   final ValueNotifier<Duration> playbackPosition;
+  final ValueListenable<Duration> furthestPosition;
+  final Duration? trackLength;
+  final ValueChanged<Duration> onSeek;
   final VoidCallback onSurfaceTap;
   final VoidCallback onTogglePlayback;
   final VoidCallback onStop;
@@ -517,6 +620,9 @@ class _ProjectionStage extends StatelessWidget {
           controlsVisible: controlsVisible,
           envelope: envelope,
           playbackPosition: playbackPosition,
+          furthestPosition: furthestPosition,
+          trackLength: trackLength,
+          onSeek: onSeek,
           onSurfaceTap: onSurfaceTap,
           onTogglePlayback: onTogglePlayback,
           onStop: onStop,
@@ -619,7 +725,7 @@ class _CrystalOverview extends ConsumerWidget {
               children: [
                 Align(
                   alignment: Alignment.centerLeft,
-                  child: _BackButton(onPressed: onBack),
+                  child: HikaruBackButton(onPressed: onBack),
                 ),
                 _CrystalIntroduction(crystal: crystal, isSelected: isSelected),
               ],
@@ -888,39 +994,6 @@ class _QuietLink extends StatelessWidget {
   }
 }
 
-
-
-class _BackButton extends StatelessWidget {
-  const _BackButton({required this.onPressed});
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final label = AppLocalizations.of(context).commonBack;
-    return Semantics(
-      button: true,
-      label: label,
-      excludeSemantics: true,
-      child: TextButton(
-        onPressed: onPressed,
-        style: TextButton.styleFrom(
-          foregroundColor: AppColors.champagneGold,
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s8),
-        ),
-        child: Text(
-          label,
-          style: AppTypography.subheadline.copyWith(
-            color: AppColors.champagneGold,
-            fontSize: AppFontSizes.s11,
-            letterSpacing: 1.8,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 /// Small gold tag beside the temple when this is the user's crystal.
 class _YourCrystalChip extends StatelessWidget {
   const _YourCrystalChip({required this.crystal});
@@ -1118,29 +1191,90 @@ class _ResonanceCompletion extends ConsumerWidget {
               horizontal: AppSpacing.s24,
               vertical: AppSpacing.s8,
             ),
-            child: TextButton(
+            child: _LibraryInvitation(
+              title: l10n.resonanceExploreMeaning,
+              detail: whyLabel,
               onPressed: onWhy,
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.champagneGold,
-                minimumSize: Size.zero,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.s12,
-                  vertical: AppSpacing.s6,
-                ),
-              ),
-              child: Text(
-                whyLabel,
-                textAlign: TextAlign.center,
-                style: AppTypography.subheadline.copyWith(
-                  color: AppColors.champagneGold.withValues(alpha: 0.85),
-                  fontSize: AppFontSizes.s10,
-                  letterSpacing: 1.2,
-                ),
-              ),
             ),
           ),
           SizedBox(height: math.max(AppSpacing.s8, insets.bottom)),
         ],
+      ),
+    );
+  }
+}
+
+/// The suggestion that closes the ritual: a gold-edged card that opens the
+/// crystal's topic in the Library.
+class _LibraryInvitation extends StatelessWidget {
+  const _LibraryInvitation({
+    required this.title,
+    required this.detail,
+    required this.onPressed,
+  });
+
+  final String title;
+  final String detail;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: '$title. $detail',
+      excludeSemantics: true,
+      child: Material(
+        color: AppColors.champagneGold.withValues(alpha: 0.1),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadii.r16),
+          side: BorderSide(
+            color: AppColors.champagneGold.withValues(alpha: 0.55),
+          ),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onPressed,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.s16,
+              vertical: AppSpacing.s12,
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.auto_stories_outlined,
+                  size: 22,
+                  color: AppColors.champagneGold,
+                ),
+                const SizedBox(width: AppSpacing.s12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: AppTypography.headline.copyWith(
+                          color: AppColors.white,
+                          fontSize: AppFontSizes.s14,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.s2),
+                      Text(
+                        detail,
+                        style: AppTypography.body.copyWith(
+                          color: AppColors.champagneGold,
+                          fontSize: AppFontSizes.s11,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -10,6 +10,7 @@ import '../../../core/design_system/tokens/app_colors.dart';
 import '../../crystals/domain/crystal.dart';
 import '../domain/cymatic_audio.dart' show cymaticModeCount;
 import '../domain/cymatic_plate_profiles.g.dart';
+import 'cymatic_palette.dart';
 
 const String _plateShaderAsset = 'shaders/cymatic_plate.frag';
 
@@ -93,6 +94,7 @@ final class CymaticPlatePainter extends CustomPainter {
     required ui.Image lut,
     required this.visual,
     required this.profile,
+    required this.palette,
     this.reducedResolution = false,
     this.rasterScale = 1,
   }) : _shader = program.fragmentShader(),
@@ -103,6 +105,9 @@ final class CymaticPlatePainter extends CustomPainter {
   final ui.Image _lut;
   final CymaticPlateVisual visual;
   final CymaticPlateProfile profile;
+
+  /// The crystal's colors.
+  final CymaticPalette palette;
 
   /// Whether to render through a half-resolution offscreen target.
   final bool reducedResolution;
@@ -151,9 +156,9 @@ final class CymaticPlatePainter extends CustomPainter {
       ...profile.weights,
       visual.normInv,
       ..._rgb(AppColors.darkIndigoBlue),
-      ..._cycledRgb(AppColors.champagneGold, visual.colorProgress, 0),
-      ..._cycledRgb(AppColors.cymaticTurquoise, visual.colorProgress, 1 / 3),
-      ..._cycledRgb(AppColors.cymaticIndigoLight, visual.colorProgress, 2 / 3),
+      ..._cycledRgb(palette.primary, visual.colorProgress, 0),
+      ..._cycledRgb(palette.secondary, visual.colorProgress, 1 / 3),
+      ..._cycledRgb(palette.tertiary, visual.colorProgress, 2 / 3),
     ];
     assert(values.length == 54);
     for (final (index, value) in values.indexed) {
@@ -167,6 +172,7 @@ final class CymaticPlatePainter extends CustomPainter {
   bool shouldRepaint(CymaticPlatePainter oldDelegate) =>
       oldDelegate.visual != visual ||
       oldDelegate.profile != profile ||
+      oldDelegate.palette != palette ||
       oldDelegate.reducedResolution != reducedResolution ||
       oldDelegate.rasterScale != rasterScale ||
       oldDelegate._lut != _lut;
@@ -180,10 +186,12 @@ final class CymaticPlateFallbackPainter extends CustomPainter {
     required Listenable repaint,
     required this.visual,
     required this.profile,
+    required this.palette,
   }) : super(repaint: repaint);
 
   final CymaticPlateVisual visual;
   final CymaticPlateProfile profile;
+  final CymaticPalette palette;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -201,9 +209,7 @@ final class CymaticPlateFallbackPainter extends CustomPainter {
     final rings = 4 + profile.modes.where((mode) => mode == 0).length;
     for (var index = 1; index <= rings; index++) {
       final ringRadius = radius * index / (rings + 1);
-      final phaseColor = index.isEven
-          ? AppColors.cymaticTurquoise
-          : AppColors.cymaticIndigoLight;
+      final phaseColor = index.isEven ? palette.secondary : palette.tertiary;
       canvas.drawCircle(
         center,
         ringRadius,
@@ -218,7 +224,7 @@ final class CymaticPlateFallbackPainter extends CustomPainter {
         Paint()
           ..style = PaintingStyle.stroke
           ..strokeWidth = 0.7
-          ..color = AppColors.champagneGold.withValues(alpha: 0.8),
+          ..color = palette.primary.withValues(alpha: 0.8),
       );
     }
 
@@ -235,7 +241,7 @@ final class CymaticPlateFallbackPainter extends CustomPainter {
         Paint()
           ..style = PaintingStyle.stroke
           ..strokeWidth = 1.2
-          ..color = AppColors.champagneGold.withValues(alpha: 0.62),
+          ..color = palette.primary.withValues(alpha: 0.62),
       );
     }
     canvas.drawCircle(
@@ -250,7 +256,9 @@ final class CymaticPlateFallbackPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(CymaticPlateFallbackPainter oldDelegate) =>
-      oldDelegate.visual != visual || oldDelegate.profile != profile;
+      oldDelegate.visual != visual ||
+      oldDelegate.profile != profile ||
+      oldDelegate.palette != palette;
 }
 
 List<double> _rgb(Color color) => [color.r, color.g, color.b];

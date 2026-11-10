@@ -7,6 +7,7 @@ import 'package:flutter/scheduler.dart';
 import '../../crystals/domain/crystal.dart';
 import '../domain/cymatic_audio.dart';
 import '../domain/cymatic_plate_profiles.g.dart';
+import 'cymatic_palette.dart';
 import 'cymatic_plate.dart';
 
 /// Crystal-specific Chladni plate signature generated from its four partials.
@@ -356,6 +357,7 @@ class CymaticSignatureState extends State<CymaticSignature>
             repaint: repaint,
             visual: _visual,
             profile: profile,
+            palette: widget.crystal.cymaticPalette,
           )
         : CymaticPlatePainter(
             repaint: repaint,
@@ -363,6 +365,7 @@ class CymaticSignatureState extends State<CymaticSignature>
             lut: resources.lut,
             visual: _visual,
             profile: profile,
+            palette: widget.crystal.cymaticPalette,
             reducedResolution: lowResolution,
             rasterScale: lowResolution ? mediaQuery.devicePixelRatio * 0.5 : 1,
           );

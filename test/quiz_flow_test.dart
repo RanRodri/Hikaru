@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hikaru/core/design_system/widgets/hikaru_back_button.dart';
 import 'package:hikaru/core/design_system/theme/app_theme.dart';
 import 'package:hikaru/core/design_system/tokens/app_colors.dart';
 import 'package:hikaru/core/router/app_routes.dart';
@@ -83,7 +84,7 @@ void main() {
 
       expect(find.text('02 / 10'), findsOneWidget);
 
-      await tester.tap(find.text('BACK'));
+      await tester.tap(find.byType(HikaruBackButton));
       await tester.pumpAndSettle();
       expect(find.text('01 / 10'), findsOneWidget);
       expect(find.text('Deeply hydrate'), findsOneWidget);
@@ -253,7 +254,7 @@ void main() {
       {QuizOptionIds.q1DeeplyHydrate},
     );
 
-    await tester.tap(find.text('BACK'));
+    await tester.tap(find.byType(HikaruBackButton));
     await tester.pumpAndSettle();
     expect(find.text('01 / 10'), findsOneWidget);
 

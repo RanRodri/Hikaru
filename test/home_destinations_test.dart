@@ -1,10 +1,11 @@
-﻿import 'dart:math' as math;
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hikaru/core/design_system/widgets/hikaru_back_button.dart';
 import 'package:hikaru/core/design_system/theme/app_theme.dart';
 import 'package:hikaru/features/crystals/application/selected_crystal_controller.dart';
 import 'package:hikaru/features/crystals/domain/crystal.dart';
@@ -150,7 +151,7 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
     expect(find.text(paused.data!), findsOneWidget);
 
-    await tester.tap(find.text('BACK'));
+    await tester.tap(find.byType(HikaruBackButton));
     await tester.pumpAndSettle();
     expect(find.text('THE HARMONY GARDEN'), findsOneWidget);
   });
@@ -261,7 +262,7 @@ void main() {
     expect(_sheetTop(tester), greaterThan(800));
     expect(_crystalOpacity(tester), 0);
 
-    await tester.tap(find.text('BACK'));
+    await tester.tap(find.byType(HikaruBackButton));
     await tester.pumpAndSettle();
 
     await tester.tap(find.bySemanticsLabel('Hikaru Ritual Body'));
@@ -290,7 +291,7 @@ void main() {
     expect(_crystalOpacity(tester), closeTo(0, 0.001));
     expect(find.bySemanticsLabel(RegExp('Ritual video')), findsOneWidget);
 
-    await tester.tap(find.text('BACK'));
+    await tester.tap(find.byType(HikaruBackButton));
     await tester.pumpAndSettle();
     expect(find.text('THE HARMONY GARDEN'), findsOneWidget);
   });
@@ -310,7 +311,7 @@ void main() {
       await tester.tap(find.bySemanticsLabel(label));
       await tester.pumpAndSettle();
       expect(find.textContaining(heading), findsWidgets);
-      await tester.tap(find.text('BACK'));
+      await tester.tap(find.byType(HikaruBackButton));
       await tester.pumpAndSettle();
       expect(find.text('LIBRARY'), findsOneWidget);
     }
@@ -358,7 +359,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining('Temple of Illumination'), findsWidgets);
 
-    await tester.tap(find.text('BACK'));
+    await tester.tap(find.byType(HikaruBackButton));
     await tester.pumpAndSettle();
     expect(find.text('LIBRARY'), findsOneWidget);
   });

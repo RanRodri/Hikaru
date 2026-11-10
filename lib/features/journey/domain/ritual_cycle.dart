@@ -8,34 +8,76 @@ const int ritualCycleLength = 30;
 DateTime dateOnly(DateTime moment) =>
     DateTime(moment.year, moment.month, moment.day);
 
-/// What the member has finished today: Merkaba, massage, and the frequency.
+/// The four steps of the daily ritual, in the order they are done.
+enum RitualStep { merkaba, facial, body, crystal }
+
+/// What the member has finished today: Merkaba, the facial and body rituals,
+/// and the crystal with its frequency.
 class DailyRitualFlags {
   const DailyRitualFlags({
     this.merkaba = false,
-    this.massage = false,
+    this.facial = false,
+    this.body = false,
     this.frequency = false,
   });
 
   static const DailyRitualFlags none = DailyRitualFlags();
 
   final bool merkaba;
-  final bool massage;
+  final bool facial;
+  final bool body;
   final bool frequency;
+
+  /// Both massages, the single flag older backends and app versions know.
+  bool get massage => facial && body;
 
   /// The frequency opens once the body has been prepared.
   bool get frequencyUnlocked => merkaba && massage;
 
-  bool get completed => merkaba && massage && frequency;
+  bool get completed => merkaba && facial && body && frequency;
 
-  DailyRitualFlags copyWith({bool? merkaba, bool? massage, bool? frequency}) =>
-      DailyRitualFlags(
-        merkaba: merkaba ?? this.merkaba,
-        massage: massage ?? this.massage,
-        frequency: frequency ?? this.frequency,
-      );
+  /// Nothing done at all.
+  bool get isEmpty => !merkaba && !facial && !body && !frequency;
+
+  bool isDone(RitualStep step) => switch (step) {
+    RitualStep.merkaba => merkaba,
+    RitualStep.facial => facial,
+    RitualStep.body => body,
+    RitualStep.crystal => frequency,
+  };
+
+  /// Steps still waiting today, in ritual order.
+  List<RitualStep> get pending => [
+    for (final step in RitualStep.values)
+      if (!isDone(step)) step,
+  ];
+
+  int get doneCount => RitualStep.values.length - pending.length;
+
+  DailyRitualFlags copyWith({
+    bool? merkaba,
+    bool? facial,
+    bool? body,
+    bool? frequency,
+  }) => DailyRitualFlags(
+    merkaba: merkaba ?? this.merkaba,
+    facial: facial ?? this.facial,
+    body: body ?? this.body,
+    frequency: frequency ?? this.frequency,
+  );
+
+  /// Either side done counts as done.
+  DailyRitualFlags union(DailyRitualFlags other) => DailyRitualFlags(
+    merkaba: merkaba || other.merkaba,
+    facial: facial || other.facial,
+    body: body || other.body,
+    frequency: frequency || other.frequency,
+  );
 
   Map<String, Object?> toJson() => {
     'merkaba': merkaba,
+    'facial': facial,
+    'body': body,
     'massage': massage,
     'frequency': frequency,
   };
@@ -44,20 +86,54 @@ class DailyRitualFlags {
   bool operator ==(Object other) =>
       other is DailyRitualFlags &&
       other.merkaba == merkaba &&
-      other.massage == massage &&
+      other.facial == facial &&
+      other.body == body &&
       other.frequency == frequency;
 
   @override
-  int get hashCode => Object.hash(merkaba, massage, frequency);
+  int get hashCode => Object.hash(merkaba, facial, body, frequency);
 
+  /// Reads the device copy. Copies saved before facial and body were split
+  /// only have `massage`, which meant both were done.
   static DailyRitualFlags fromJson(Object? json) {
     if (json is! Map) return none;
+    final legacyMassage = json['massage'] == true;
     return DailyRitualFlags(
       merkaba: json['merkaba'] == true,
-      massage: json['massage'] == true,
+      facial: json.containsKey('facial')
+          ? json['facial'] == true
+          : legacyMassage,
+      body: json.containsKey('body') ? json['body'] == true : legacyMassage,
       frequency: json['frequency'] == true,
     );
   }
+
+  /// Reads a backend `DailyRitual` row. Rows written before the split have
+  /// no facial or body value; their `isMassageDone` meant both were done.
+  static DailyRitualFlags fromRow(Map<String, dynamic> row) {
+    final legacyMassage = row['isMassageDone'] == true;
+    final facial = row['isFacialDone'];
+    final body = row['isBodyDone'];
+    return DailyRitualFlags(
+      merkaba: row['isMerkabahDone'] == true,
+      facial: facial is bool ? facial : legacyMassage,
+      body: body is bool ? body : legacyMassage,
+      frequency: row['isFrequencyDone'] == true,
+    );
+  }
+}
+
+/// What was done on one day of a cycle.
+class RitualDay {
+  const RitualDay({
+    required this.dayNumber,
+    required this.date,
+    required this.flags,
+  });
+
+  final int dayNumber;
+  final DateTime date;
+  final DailyRitualFlags flags;
 }
 
 /// One 30-day journey with a crystal.
@@ -69,6 +145,8 @@ class RitualCycle {
     required this.isActive,
     required this.streak,
     this.lastCompletedDate,
+    this.completedAt,
+    this.completedDays,
   });
 
   final String id;
@@ -76,10 +154,16 @@ class RitualCycle {
   final Crystal crystal;
   final bool isActive;
 
-  /// Consecutive days with the three rituals done, ending on
+  /// Consecutive days with the full ritual done, ending on
   /// [lastCompletedDate].
   final int streak;
   final DateTime? lastCompletedDate;
+
+  /// When the member closed the cycle by choosing what comes next.
+  final DateTime? completedAt;
+
+  /// Days with the full ritual done, saved when the cycle was closed.
+  final int? completedDays;
 
   /// Streak after completing [today]: continues from yesterday, else restarts.
   int streakAfterCompleting(DateTime today) {
@@ -88,6 +172,24 @@ class RitualCycle {
     final gap = dateOnly(today).difference(last).inDays;
     if (gap == 0) return streak;
     return gap == 1 ? streak + 1 : 1;
+  }
+
+  /// The streak as it stands on [today]. A day missed since the last full
+  /// ritual breaks it, even before the next completion recalculates it.
+  int streakOn(DateTime today) {
+    final last = lastCompletedDate;
+    if (last == null) return 0;
+    final gap = dateOnly(today).difference(last).inDays;
+    return gap <= 1 ? streak : 0;
+  }
+
+  /// The 30 days are over, or the last day's ritual is done, and the member
+  /// has not yet chosen how to continue.
+  bool awaitingClosureOn(DateTime today, {required bool todayCompleted}) {
+    if (!isActive) return false;
+    final date = dateOnly(today);
+    if (date.isAfter(endDate)) return true;
+    return date == endDate && todayCompleted;
   }
 
   DateTime get endDate =>
@@ -104,16 +206,21 @@ class RitualCycle {
       isActive && !dateOnly(today).isAfter(endDate);
 
   RitualCycle copyWith({
+    Crystal? crystal,
     bool? isActive,
     int? streak,
     DateTime? lastCompletedDate,
+    DateTime? completedAt,
+    int? completedDays,
   }) => RitualCycle(
     id: id,
     startDate: startDate,
-    crystal: crystal,
+    crystal: crystal ?? this.crystal,
     isActive: isActive ?? this.isActive,
     streak: streak ?? this.streak,
     lastCompletedDate: lastCompletedDate ?? this.lastCompletedDate,
+    completedAt: completedAt ?? this.completedAt,
+    completedDays: completedDays ?? this.completedDays,
   );
 
   Map<String, Object?> toJson() => {
@@ -125,6 +232,8 @@ class RitualCycle {
     'lastCompletedDate': lastCompletedDate == null
         ? null
         : isoDate(lastCompletedDate!),
+    'completedAt': completedAt?.toUtc().toIso8601String(),
+    'completedDays': completedDays,
   };
 
   static RitualCycle? fromJson(Object? json) {
@@ -135,6 +244,7 @@ class RitualCycle {
     if (id is! String || start == null || crystal == null) return null;
     final streak = json['streak'];
     final lastCompleted = DateTime.tryParse('${json['lastCompletedDate']}');
+    final completedDays = json['completedDays'];
     return RitualCycle(
       id: id,
       startDate: dateOnly(start),
@@ -142,6 +252,8 @@ class RitualCycle {
       isActive: json['isActive'] == true,
       streak: streak is int ? streak : 0,
       lastCompletedDate: lastCompleted == null ? null : dateOnly(lastCompleted),
+      completedAt: DateTime.tryParse('${json['completedAt']}'),
+      completedDays: completedDays is int ? completedDays : null,
     );
   }
 }
@@ -188,7 +300,7 @@ class CycleProgress {
     return JourneyProgress(
       currentDay: open.dayNumber(now),
       cycleLength: ritualCycleLength,
-      streak: open.streak,
+      streak: open.streakOn(now),
     );
   }
 

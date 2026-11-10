@@ -21,7 +21,9 @@ import '../../mirror_garden/presentation/face_camera_screen.dart';
 import '../application/reflection_photo_controller.dart';
 import '../application/ritual_cycle_controller.dart';
 import '../domain/reflection_photo.dart';
+import '../domain/ritual_cycle.dart';
 import 'progress_photos_screen.dart';
+import 'ritual_history_screen.dart';
 
 final TextStyle _cardText = AppTypography.headline.copyWith(
   color: AppColors.white,
@@ -323,67 +325,73 @@ class DailyStreakCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final progress = ref.watch(journeyProgressProvider);
+    final history = ref.watch(cycleHistoryProvider).value;
     return _JourneyCard(
-      child: Column(
-        children: [
-          _CardHeading(
-            icon: 'assets/images/journey_sun.svg',
-            label: l10n.journeyStreakTitle,
-            trailing: Row(
-              children: [
-                SvgPicture.asset(
-                  'assets/images/journey_flame.svg',
-                  width: 16,
-                  height: 16,
-                  excludeFromSemantics: true,
-                ),
-                const SizedBox(width: AppSpacing.s6),
-                Text(
-                  '${progress.streak} / ${progress.cycleLength}',
-                  style: _cardText.copyWith(
-                    fontSize: AppFontSizes.s18,
-                    height: 1,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => openRitualHistory(context),
+        child: Column(
+          children: [
+            _CardHeading(
+              icon: 'assets/images/journey_sun.svg',
+              label: l10n.journeyStreakTitle,
+              trailing: Row(
+                children: [
+                  SvgPicture.asset(
+                    'assets/images/journey_flame.svg',
+                    width: 16,
+                    height: 16,
+                    excludeFromSemantics: true,
                   ),
-                ),
-                const SizedBox(width: AppSpacing.s8),
-                Text(l10n.journeyStreakDaysInARow, style: _mutedText),
-              ],
+                  const SizedBox(width: AppSpacing.s6),
+                  Text(
+                    '${progress.streak} / ${progress.cycleLength}',
+                    style: _cardText.copyWith(
+                      fontSize: AppFontSizes.s18,
+                      height: 1,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.s8),
+                  Text(l10n.journeyStreakDaysInARow, style: _mutedText),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: AppSpacing.s10),
-          Container(
-            height: 0.4,
-            color: AppColors.champagneGold60.withValues(alpha: 0.7),
-          ),
-          const SizedBox(height: AppSpacing.s10),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final daySize =
-                  (constraints.maxWidth - _dayGap * (_daysPerRow - 1)) /
-                  _daysPerRow;
+            const SizedBox(height: AppSpacing.s10),
+            Container(
+              height: 0.4,
+              color: AppColors.champagneGold60.withValues(alpha: 0.7),
+            ),
+            const SizedBox(height: AppSpacing.s10),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final daySize =
+                    (constraints.maxWidth - _dayGap * (_daysPerRow - 1)) /
+                    _daysPerRow;
 
-              return Semantics(
-                label: l10n.commonDayOfTotal(
-                  progress.currentDay,
-                  progress.cycleLength,
-                ),
-                excludeSemantics: true,
-                child: Wrap(
-                  spacing: _dayGap,
-                  runSpacing: 8,
-                  children: [
-                    for (var day = 1; day <= progress.cycleLength; day++)
-                      _DayDot(
-                        day: day,
-                        currentDay: progress.currentDay,
-                        size: daySize,
-                      ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ],
+                return Semantics(
+                  label: l10n.commonDayOfTotal(
+                    progress.currentDay,
+                    progress.cycleLength,
+                  ),
+                  excludeSemantics: true,
+                  child: Wrap(
+                    spacing: _dayGap,
+                    runSpacing: 8,
+                    children: [
+                      for (var day = 1; day <= progress.cycleLength; day++)
+                        _DayDot(
+                          day: day,
+                          currentDay: progress.currentDay,
+                          flags: history?.on(day) ?? DailyRitualFlags.none,
+                          size: daySize,
+                        ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -393,16 +401,21 @@ class _DayDot extends StatelessWidget {
   const _DayDot({
     required this.day,
     required this.currentDay,
+    required this.flags,
     required this.size,
   });
 
   final int day;
   final int currentDay;
+
+  /// What was really done that day, from the cycle history.
+  final DailyRitualFlags flags;
   final double size;
 
   @override
   Widget build(BuildContext context) {
-    final isCompleted = day < currentDay;
+    final isCompleted = day <= currentDay && flags.completed;
+    final isPartial = day <= currentDay && !flags.completed && !flags.isEmpty;
     final isToday = day == currentDay;
 
     return Container(
@@ -411,7 +424,11 @@ class _DayDot extends StatelessWidget {
       alignment: Alignment.center,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: isCompleted ? AppColors.champagneGold : null,
+        color: isCompleted
+            ? AppColors.champagneGold
+            : isPartial
+            ? AppColors.champagneGold.withValues(alpha: 0.3)
+            : null,
         border: Border.all(
           color: isToday
               ? AppColors.champagneGold40

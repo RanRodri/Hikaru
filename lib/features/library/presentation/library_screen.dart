@@ -4,9 +4,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/tokens/app_colors.dart';
 import '../../../core/design_system/tokens/app_spacing.dart';
+import '../../../core/design_system/widgets/hikaru_header.dart';
 import '../../../core/design_system/widgets/hikaru_navigation_bar.dart';
 import '../../../core/design_system/widgets/hikaru_page_intro.dart';
 import '../../../core/design_system/widgets/hikaru_scroll_page.dart';
+import '../../../core/design_system/widgets/hikaru_shell.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../crystals/domain/crystal.dart';
@@ -19,18 +21,47 @@ const String libraryBackgroundAsset = 'assets/images/library.png';
 class LibraryScreen extends StatelessWidget {
   const LibraryScreen({super.key});
 
+  /// Rough height of the title block (title, subtitle and divider).
+  static const double _introHeight = 80;
+
+  /// Extra gap that lowers the constellation so it sits slightly above the
+  /// middle of the free space, never pushing it past [_maxLowering].
+  static const double _loweringShare = 0.5;
+  static const double _maxLowering = 160;
+
+  double _lowering(BuildContext context) {
+    final media = MediaQuery.of(context);
+    final shellScale = media.size.width / HikaruShell.designWidth;
+    final constellationScale =
+        (media.size.width - 2 * HikaruScrollPage.horizontalPadding) /
+        _CollectionsConstellation.designSize.width;
+    final used =
+        media.padding.top +
+        HikaruHeader.height * shellScale +
+        AppSpacing.s8 +
+        _introHeight +
+        AppSpacing.s14 +
+        _CollectionsConstellation.designSize.height * constellationScale +
+        HikaruNavigationBar.height +
+        media.padding.bottom +
+        AppSpacing.s20;
+    final free = media.size.height - used;
+    return (free * _loweringShare).clamp(0, _maxLowering).toDouble();
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return HikaruScrollPage(
       active: HikaruDestination.library,
       backgroundAsset: libraryBackgroundAsset,
+      dimBackground: true,
       children: [
         HikaruPageIntro(
           title: l10n.libraryTitle,
           subtitle: l10n.librarySubtitle,
         ),
-        const SizedBox(height: AppSpacing.s14),
+        SizedBox(height: AppSpacing.s14 + _lowering(context)),
         _CollectionsConstellation(
           onOpen: (id) => context.push(AppRoutes.libraryTopicFor(id)),
         ),
@@ -53,7 +84,7 @@ class _CollectionsConstellation extends StatelessWidget {
 
   final ValueChanged<String> onOpen;
 
-  static const Size _designSize = Size(346, 356);
+  static const Size designSize = Size(346, 356);
   static const Offset _center = Offset(173, 185);
   static const double _orbitRadius = 125;
 
@@ -61,7 +92,7 @@ class _CollectionsConstellation extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final scale = constraints.maxWidth / _designSize.width;
+        final scale = constraints.maxWidth / designSize.width;
 
         Widget place(Rect rect, Widget child) => Positioned(
           left: rect.left * scale,
@@ -72,7 +103,7 @@ class _CollectionsConstellation extends StatelessWidget {
         );
 
         return SizedBox(
-          height: _designSize.height * scale,
+          height: designSize.height * scale,
           child: Stack(
             children: [
               place(
@@ -101,7 +132,6 @@ class _CollectionsConstellation extends StatelessWidget {
     );
   }
 }
-
 
 class _LightCenter extends StatelessWidget {
   const _LightCenter();

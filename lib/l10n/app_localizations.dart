@@ -248,6 +248,30 @@ abstract class AppLocalizations {
   /// **'EVERY RITUAL BEGINS WITH INTENTION.\nYOU DESERVE THIS MOMENT.'**
   String get ritualFooter;
 
+  /// Title shown in the in-app store browser header.
+  ///
+  /// In en, this message translates to:
+  /// **'HIKARU STORE'**
+  String get storeTitle;
+
+  /// Accessibility label for the button that closes the in-app store.
+  ///
+  /// In en, this message translates to:
+  /// **'Close store'**
+  String get storeClose;
+
+  /// Message shown when the store page fails to load.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t reach the store. Check your connection and try again.'**
+  String get storeLoadError;
+
+  /// Button to retry loading the store page.
+  ///
+  /// In en, this message translates to:
+  /// **'TRY AGAIN'**
+  String get storeRetry;
+
   /// No description provided for @authEmailLabel.
   ///
   /// In en, this message translates to:
@@ -380,6 +404,30 @@ abstract class AppLocalizations {
   /// **'Enter the code'**
   String get confirmSignUpErrorCode;
 
+  /// No description provided for @confirmSignUpResend.
+  ///
+  /// In en, this message translates to:
+  /// **'RESEND CODE'**
+  String get confirmSignUpResend;
+
+  /// Disabled resend button while the wait runs. time is m:ss.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend code in {time}'**
+  String confirmSignUpResendIn(String time);
+
+  /// No description provided for @confirmSignUpResent.
+  ///
+  /// In en, this message translates to:
+  /// **'We sent you a new code.'**
+  String get confirmSignUpResent;
+
+  /// No description provided for @confirmSignUpTooMany.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts. Wait a few minutes and try again.'**
+  String get confirmSignUpTooMany;
+
   /// No description provided for @authShowPassword.
   ///
   /// In en, this message translates to:
@@ -404,12 +452,6 @@ abstract class AppLocalizations {
   /// **'YOUR JOURNEY TO RADIANT SKIN'**
   String get loginSubtitle;
 
-  /// No description provided for @loginRememberMe.
-  ///
-  /// In en, this message translates to:
-  /// **'Remember me'**
-  String get loginRememberMe;
-
   /// No description provided for @loginForgotPassword.
   ///
   /// In en, this message translates to:
@@ -422,23 +464,23 @@ abstract class AppLocalizations {
   /// **'SIGN IN'**
   String get loginSignIn;
 
+  /// No description provided for @loginSessionExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Your session has ended. Sign in again to continue; your progress on this phone is kept.'**
+  String get loginSessionExpired;
+
   /// No description provided for @loginOr.
   ///
   /// In en, this message translates to:
   /// **'or'**
   String get loginOr;
 
-  /// No description provided for @loginNoAccount.
+  /// No description provided for @loginCreateAccount.
   ///
   /// In en, this message translates to:
-  /// **'Don\'t have a sanctuary? '**
-  String get loginNoAccount;
-
-  /// No description provided for @loginCreateOne.
-  ///
-  /// In en, this message translates to:
-  /// **'Create one'**
-  String get loginCreateOne;
+  /// **'CREATE ACCOUNT'**
+  String get loginCreateAccount;
 
   /// No description provided for @registerTitle.
   ///
@@ -619,6 +661,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign in'**
   String get resetSignIn;
+
+  /// No description provided for @resetNoAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t have an account? '**
+  String get resetNoAccount;
+
+  /// No description provided for @resetCreateAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Create account'**
+  String get resetCreateAccount;
 
   /// No description provided for @commonBack.
   ///
@@ -1133,7 +1187,7 @@ abstract class AppLocalizations {
   /// No description provided for @mirrorGardenHint.
   ///
   /// In en, this message translates to:
-  /// **'Take a photo to create a personal record of your 30-day Hikaru journey and observe your skin\'s evolution over time.\nEvery moment begins with a moment of awareness.\nYour photo is for your personal reflection.'**
+  /// **'Take a photo to create a personal record of your 30-day Hikaru journey and observe your skin\'s evolution over time.\nYour photo is for your personal reflection.'**
   String get mirrorGardenHint;
 
   /// No description provided for @mirrorTakePhoto.
@@ -1187,13 +1241,13 @@ abstract class AppLocalizations {
   /// No description provided for @resonanceRevealTitle.
   ///
   /// In en, this message translates to:
-  /// **'YOUR HIKARU JOURNEY'**
+  /// **'Your Hikaru Journey'**
   String get resonanceRevealTitle;
 
   /// No description provided for @resonanceRevealSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'HAS BEEN REVEALED'**
+  /// **'Has Been Revealed'**
   String get resonanceRevealSubtitle;
 
   /// No description provided for @resonanceMissingCrystal.
@@ -1255,6 +1309,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Temple'**
   String get resonanceProtocolTemple;
+
+  /// No description provided for @resonanceProtocolHeadline.
+  ///
+  /// In en, this message translates to:
+  /// **'This Is Your Protocol\nFor The Next 30 Days'**
+  String get resonanceProtocolHeadline;
+
+  /// No description provided for @resonanceCrystalTouchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Touch the crystal to feel its light'**
+  String get resonanceCrystalTouchHint;
+
+  /// No description provided for @resonanceDailyRitual.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Daily Ritual'**
+  String get resonanceDailyRitual;
+
+  /// No description provided for @resonanceStepMerkaba.
+  ///
+  /// In en, this message translates to:
+  /// **'Merkaba'**
+  String get resonanceStepMerkaba;
+
+  /// No description provided for @resonanceStepMerkabaDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'5 min'**
+  String get resonanceStepMerkabaDetail;
+
+  /// No description provided for @resonanceStepFacial.
+  ///
+  /// In en, this message translates to:
+  /// **'Facial ritual'**
+  String get resonanceStepFacial;
+
+  /// No description provided for @resonanceStepBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Body ritual'**
+  String get resonanceStepBody;
+
+  /// No description provided for @resonanceStepCrystal.
+  ///
+  /// In en, this message translates to:
+  /// **'Crystal & cymatics'**
+  String get resonanceStepCrystal;
+
+  /// No description provided for @resonanceStepCrystalDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Crystal Roller'**
+  String get resonanceStepCrystalDetail;
 
   /// No description provided for @resonanceEnterSanctuary.
   ///
@@ -1585,6 +1693,336 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your Journey Begins Within'**
   String get homeGardenSubtitle;
+
+  /// No description provided for @ritualStepMerkaba.
+  ///
+  /// In en, this message translates to:
+  /// **'Merkaba'**
+  String get ritualStepMerkaba;
+
+  /// No description provided for @ritualStepFacial.
+  ///
+  /// In en, this message translates to:
+  /// **'Facial ritual'**
+  String get ritualStepFacial;
+
+  /// No description provided for @ritualStepBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Body ritual'**
+  String get ritualStepBody;
+
+  /// No description provided for @ritualStepCrystal.
+  ///
+  /// In en, this message translates to:
+  /// **'Crystal & cymatics'**
+  String get ritualStepCrystal;
+
+  /// No description provided for @homeProgressCongrats.
+  ///
+  /// In en, this message translates to:
+  /// **'Congratulations, you reached day {day}!'**
+  String homeProgressCongrats(int day);
+
+  /// No description provided for @homeProgressDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Day {day} of {total}'**
+  String homeProgressDay(int day, int total);
+
+  /// No description provided for @homeProgressPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Still waiting for you today:'**
+  String get homeProgressPending;
+
+  /// No description provided for @homeProgressPendingStepSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending today: {step}'**
+  String homeProgressPendingStepSemantics(String step);
+
+  /// No description provided for @celebrationStepTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Well done'**
+  String get celebrationStepTitle;
+
+  /// No description provided for @celebrationStepBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed today: {step}.'**
+  String celebrationStepBody(String step);
+
+  /// No description provided for @celebrationNextStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Next: {step}'**
+  String celebrationNextStep(String step);
+
+  /// No description provided for @celebrationDayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s ritual is complete'**
+  String get celebrationDayTitle;
+
+  /// No description provided for @celebrationDayBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Congratulations, you completed day {day} of {total}. Your light grows a little more every day.'**
+  String celebrationDayBody(int day, int total);
+
+  /// No description provided for @celebrationContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'CONTINUE'**
+  String get celebrationContinue;
+
+  /// No description provided for @celebrationLibraryEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'FROM THE LIBRARY'**
+  String get celebrationLibraryEyebrow;
+
+  /// No description provided for @celebrationLibraryMerkaba.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore the meaning of the Merkaba'**
+  String get celebrationLibraryMerkaba;
+
+  /// No description provided for @celebrationLibraryFacial.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover the science behind your facial ritual'**
+  String get celebrationLibraryFacial;
+
+  /// No description provided for @celebrationLibraryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover how your body ritual works'**
+  String get celebrationLibraryBody;
+
+  /// No description provided for @celebrationLibraryCrystal.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore the meaning of your crystal'**
+  String get celebrationLibraryCrystal;
+
+  /// No description provided for @homeProgressDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s ritual is complete.'**
+  String get homeProgressDone;
+
+  /// No description provided for @homeProgressStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day in a row} other{{count} days in a row}}'**
+  String homeProgressStreak(int count);
+
+  /// No description provided for @homeProgressSeeHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'SEE HISTORY'**
+  String get homeProgressSeeHistory;
+
+  /// No description provided for @homeThanks1.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you for showing up for yourself today.'**
+  String get homeThanks1;
+
+  /// No description provided for @homeThanks2.
+  ///
+  /// In en, this message translates to:
+  /// **'Your light grew a little more today. Rest well.'**
+  String get homeThanks2;
+
+  /// No description provided for @homeThanks3.
+  ///
+  /// In en, this message translates to:
+  /// **'Every ritual is an act of self-love. Well done.'**
+  String get homeThanks3;
+
+  /// No description provided for @homeThanks4.
+  ///
+  /// In en, this message translates to:
+  /// **'Your skin and your energy thank you. See you tomorrow.'**
+  String get homeThanks4;
+
+  /// No description provided for @homeThanks5.
+  ///
+  /// In en, this message translates to:
+  /// **'Consistency is your glow. Keep shining.'**
+  String get homeThanks5;
+
+  /// No description provided for @homeThanksWeekOne.
+  ///
+  /// In en, this message translates to:
+  /// **'One week of rituals. Your new habit is taking root.'**
+  String get homeThanksWeekOne;
+
+  /// No description provided for @homeThanksWeekTwo.
+  ///
+  /// In en, this message translates to:
+  /// **'Two weeks of care. Your glow is becoming visible.'**
+  String get homeThanksWeekTwo;
+
+  /// No description provided for @homeThanksWeekThree.
+  ///
+  /// In en, this message translates to:
+  /// **'Three weeks. This ritual is now part of you.'**
+  String get homeThanksWeekThree;
+
+  /// No description provided for @homeThanksCycleComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'You completed your 30-day journey. Thank you for trusting the process.'**
+  String get homeThanksCycleComplete;
+
+  /// No description provided for @homeProgressTodayCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}/4 TODAY'**
+  String homeProgressTodayCount(int count);
+
+  /// No description provided for @homeProgressShortMerkaba.
+  ///
+  /// In en, this message translates to:
+  /// **'Merkaba'**
+  String get homeProgressShortMerkaba;
+
+  /// No description provided for @homeProgressShortFace.
+  ///
+  /// In en, this message translates to:
+  /// **'Face'**
+  String get homeProgressShortFace;
+
+  /// No description provided for @homeProgressShortBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Body'**
+  String get homeProgressShortBody;
+
+  /// No description provided for @homeProgressShortCrystal.
+  ///
+  /// In en, this message translates to:
+  /// **'Crystal'**
+  String get homeProgressShortCrystal;
+
+  /// No description provided for @homeProgressCompletedStepSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed today: {step}'**
+  String homeProgressCompletedStepSemantics(String step);
+
+  /// No description provided for @homeProgressYesterdayComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday\'s ritual was complete'**
+  String get homeProgressYesterdayComplete;
+
+  /// No description provided for @homeProgressYesterdayMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday missing: {steps}'**
+  String homeProgressYesterdayMissing(String steps);
+
+  /// No description provided for @historyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'YOUR RITUAL HISTORY'**
+  String get historyTitle;
+
+  /// No description provided for @historySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a day to see what you completed.'**
+  String get historySubtitle;
+
+  /// No description provided for @historyLegendComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete'**
+  String get historyLegendComplete;
+
+  /// No description provided for @historyLegendPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Partial'**
+  String get historyLegendPartial;
+
+  /// No description provided for @historyLegendNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Not done'**
+  String get historyLegendNone;
+
+  /// No description provided for @historyDayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Day {day}'**
+  String historyDayTitle(int day);
+
+  /// No description provided for @historyUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'This day has not arrived yet.'**
+  String get historyUpcoming;
+
+  /// No description provided for @historyStepDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get historyStepDone;
+
+  /// No description provided for @historyStepPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get historyStepPending;
+
+  /// No description provided for @historyCompletedDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} of {total} days complete'**
+  String historyCompletedDays(int count, int total);
+
+  /// No description provided for @historyNoCycle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your history appears once you begin your first ritual.'**
+  String get historyNoCycle;
+
+  /// No description provided for @cycleEndTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You completed your\n30-day journey'**
+  String get cycleEndTitle;
+
+  /// No description provided for @cycleEndSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} of {total} days with your full ritual. How would you like to continue?'**
+  String cycleEndSummary(int count, int total);
+
+  /// No description provided for @cycleEndRepeatTest.
+  ///
+  /// In en, this message translates to:
+  /// **'REPEAT THE TEST'**
+  String get cycleEndRepeatTest;
+
+  /// No description provided for @cycleEndChooseCrystal.
+  ///
+  /// In en, this message translates to:
+  /// **'CHOOSE A NEW CRYSTAL'**
+  String get cycleEndChooseCrystal;
+
+  /// No description provided for @cycleEndLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Decide later'**
+  String get cycleEndLater;
 
   /// No description provided for @homeYourCrystal.
   ///
@@ -1952,6 +2390,42 @@ abstract class AppLocalizations {
   /// **'Conscious breathing before sleep'**
   String get profileReminderEveningDetail;
 
+  /// No description provided for @notificationMorningTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your morning ritual awaits'**
+  String get notificationMorningTitle;
+
+  /// No description provided for @notificationMorningBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Merkaba, facial and body ritual, and your crystal. A few minutes just for you.'**
+  String get notificationMorningBody;
+
+  /// No description provided for @notificationEveningTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Evening reflection'**
+  String get notificationEveningTitle;
+
+  /// No description provided for @notificationEveningBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Breathe slowly and close your day with calm.'**
+  String get notificationEveningBody;
+
+  /// No description provided for @profileReminderTimeSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} time, {time}. Double tap to change'**
+  String profileReminderTimeSemantics(String title, String time);
+
+  /// No description provided for @profileDefaultAvatarSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile photo not set'**
+  String get profileDefaultAvatarSemantics;
+
   /// No description provided for @profileReminderSemantics.
   ///
   /// In en, this message translates to:
@@ -1981,6 +2455,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Privacy'**
   String get profilePrivacy;
+
+  /// No description provided for @privacyScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'PRIVACY'**
+  String get privacyScreenTitle;
+
+  /// No description provided for @privacyScreenSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What Hikaru keeps, and why.'**
+  String get privacyScreenSubtitle;
+
+  /// No description provided for @privacyPhotoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your face photo'**
+  String get privacyPhotoTitle;
+
+  /// No description provided for @privacyPhotoBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Used to personalize your facial ritual and your profile picture. You can replace it any time from your details.'**
+  String get privacyPhotoBody;
+
+  /// No description provided for @privacyProfileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your name and profile'**
+  String get privacyProfileTitle;
+
+  /// No description provided for @privacyProfileBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Shown only inside your sanctuary to greet you.'**
+  String get privacyProfileBody;
+
+  /// No description provided for @privacyJourneyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your journey'**
+  String get privacyJourneyTitle;
+
+  /// No description provided for @privacyJourneyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your crystal, protocol and daily progress, so your 30-day cycle is here when you return.'**
+  String get privacyJourneyBody;
+
+  /// No description provided for @privacyRemindersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your reminders'**
+  String get privacyRemindersTitle;
+
+  /// No description provided for @privacyRemindersBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder times are used only to notify you of your rituals.'**
+  String get privacyRemindersBody;
 
   /// No description provided for @profileCycleTitle.
   ///
@@ -2480,6 +3014,30 @@ abstract class AppLocalizations {
   /// **'Integration and gratitude'**
   String get merkabaScene5Purpose;
 
+  /// No description provided for @massageTutorialTemple.
+  ///
+  /// In en, this message translates to:
+  /// **'THE CRYSTAL TUTORIAL'**
+  String get massageTutorialTemple;
+
+  /// No description provided for @massageTutorialSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'HIKARU LIFT RITUAL · TUTORIAL'**
+  String get massageTutorialSubtitle;
+
+  /// No description provided for @massageZoneTutorial.
+  ///
+  /// In en, this message translates to:
+  /// **'Tutorial'**
+  String get massageZoneTutorial;
+
+  /// No description provided for @massageInstructionTutorial.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch how to glide the crystal before you begin your frequency.'**
+  String get massageInstructionTutorial;
+
   /// No description provided for @massageFaceTemple.
   ///
   /// In en, this message translates to:
@@ -2642,11 +3200,11 @@ abstract class AppLocalizations {
   /// **'Forehead'**
   String get massageZoneForehead;
 
-  /// No description provided for @massageZoneGlutes.
+  /// No description provided for @massageZoneBody.
   ///
   /// In en, this message translates to:
-  /// **'Glutes'**
-  String get massageZoneGlutes;
+  /// **'Body'**
+  String get massageZoneBody;
 
   /// No description provided for @massageZoneLegs.
   ///
@@ -2696,11 +3254,11 @@ abstract class AppLocalizations {
   /// **'Glide Hikaru from the brows upward to the hairline, then out to the temples.'**
   String get massageInstructionForehead;
 
-  /// No description provided for @massageInstructionGlutes.
+  /// No description provided for @massageInstructionBody.
   ///
   /// In en, this message translates to:
-  /// **'Sweep Hikaru upward from the base of the glutes toward the hips.'**
-  String get massageInstructionGlutes;
+  /// **'Sweep Hikaru upward along the arms and hips, one side at a time.'**
+  String get massageInstructionBody;
 
   /// No description provided for @massageInstructionLegs.
   ///
@@ -2906,6 +3464,24 @@ abstract class AppLocalizations {
   /// **'Close'**
   String get tutorialClose;
 
+  /// No description provided for @cymaticRewind.
+  ///
+  /// In en, this message translates to:
+  /// **'Back 10 seconds'**
+  String get cymaticRewind;
+
+  /// No description provided for @cymaticProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Frequency progress'**
+  String get cymaticProgress;
+
+  /// No description provided for @cymaticProgressValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{elapsed} of {total}'**
+  String cymaticProgressValue(String elapsed, String total);
+
   /// Accessibility label of the stop button shown over the cymatic projection when the screen is tapped.
   ///
   /// In en, this message translates to:
@@ -2929,6 +3505,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'COMPLETE MY RITUAL'**
   String get resonanceCompleteRitual;
+
+  /// No description provided for @resonanceExploreMeaning.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore the meaning of crystals'**
+  String get resonanceExploreMeaning;
+
+  /// No description provided for @templesChangeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change your crystal?'**
+  String get templesChangeTitle;
+
+  /// No description provided for @templesChangeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your ritual will move from {from} to {to}.'**
+  String templesChangeBody(String from, String to);
+
+  /// No description provided for @templesChangeConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'CHANGE CRYSTAL'**
+  String get templesChangeConfirm;
+
+  /// No description provided for @templesChangeCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep {current}'**
+  String templesChangeCancel(String current);
 
   /// Secondary button of the closing screen: opens the Four Temples map.
   ///

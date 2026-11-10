@@ -19,6 +19,7 @@ import '../../journey/application/ritual_cycle_controller.dart';
 import '../application/member_profile_controller.dart';
 import '../application/ritual_reminders_controller.dart';
 import '../data/member_profile_repository.dart';
+import 'default_avatar.dart';
 
 const Color _ink = AppColors.white;
 const Color _accent = AppColors.champagneGold;
@@ -132,10 +133,7 @@ class MemberCard extends ConsumerWidget {
                 ),
                 child: ClipOval(
                   child: photo == null
-                      ? Image.asset(
-                          'assets/images/profile_portrait.png',
-                          fit: BoxFit.cover,
-                        )
+                      ? const DefaultAvatar()
                       : Image.memory(
                           photo,
                           fit: BoxFit.cover,
@@ -188,35 +186,40 @@ class MemberCard extends ConsumerWidget {
   }
 }
 
-typedef _Reminder = ({String icon, String title, String detail, String time});
+typedef _Reminder = ({
+  String icon,
+  String title,
+  String detail,
+  TimeOfDay time,
+  ValueChanged<TimeOfDay> onTimeChanged,
+});
 
 class RitualRemindersCard extends ConsumerWidget {
   const RitualRemindersCard({super.key});
 
-  /// Times are sample values until reminders are configurable.
-  static List<_Reminder> _reminders(AppLocalizations l10n) => [
-    (
-      icon: 'assets/images/profile_sunrise.svg',
-      title: l10n.profileReminderMorningTitle,
-      detail: l10n.profileReminderMorningDetail,
-      time: '08:00 AM',
-    ),
-    (
-      icon: 'assets/images/profile_moon.svg',
-      title: l10n.profileReminderEveningTitle,
-      detail: l10n.profileReminderEveningDetail,
-      time: '09:30 PM',
-    ),
-  ];
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final reminders = _reminders(l10n);
     final enabled =
         ref.watch(ritualRemindersControllerProvider).value ??
         RitualReminders.defaults;
     final controller = ref.read(ritualRemindersControllerProvider.notifier);
+    final List<_Reminder> reminders = [
+      (
+        icon: 'assets/images/profile_sunrise.svg',
+        title: l10n.profileReminderMorningTitle,
+        detail: l10n.profileReminderMorningDetail,
+        time: enabled.morningTime,
+        onTimeChanged: controller.setMorningTime,
+      ),
+      (
+        icon: 'assets/images/profile_moon.svg',
+        title: l10n.profileReminderEveningTitle,
+        detail: l10n.profileReminderEveningDetail,
+        time: enabled.eveningTime,
+        onTimeChanged: controller.setEveningTime,
+      ),
+    ];
     final states = [enabled.morning, enabled.evening];
     final toggles = [controller.setMorning, controller.setEvening];
 
@@ -287,9 +290,10 @@ class _ReminderRow extends StatelessWidget {
             ],
           ),
         ),
-        Text(
-          reminder.time,
-          style: _cardText.copyWith(fontSize: AppFontSizes.s9_5),
+        _ReminderTime(
+          title: reminder.title,
+          time: reminder.time,
+          onChanged: reminder.onTimeChanged,
         ),
         const SizedBox(width: AppSpacing.s4),
         Semantics(
@@ -312,6 +316,100 @@ class _ReminderRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// The reminder time as a gold pill. Tapping it opens the time picker.
+class _ReminderTime extends StatelessWidget {
+  const _ReminderTime({
+    required this.title,
+    required this.time,
+    required this.onChanged,
+  });
+
+  final String title;
+  final TimeOfDay time;
+  final ValueChanged<TimeOfDay> onChanged;
+
+  Future<void> _pick(BuildContext context) async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: time,
+      helpText: title.toUpperCase(),
+      builder: (context, child) => Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: const ColorScheme.dark(
+            primary: AppColors.champagneGold,
+            onPrimary: AppColors.darkIndigoBlue,
+            surface: AppColors.darkIndigoBlue,
+            onSurface: AppColors.white,
+            secondary: AppColors.champagneGold,
+            onSecondary: AppColors.darkIndigoBlue,
+            tertiary: AppColors.champagneGold,
+            onTertiary: AppColors.darkIndigoBlue,
+          ),
+          timePickerTheme: TimePickerThemeData(
+            dayPeriodColor: WidgetStateColor.resolveWith(
+              (states) => states.contains(WidgetState.selected)
+                  ? AppColors.champagneGold
+                  : AppColors.transparent,
+            ),
+            dayPeriodTextColor: WidgetStateColor.resolveWith(
+              (states) => states.contains(WidgetState.selected)
+                  ? AppColors.darkIndigoBlue
+                  : AppColors.white,
+            ),
+            dayPeriodBorderSide: BorderSide(
+              color: AppColors.champagneGold.withValues(alpha: 0.6),
+            ),
+          ),
+        ),
+        child: child ?? const SizedBox.shrink(),
+      ),
+    );
+    if (picked != null && picked != time) onChanged(picked);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final label = MaterialLocalizations.of(context).formatTimeOfDay(time);
+    return Semantics(
+      button: true,
+      label: AppLocalizations.of(
+        context,
+      ).profileReminderTimeSemantics(title, label),
+      excludeSemantics: true,
+      child: Material(
+        color: AppColors.transparent,
+        shape: StadiumBorder(
+          side: BorderSide(color: _accent.withValues(alpha: 0.6), width: 0.8),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () => _pick(context),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 36),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.s10,
+                vertical: AppSpacing.s6,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    label,
+                    style: _cardText.copyWith(fontSize: AppFontSizes.s11),
+                  ),
+                  const SizedBox(width: AppSpacing.s4),
+                  const Icon(Icons.schedule, size: 13, color: _accent),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -340,7 +438,7 @@ class DataPrivacyCard extends StatelessWidget {
             button: true,
             label: l10n.profilePrivacyOpenSemantics,
             child: TextButton(
-              onPressed: () {},
+              onPressed: () => context.push(AppRoutes.profilePrivacy),
               style: TextButton.styleFrom(
                 foregroundColor: _accent,
                 padding: EdgeInsets.zero,

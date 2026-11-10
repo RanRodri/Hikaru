@@ -288,6 +288,12 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
           action: l10n.resetSignIn,
           onPressed: _busy ? null : _handleSignIn,
         ),
+        // Someone who never registered often lands here by mistake.
+        AuthSwitchPrompt(
+          prompt: l10n.resetNoAccount,
+          action: l10n.resetCreateAccount,
+          onPressed: _busy ? null : () => context.push(AppRoutes.register),
+        ),
       ],
     );
   }
